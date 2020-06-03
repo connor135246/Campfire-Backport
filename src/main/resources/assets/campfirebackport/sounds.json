@@ -1,0 +1,14 @@
+{
+  "block.campfire.crackle": {
+    "category": "block",
+    "sounds": 
+	[
+      "block/crackle1",
+      "block/crackle2",
+      "block/crackle3",
+      "block/crackle4",
+      "block/crackle5",
+      "block/crackle6"
+    ]
+  }
+}

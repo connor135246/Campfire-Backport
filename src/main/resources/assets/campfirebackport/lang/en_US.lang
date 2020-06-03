@@ -1,0 +1,4 @@
+tile.campfire_base.name=Campfire Base
+tile.campfire.name=Campfire
+
+container.campfire=Cook Stuff

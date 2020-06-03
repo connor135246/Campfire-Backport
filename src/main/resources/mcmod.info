@@ -1,0 +1,16 @@
+[
+{
+  "modid": "campfirebackport",
+  "name": "Campfire Backport",
+  "description": "adds campfires from minecraft 1.14, with some config options",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["connor135246"],
+  "credits": "so many githubs and modding tutorials, and also mcg",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

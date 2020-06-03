@@ -1,0 +1,11 @@
+/.gradle
+/.settings
+/build
+/bin
+/eclipse
+/gradle
+/lib
+/testingclasses
+.classpath
+.project
+README.txt
