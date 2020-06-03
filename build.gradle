@@ -17,7 +17,11 @@ buildscript {
 
 apply plugin: 'forge'
 
+<<<<<<< Updated upstream
 version = "1.7.10-1.2-NM"
+=======
+version = "1.7.10-1.3"
+>>>>>>> Stashed changes
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
