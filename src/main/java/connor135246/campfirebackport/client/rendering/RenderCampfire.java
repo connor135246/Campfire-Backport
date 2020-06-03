@@ -122,8 +122,6 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                     RenderItem.renderInFrame = true;
                     GL11.glDisable(GL11.GL_LIGHTING);
 
-                    // GL11.glTranslatef(0.5F, 0.44F, 0.5F);
-
                     double[] position = getRenderPositionFromRenderSlot(renderSlot, false);
                     GL11.glTranslated(position[0] + x, position[1] + y, position[2] + z);
 
@@ -153,7 +151,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
     /**
      * Returns the mapping of inventory slots to render slots based on block metadata. This is so that inventory slots are always rendered counterclockwise starting with the front
      * right, no matter which direction the block is facing. See {@link #getRenderPositionFromRenderSlot(int, boolean) getRenderPositionFromRenderSlot} for an explanation of the
-     * render slot.
+     * render slot. Block metadata is just the direction the player was facing when placing the block. South = 2, North = 3, East = 4, West = 5.
      * 
      * @param meta
      *            - the metadata of the block

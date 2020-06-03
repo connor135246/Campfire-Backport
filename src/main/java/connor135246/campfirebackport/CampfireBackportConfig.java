@@ -15,6 +15,7 @@ import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
@@ -35,15 +36,20 @@ public class CampfireBackportConfig
     public static boolean startUnlit;
     public static boolean maintainState;
     public static boolean silkRequired;
+    public static boolean dispenserBehaviours;
+    public static String[] dispenserBehavioursBlacklistStrings;
+    public static String[] dispenserBehavioursWhitelist;
     public static String[] recipeList;
     public static String[] autoBlacklistStrings;
     public static boolean printCampfireRecipes;
+    public static boolean printDispenserBehaviours;
 
     // public static final String[] defaultRecipeList = new String[0];
     public static final String[] defaultRecipeList = new String[] { "minecraft:porkchop/minecraft:cooked_porkchop", "minecraft:beef/minecraft:cooked_beef",
             "minecraft:chicken/minecraft:cooked_chicken", "minecraft:potato/minecraft:baked_potato",
             "minecraft:fish:0/minecraft:cooked_fished:0", "minecraft:fish:1/minecraft:cooked_fished:1" };
 
+    public static ArrayList<Item> dispenserBehavioursBlacklistItems = new ArrayList<Item>();
     public static ArrayList<CampfireRecipe> autoRecipeList = new ArrayList<CampfireRecipe>();
     public static ArrayList<ItemStack> autoBlacklistStacks = new ArrayList<ItemStack>();
 
@@ -52,7 +58,9 @@ public class CampfireBackportConfig
         String cat = Configuration.CATEGORY_GENERAL;
 
         Pattern recipePat = Pattern.compile("(\\w+:\\w+)(:\\d+)?\\/(\\w+:\\w+)(:\\d+)?(@\\d+)?(\\/\\d+)?");
-        Pattern blacklistPat = Pattern.compile("(\\w+:\\w+)(:\\d+)?");
+        Pattern itemMetaPat = Pattern.compile("(\\w+:\\w+)(:\\d+)?");
+        Pattern itemPat = Pattern.compile("(\\w+:\\w+)");
+        Pattern behavPat = Pattern.compile("(\\w+:\\w+)/(shovel|sword)");
 
         charcoalOnly = config.get(cat, "Charcoal Only", false,
                 "If true, campfires can only be crafted using charcoal. "
@@ -87,7 +95,7 @@ public class CampfireBackportConfig
         autoBlacklistStrings = config.get(cat, "Automatic Recipe Discovery Blacklist", new String[] {},
                 "Prevents Automatic Recipe Discovery from adding furnace recipes that use these inputs to the recipe list. It's pattern validated. "
                         + "Format is modid:name or modid:name:meta. If meta is not given, it defaults to 0.",
-                blacklistPat)
+                itemMetaPat)
                 .getStringList();
 
         recipeList = config.get(cat, "Custom Recipes", defaultRecipeList,
@@ -121,9 +129,33 @@ public class CampfireBackportConfig
                 "If false, campfires won't need Silk Touch to drop themselves when broken.")
                 .getBoolean();
 
+        dispenserBehaviours = config.get(cat, "Dispenser Behaviours", true,
+                "If true, dispensers will have added behaviours for shovels (putting out campfires) and swords (lighting campfires if enchanted with Fire Aspect). "
+                        + "Note that this is accomplished by searching through every ItemSpade and ItemSword and adding those to the dispenser behaviour registry. "
+                        + "If another mod adds dispenser behaviours to its tools and it causes a conflict, add the item to the Dispenser Behaviour Blacklist.")
+                .setRequiresMcRestart(true).getBoolean();
+
+        dispenserBehavioursBlacklistStrings = config.get(cat, "Dispenser Behaviours Blacklist", new String[] {},
+                "Prevents these items from receiving dispenser behaviours when Dispenser Behaviours is true. It's pattern validated. "
+                        + "Format is modid:name.",
+                itemPat)
+                .setRequiresMcRestart(true).getStringList();
+
+        dispenserBehavioursWhitelist = config.get(cat, "Dispenser Behaviours Whitelist", new String[] {},
+                "Adds dispenser behaviours to these items when Dispenser Behaviours is true. Overwrites existing behaviours. "
+                        + "It's pattern validated. Format is modid:name/shovel or modid:name/sword. "
+                        + "Note that the sword behaviour requires the item to be enchanted with Fire Aspect.",
+                behavPat)
+                .setRequiresMcRestart(true)
+                .getStringList();
+
         printCampfireRecipes = config.get(cat, "#Debug: Print Campfire Recipes", false,
                 "If true, prints the final list of campfire recipes on config (re)load. Use this to make sure everything worked.")
                 .getBoolean();
+
+        printDispenserBehaviours = config.get(cat, "#Debug: Print Dispenser Behaviours", false,
+                "If true, prints each item that was given a dispenser behaviour when launching. Use this to make sure everything worked.")
+                .setRequiresMcRestart(true).getBoolean();
 
         //
 
@@ -197,6 +229,15 @@ public class CampfireBackportConfig
             }
             theList.addAll(autoRecipeList);
 
+        }
+
+        // dispenserBehavioursBlacklistStrings
+        dispenserBehavioursBlacklistItems.clear();
+        for (String input : dispenserBehavioursBlacklistStrings)
+        {
+            Item item = CampfireRecipe.parseItemStack(input).getItem();
+            if (item != null)
+                dispenserBehavioursBlacklistItems.add(item);
         }
 
         // printCampfireRecipes
