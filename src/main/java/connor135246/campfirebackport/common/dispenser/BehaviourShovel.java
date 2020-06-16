@@ -10,7 +10,6 @@ import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class BehaviourShovel extends BehaviorDefaultDispenseItem
 {
@@ -30,13 +29,12 @@ public class BehaviourShovel extends BehaviorDefaultDispenseItem
             BlockCampfire cblock = (BlockCampfire) block;
             if (cblock.isLit())
             {
-                cblock.updateCampfireBlockState(false, world, i, j, k);
-                stack.attemptDamageItem(1, new Random());
+                BlockCampfire.updateCampfireBlockState(false, world, i, j, k, cblock.getType());
+                if (stack.attemptDamageItem(1, new Random()))
+                    stack.stackSize = 0;
             }
             return stack;
-
         }
-
         return super.dispenseStack(sourceblock, stack);
     }
 

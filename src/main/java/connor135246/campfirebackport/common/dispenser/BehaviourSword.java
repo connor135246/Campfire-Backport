@@ -32,11 +32,11 @@ public class BehaviourSword extends BehaviorDefaultDispenseItem
                 BlockCampfire cblock = (BlockCampfire) block;
                 if (!cblock.isLit())
                 {
-                    cblock.updateCampfireBlockState(true, world, i, j, k);
-                    stack.attemptDamageItem(1, new Random());
+                    BlockCampfire.updateCampfireBlockState(true, world, i, j, k, cblock.getType());
+                    if (stack.attemptDamageItem(1, new Random()))
+                        stack.stackSize = 0;
                 }
                 return stack;
-
             }
         }
         return super.dispenseStack(sourceblock, stack);

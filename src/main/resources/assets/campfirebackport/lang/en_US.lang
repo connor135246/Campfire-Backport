@@ -1,4 +1,6 @@
 tile.campfire_base.name=Campfire Base
 tile.campfire.name=Campfire
+tile.soul_campfire_base.name=Soul Campfire Base
+tile.soul_campfire.name=Soul Campfire
 
 container.campfire=Cook Stuff

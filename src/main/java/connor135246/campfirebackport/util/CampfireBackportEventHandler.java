@@ -3,9 +3,11 @@ package connor135246.campfirebackport.util;
 import org.lwjgl.opengl.GL11;
 
 import connor135246.campfirebackport.CampfireBackport;
+import connor135246.campfirebackport.CampfireBackportConfig;
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
 import connor135246.campfirebackport.common.CommonProxy;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -43,6 +45,17 @@ public class CampfireBackportEventHandler
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event)
     {
         if (event.modID.equals(Reference.MODID))
-            CommonProxy.syncConfig();
+        {
+            if (!CommonProxy.useDefaultConfig)
+            {
+                CommonProxy.syncConfig();
+            }
+            else
+            {
+                CommonProxy.modlog.warn("You had an old (v1.3 or earlier) config file on game load! Config settings have changed a lot since then!");
+                CommonProxy.modlog.warn("Delete or rename the old config file, then restart minecraft to get a new one.");
+                CommonProxy.modlog.warn("No settings will be saved from the in-game config screen.");
+            }
+        }
     }
 }

@@ -1,10 +1,12 @@
 package connor135246.campfirebackport.common;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Random;
 
 import org.apache.logging.log4j.Logger;
+
+import com.google.common.io.Files;
 
 import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.CampfireBackportConfig;
@@ -23,16 +25,11 @@ import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -41,6 +38,7 @@ public class CommonProxy
 {
 
     public static Configuration config;
+    public static boolean useDefaultConfig = false;
 
     public static CampfireBackportEventHandler handler = new CampfireBackportEventHandler();
 
@@ -54,6 +52,25 @@ public class CommonProxy
         FMLCommonHandler.instance().bus().register(handler);
 
         modlog = event.getModLog();
+
+        // old (pre-1.4) config is very different
+        if (config.hasKey(Configuration.CATEGORY_GENERAL, "Regen Level"))
+        {
+            try
+            {
+                modlog.info("Renaming old (v1.3 or earlier) config file, and creating a new one!");
+                Files.move(config.getConfigFile(), new File(config.getConfigFile().getCanonicalPath() + "_1.3"));
+                config = new Configuration(event.getSuggestedConfigurationFile());
+            }
+            catch (Exception e)
+            {
+                modlog.catching(e);
+                modlog.error("Failed to rename old (v1.3 or earlier) config file. Config will be loaded from default settings instead.");
+                modlog.error("Delete or rename the old config file, then restart minecraft to get a new one.");
+                modlog.error("No settings will be saved from the in-game config screen.");
+                useDefaultConfig = true;
+            }
+        }
 
         CampfireBackportBlocks.preInit();
         GameRegistry.registerTileEntity(TileEntityCampfire.class, Reference.MODID + ":" + "campfire");
@@ -76,16 +93,20 @@ public class CommonProxy
     {
         try
         {
-            FMLCommonHandler.instance().bus().register(CampfireBackport.instance);
-            CampfireBackportConfig.doConfig(config);
+            if (!useDefaultConfig)
+            {
+                FMLCommonHandler.instance().bus().register(CampfireBackport.instance);
+                CampfireBackportConfig.doConfig(config);
+                config.save();
+            }
+            else
+            {
+                CampfireBackportConfig.doDefaultConfig();
+            }
         }
         catch (Exception excep)
         {
-            excep.printStackTrace();
-        }
-        finally
-        {
-            config.save();
+            modlog.catching(excep);
         }
     }
 
@@ -126,7 +147,7 @@ public class CommonProxy
 
             }
         }
-        
+
         for (String witem : CampfireBackportConfig.dispenserBehavioursWhitelist)
         {
             String[] segment = witem.split("/");
@@ -140,7 +161,7 @@ public class CommonProxy
                     if (print)
                         modlog.info("Dispenser Behaviour (Shovel) added to: " + item.getItemStackDisplayName(new ItemStack(item)));
                 }
-                else //if (segment[1].equals("sword"))
+                else // if (segment[1].equals("sword"))
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(item, new BehaviourSword());
                     if (print)
@@ -148,7 +169,7 @@ public class CommonProxy
                 }
                 continue;
             }
-            
+
             Block block = blockreg.getObject(segment[0]);
 
             if (block != Blocks.air)
@@ -159,7 +180,7 @@ public class CommonProxy
                     if (print)
                         modlog.info("Dispenser Behaviour (Shovel) added to: " + item.getItemStackDisplayName(new ItemStack(block)));
                 }
-                else //if (segment[1].equals("sword"))
+                else // if (segment[1].equals("sword"))
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(block, new BehaviourSword());
                     if (print)
@@ -167,12 +188,12 @@ public class CommonProxy
                 }
             }
         }
-        
+
     }
 
     public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire)
     {
         ;
     }
-    
+
 }

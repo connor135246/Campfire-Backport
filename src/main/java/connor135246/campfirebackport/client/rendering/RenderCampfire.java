@@ -5,10 +5,11 @@ import org.lwjgl.opengl.GL11;
 import connor135246.campfirebackport.client.models.ModelCampfire;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
+import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
-import net.minecraft.client.Minecraft;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -16,10 +17,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 public class RenderCampfire extends TileEntitySpecialRenderer
 {
@@ -57,14 +55,17 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         TileEntityCampfire tilecamp = (TileEntityCampfire) tileent;
 
         boolean lit = true;
+        String type = EnumCampfireType.REGULAR;
         int dir = 2;
-        int animTimer = tilecamp.getAnimTimer();
+        int animTimer = 0;
         boolean renderItems = false;
 
         if (tilecamp.hasWorldObj())
         {
-            dir = tilecamp.getBlockMetadata();
-            lit = ((BlockCampfire) tilecamp.getBlockType()).isLit();
+            lit = tilecamp.getThisLit();
+            type = tilecamp.getThisType();
+            dir = tilecamp.getThisMeta();
+            animTimer = tilecamp.getAnimTimer();// < 0 ? 0 : tilecamp.getAnimTimer();
             renderItems = true;
         }
         // else
@@ -94,7 +95,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         GL11.glRotatef(angle, 0.0F, 1.0F, 0.0F);
 
         if (lit)
-            bindTexture(getTextureLit((animTimer % 15) / 2));
+            bindTexture(getTextureLit((animTimer % 31) / 2, type));
         else
             bindTexture(TEXTURE_BASE);
 
@@ -142,10 +143,10 @@ public class RenderCampfire extends TileEntitySpecialRenderer
 
     }
 
-    public ResourceLocation getTextureLit(int index)
+    public ResourceLocation getTextureLit(int index, String type)
     {
-        return new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_tile" + index + ".png");
-
+        return type.equals(EnumCampfireType.SOUL) ? new ResourceLocation(Reference.MODID + ":" + "textures/blocks/soul_campfire_tile" + index + ".png")
+                : new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_tile" + index + ".png");
     }
 
     /**

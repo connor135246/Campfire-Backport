@@ -2,7 +2,7 @@
 {
   "modid": "campfirebackport",
   "name": "Campfire Backport",
-  "description": "adds campfires from minecraft 1.14, with some config options",
+  "description": "adds campfires & soul campfires from modern minecraft, with some config options",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",

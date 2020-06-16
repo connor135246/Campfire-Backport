@@ -1,6 +1,5 @@
 package connor135246.campfirebackport.mixin;
 
-import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,18 +28,16 @@ public abstract class MixinEntityPotion extends EntityThrowable
         int y = mop.blockY;
         int z = mop.blockZ;
 
-        int[][] posArray = new int[][] {{x, y, z}, {x + 1, y + 1, z}, {x - 1, y + 1, z}, {x, y + 1, z + 1}, {x, y + 1, z - 1}};
+        int[][] posArray = new int[][] { { x, y, z }, { x, y + 1, z }, { x + 1, y + 1, z }, { x - 1, y + 1, z }, { x, y + 1, z + 1 }, { x, y + 1, z - 1 } };
 
         for (int[] check : posArray)
         {
             Block block = this.worldObj.getBlock(check[0], check[1], check[2]);
-            
+
             if (block instanceof BlockCampfire)
             {
                 if (((BlockCampfire) block).isLit())
-                {
-                    ((BlockCampfire) block).updateCampfireBlockState(false, worldObj, check[0], check[1], check[2]);
-                }
+                    BlockCampfire.updateCampfireBlockState(false, worldObj, check[0], check[1], check[2], ((BlockCampfire) block).getType());
             }
         }
     }

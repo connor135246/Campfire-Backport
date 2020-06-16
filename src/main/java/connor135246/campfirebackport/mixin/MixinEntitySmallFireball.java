@@ -43,7 +43,7 @@ public abstract class MixinEntitySmallFireball extends EntityFireball
             {
                 if (!((BlockCampfire) block).isLit())
                 {
-                    BlockCampfire.updateCampfireBlockState(true, worldObj, x, y, z);
+                    BlockCampfire.updateCampfireBlockState(true, worldObj, x, y, z, ((BlockCampfire)block).getType());
                     this.setDead();
                     ci.cancel();
                 }
