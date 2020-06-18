@@ -185,7 +185,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
                 updateCampfireBlockState(true, world, x, y, z, this.type);
 
                 if (!player.capabilities.isCreativeMode)
-                    player.getCurrentEquippedItem().attemptDamageItem(1, RAND);
+                    player.getCurrentEquippedItem().damageItem(1, player);
             }
         }
     }
