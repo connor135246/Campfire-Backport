@@ -10,7 +10,6 @@ import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockHay;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
@@ -28,7 +27,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import net.minecraftforge.oredict.OreDictionary;
 
 public class BlockCampfire extends Block implements ITileEntityProvider
 {
@@ -259,8 +257,9 @@ public class BlockCampfire extends Block implements ITileEntityProvider
             {
                 world.playSoundEffect((double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
 
-                world.setBlock(x, y, z, (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire : CampfireBackportBlocks.soul_campfire));
-                
+                world.setBlock(x, y, z,
+                        (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire : CampfireBackportBlocks.soul_campfire));
+
                 TileEntityCampfire.checkSignal(world, x, y, z, tilecamp);
             }
             else
@@ -277,7 +276,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
 
             stateChanging = false;
             world.setBlockMetadataWithNotify(x, y, z, meta, 3);
-            
+
             if (tilecamp != null)
             {
                 tilecamp.validate();
@@ -361,17 +360,14 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         if (CampfireBackportConfig.silkNeeded.matches(this))
         {
             if (checkType(EnumCampfireType.SOUL))
-                drops.add(new ItemStack(Blocks.soul_sand));
+                drops.add(new ItemStack(CampfireBackportConfig.soulSoil == Blocks.air ? Blocks.soul_sand : CampfireBackportConfig.soulSoil));
             else
                 drops.add(new ItemStack(Items.coal, 2, 1));
-
-            return drops;
         }
         else
-        {
             drops.add(new ItemStack(getCampfireBlockItem(), 1, 0));
-            return drops;
-        }
+
+        return drops;
     }
 
     /**

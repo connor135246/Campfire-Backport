@@ -12,6 +12,7 @@ import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.crafting.CampfireRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -52,9 +53,11 @@ public class CampfireBackportConfig
 
     // internal settings
     private static boolean initialLoad = true;
+    public static Block soulSoil;
 
     // config settings
     public static boolean charcoalOnly;
+    public static boolean soulSoilOnly;
 
     public static EnumCampfireType regenCampfires;
     public static int[] regularRegen;
@@ -115,6 +118,13 @@ public class CampfireBackportConfig
                 "If true, regular campfires can be crafted only using charcoal. "
                         + "In vanilla either coal or charcoal can be used, but breaking campfires always drops charcoal. "
                         + "If for some reason you don't want players to be able to turn coal into charcoal, turn this on.")
+                .setRequiresMcRestart(true).getBoolean();
+
+        soulSoilOnly = config.get(cat, "Soul Soil Only (Netherlicious)", false,
+                "If true, soul campfires can be crafted only using soul soil from Netherlicious. "
+                        + "In vanilla either soul sand or soul soil can be used, but breaking campfires always drops soul soil. "
+                        + "If for some reason you don't want players to be able to turn soul sand into soul soil, turn this on. "
+                        + "This won't do anything if Netherlicious isn't installed!")
                 .setRequiresMcRestart(true).getBoolean();
 
         regenCampfires = EnumCampfireType.campfireCheck.get(config.get(cat, "Regeneration Campfires", NEITHER,
@@ -245,13 +255,24 @@ public class CampfireBackportConfig
                                 new ItemStack(
                                         startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
                                 " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
-            
-            GameRegistry.addRecipe(
-                    new ShapedOreRecipe(
-                            new ItemStack(
-                                    startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
-                                            : CampfireBackportBlocks.soul_campfire),
-                            " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand, 1), 'C', "logWood"));            
+
+            soulSoil = GameData.getBlockRegistry().getObject("netherlicious:SoulSoil");
+
+            if (soulSoil != Blocks.air)
+                GameRegistry.addRecipe(
+                        new ShapedOreRecipe(
+                                new ItemStack(
+                                        startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
+                                                : CampfireBackportBlocks.soul_campfire),
+                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(soulSoil), 'C', "logWood"));
+
+            if (soulSoil == Blocks.air || !soulSoilOnly)
+                GameRegistry.addRecipe(
+                        new ShapedOreRecipe(
+                                new ItemStack(
+                                        startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
+                                                : CampfireBackportBlocks.soul_campfire),
+                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand), 'C', "logWood"));
         }
 
         // regularRecipeList & soulRecipeList & recipeListInheritance
