@@ -5,6 +5,7 @@
 /eclipse
 /gradle
 /lib
+/lib2
 /testingstuff
 .classpath
 .project

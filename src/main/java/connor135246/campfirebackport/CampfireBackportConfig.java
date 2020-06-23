@@ -2,6 +2,7 @@ package connor135246.campfirebackport;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.regex.Pattern;
@@ -12,6 +13,7 @@ import connor135246.campfirebackport.common.crafting.CampfireRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -20,6 +22,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
 public class CampfireBackportConfig
@@ -30,11 +33,25 @@ public class CampfireBackportConfig
     public static final String SOUL_ONLY = EnumCampfireType.SOUL_ONLY.toString();
     public static final String BOTH = EnumCampfireType.BOTH.toString();
 
+    public static final String[] regOrSoulSettings = new String[] { NEITHER, REG_ONLY, SOUL_ONLY, BOTH };
+
     public static final String[] defaultRecipeList = new String[] { "minecraft:porkchop/minecraft:cooked_porkchop", "minecraft:beef/minecraft:cooked_beef",
             "minecraft:chicken/minecraft:cooked_chicken", "minecraft:potato/minecraft:baked_potato",
             "minecraft:fish:0/minecraft:cooked_fished:0", "minecraft:fish:1/minecraft:cooked_fished:1" };
 
-    public static final String[] regOrSoulSettings = new String[] { NEITHER, REG_ONLY, SOUL_ONLY, BOTH };
+    public static final String customRecipesExplanation = "It's made of three sections, each separated by a /. "
+            + "First is the input, which can be modid:name:meta@number or ore:oreName@number. @number should be between 1 and 4. "
+            + "If :meta is not given, any meta is accepted. If @number is not given, it defaults to 1. "
+            + "Next is the output, which can be modid:name:meta@number. "
+            + "If :meta is not given, it defaults to 0. If @number is not given, it defaults to 1. "
+            + "The last part is the cooking time, which is optional. For inputs that are more than one item, all items must have reached this cooking time. "
+            + "If cooking time is not given, it defaults to 600. "
+            + "Check the console for error messages in case an item wasn't found. "
+            + "Note: recipes are given a priority based on their settings. Recipes created by Auto Recipe Discovery are lowest, followed by ore dictionary recipes, followed by recipes that specify an input meta, followed by recipes that specify an input size greater than 1. "
+            + "Check the order of your recipes by setting #Debug: Print Campfire Recipes to true. ";
+
+    // internal settings
+    private static boolean initialLoad = true;
 
     // config settings
     public static boolean charcoalOnly;
@@ -58,17 +75,26 @@ public class CampfireBackportConfig
 
     public static EnumCampfireType putOutByRain;
 
+    public static String[] signalFireStrings;
+
     public static boolean dispenserBehaviours;
     public static String[] dispenserBehavioursBlacklistStrings;
     public static String[] dispenserBehavioursWhitelist;
 
     public static boolean printCampfireRecipes;
     public static boolean printDispenserBehaviours;
+    public static boolean suppressInputErrors;
 
     // lists made from config settings
     public static ArrayList<Item> dispenserBehavioursBlacklistItems = new ArrayList<Item>();
+
     public static ArrayList<CampfireRecipe> autoRecipeList = new ArrayList<CampfireRecipe>();
+
     public static HashMap<Item, Integer> autoBlacklistStacks = new HashMap<Item, Integer>();
+    public static ArrayList<String> autoBlacklistOres = new ArrayList<String>();
+
+    public static HashMap<Block, Integer> signalFireBlocks = new HashMap<Block, Integer>();
+    public static ArrayList<String> signalFireOres = new ArrayList<String>();
 
     public static void doConfig(Configuration config)
     {
@@ -80,8 +106,8 @@ public class CampfireBackportConfig
     {
         String cat = Configuration.CATEGORY_GENERAL;
 
-        Pattern recipePat = Pattern.compile("(\\w+:\\w+)(:\\d+)?\\/(\\w+:\\w+)(:\\d+)?(@\\d+)?(\\/\\d+)?");
-        Pattern itemMetaPat = Pattern.compile("(\\w+:\\w+)(:\\d+)?");
+        Pattern recipePat = Pattern.compile("(((?!^ore:)(\\w+:\\w+)(:\\d+)?(@\\d+)?)|((^ore:)(\\w+)(@\\d+)?))\\/(\\w+:\\w+)(:\\d+)?(@\\d+)?(\\/\\d+)?");
+        Pattern itemMetaOrePat = Pattern.compile("((?!^ore:)(\\w+:\\w+)(:\\d+)?)|(^ore:\\w+)");
         Pattern itemPat = Pattern.compile("(\\w+:\\w+)");
         Pattern behavPat = Pattern.compile("(\\w+:\\w+)/(shovel|sword)");
 
@@ -105,7 +131,7 @@ public class CampfireBackportConfig
         regularRegen[0] = MathHelper.clamp_int(regularRegen[0], 0, 31);
         regularRegen[2] = MathHelper.clamp_int(regularRegen[2], 0, 100);
 
-        soulRegen = config.get(cat, "Regeneration Settings (Soul Campfires)", new int[] { 1, 50, 10, 700 },
+        soulRegen = config.get(cat, "Regeneration Settings (Soul Campfires)", new int[] { 1, 50, 10, 750 },
                 "First value is regen level, from 0 to 31.\n"
                         + "Second value is the timer on the regen effect to apply (in ticks).\n"
                         + "Third value is the radius from the campfire, from 0 to 100.\n"
@@ -120,34 +146,18 @@ public class CampfireBackportConfig
                 regOrSoulSettings).getString());
 
         autoBlacklistStrings = config.get(cat, "Auto Recipe Discovery Blacklist", new String[] {},
-                "Prevents Automatic Recipe Discovery from adding furnace recipes that use these inputs to the recipe list. It's pattern validated. "
-                        + "Format is modid:name or modid:name:meta. If meta is not given, all metas of the item are prevented.",
-                itemMetaPat)
+                "Prevents Auto Recipe Discovery from adding furnace recipes that use these inputs to the recipe list. It's pattern validated. "
+                        + "Format is ore:oreName or modid:name or modid:name:meta. If meta is not given, all metas of the item are blocked.",
+                itemMetaOrePat)
                 .getStringList();
 
         regularRecipeList = config.get(cat, "Custom Recipes (Regular)", defaultRecipeList,
-                "The list of custom recipes that work in the regular campfire. It's pattern validated. "
-                        + "Three sections, each separated by a /. "
-                        + "First is the input, which can be either modid:name or modid:name:meta. "
-                        + "If meta is not given, it defaults to 0. "
-                        + "Next is the output, which is the same as input, but you can add @number to the end to change the size of the output stack. "
-                        + "If @number is not given, it defaults to 1. "
-                        + "The last part is the cooking time, which is optional. It's the number of ticks until the item cooks. "
-                        + "If cooking time is not given, it defaults to 600. "
-                        + "Error messages will be printed in console if a recipe is invalid due to the given item not existing.",
+                "The list of custom recipes for the regular campfire. It's pattern validated. " + customRecipesExplanation,
                 recipePat)
                 .getStringList();
 
         soulRecipeList = config.get(cat, "Custom Recipes (Soul)", new String[] {},
-                "The list of custom recipes that work in the soul campfire. It's pattern validated. "
-                        + "Three sections, each separated by a /. "
-                        + "First is the input, which can be either modid:name or modid:name:meta. "
-                        + "If meta is not given, it defaults to 0. "
-                        + "Next is the output, which is the same as input, but you can add @number to the end to change the size of the output stack. "
-                        + "If @number is not given, it defaults to 1. "
-                        + "The last part is the cooking time, which is optional. It's the number of ticks until the item cooks. "
-                        + "If cooking time is not given, it defaults to 600. "
-                        + "Error messages will be printed in console if a recipe is invalid due to the given item not existing.",
+                "The list of custom recipes for the soul campfire. It's pattern validated. " + customRecipesExplanation,
                 recipePat)
                 .getStringList();
 
@@ -175,13 +185,19 @@ public class CampfireBackportConfig
                 regOrSoulSettings).getString());
 
         putOutByRain = EnumCampfireType.campfireCheck.get(config.get(cat, "Put Out by Rain", NEITHER,
-                "Campfires of this type will be put out by rain.",
+                "Campfires of this type will be put out by rain. It's rather slow...",
                 regOrSoulSettings).getString());
+
+        signalFireStrings = config.get(cat, "Signal Fire Blocks", new String[] { "minecraft:hay_block" },
+                "The list of blocks that, when placed below a campfire, make its particles go higher. It's pattern validated. "
+                        + "Format is ore:oreName or modid:name or modid:name:meta. If meta is not given, all metas of the block work.",
+                itemMetaOrePat)
+                .getStringList();
 
         dispenserBehaviours = config.get(cat, "Dispenser Behaviours", true,
                 "If true, dispensers will have added behaviours for shovels (putting out campfires) and swords (lighting campfires if enchanted with Fire Aspect). "
                         + "Note that this is accomplished by searching through every ItemSpade and ItemSword and adding those to the dispenser behaviour registry. "
-                        + "If another mod adds dispenser behaviours to its tools and this causes that behaviour to be overwritten, add the item to the Dispenser Behaviour Blacklist.")
+                        + "If another mod adds dispenser behaviours to its tools and this causes that behaviour to be overwritten, add the tool to the Dispenser Behaviour Blacklist.")
                 .setRequiresMcRestart(true).getBoolean();
 
         dispenserBehavioursBlacklistStrings = config
@@ -206,137 +222,178 @@ public class CampfireBackportConfig
         printDispenserBehaviours = config.get(cat, "#Debug: Print Dispenser Behaviours", false,
                 "If true, prints each item that was given a dispenser behaviour when launching. Use this to make sure everything worked.")
                 .setRequiresMcRestart(true).getBoolean();
+
+        suppressInputErrors = config.get(cat, "#Debug: Suppress Input Error Warnings", false,
+                "If true, warnings about invalid inputs for Custom Recipes, Auto Recipe Discovery Blacklist, Signal Fire Blocks, Dispenser Behaviours Blacklist, and Dispenser Behaviours Whitelist won't print to console.")
+                .getBoolean();
     }
 
     public static void setConfig()
     {
         // startUnlit & charcoalOnly
-        GameRegistry.addRecipe(
-                new ShapedOreRecipe(
-                        new ItemStack(startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
-                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
-
-        GameRegistry.addRecipe(
-                new ShapedOreRecipe(
-                        new ItemStack(
-                                startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base : CampfireBackportBlocks.soul_campfire),
-                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand, 1), 'C', "logWood"));
-
-        if (!charcoalOnly)
+        if (initialLoad)
+        {
             GameRegistry.addRecipe(
                     new ShapedOreRecipe(
                             new ItemStack(
                                     startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
-                            " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
+                            " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
+
+            if (!charcoalOnly)
+                GameRegistry.addRecipe(
+                        new ShapedOreRecipe(
+                                new ItemStack(
+                                        startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
+                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
+            
+            GameRegistry.addRecipe(
+                    new ShapedOreRecipe(
+                            new ItemStack(
+                                    startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
+                                            : CampfireBackportBlocks.soul_campfire),
+                            " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand, 1), 'C', "logWood"));            
+        }
 
         // regularRecipeList & soulRecipeList & recipeListInheritance
+        ArrayList<CampfireRecipe> masterList = CampfireRecipe.getMasterList();
+        masterList.clear();
+
+        if (printCampfireRecipes)
+            CommonProxy.modlog.info("Parsing custom recipes...");
+
+        if (recipeListInheritance.equals("soul inherits regular"))
+        {
+            for (String recipe : regularRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.BOTH);
+            for (String recipe : soulRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.SOUL_ONLY);
+        }
+        else if (recipeListInheritance.equals("regular inherits soul"))
+        {
+            for (String recipe : regularRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.REG_ONLY);
+            for (String recipe : soulRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.BOTH);
+        }
+        else
+        {
+            for (String recipe : regularRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.REG_ONLY);
+            for (String recipe : soulRecipeList)
+                CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.SOUL_ONLY);
+        }
+
+        // autoRecipe & autoBlacklistStrings
+        if (autoRecipe != EnumCampfireType.NEITHER)
+        {
+            if (printCampfireRecipes && autoBlacklistStrings.length != 0)
+                CommonProxy.modlog.info("Parsing Auto Recipe Discovery Blacklist...");
+
+            autoBlacklistStacks.clear();
+            autoBlacklistOres.clear();
+            for (String input : autoBlacklistStrings)
+            {
+                Object[] output = StringParsers.parseItemStackOrOre(input, 1);
+                if (output[0] != null)
+                {
+                    if (output[0] instanceof String)
+                        autoBlacklistOres.add((String) output[0]);
+                    else
+                        autoBlacklistStacks.put((Item) output[0], (Integer) output[2]);
+                }
+                else if (!suppressInputErrors)
+                    CommonProxy.modlog.warn("Auto Recipe Discovery Blacklist entry " + input + " was invalid!");
+            }
+
+            autoRecipeList.clear();
+
+            if (printCampfireRecipes)
+                CommonProxy.modlog.info("Discovering furnace recipes...");
+
+            Iterator inputsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().keySet()).iterator();
+            Iterator resultsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().values()).iterator();
+
+            iteratorLoop: while (resultsit.hasNext())
+            {
+                ItemStack inputstack = (ItemStack) inputsit.next();
+                ItemStack resultstack = (ItemStack) resultsit.next();
+
+                if (resultstack.getItem() instanceof ItemFood)
+                {
+                    if (autoBlacklistStacks.get(inputstack.getItem()) != null)
+                    {
+                        if (autoBlacklistStacks.get(inputstack.getItem()) == -1 || autoBlacklistStacks.get(inputstack.getItem()) == inputstack.getItemDamage())
+                            continue iteratorLoop;
+                    }
+                    else
+                    {
+                        for (int id : OreDictionary.getOreIDs(inputstack))
+                        {
+                            if (autoBlacklistOres.contains(OreDictionary.getOreName(id)))
+                                continue iteratorLoop;
+                        }
+                    }
+                    autoRecipeList.add(new CampfireRecipe(inputstack, resultstack, 600, autoRecipe));
+                }
+            }
+
+            if (printCampfireRecipes)
+                CommonProxy.modlog.info("Adding discovered furnace recipes to recipe list...");
+
+            for (CampfireRecipe foundCrecipe : autoRecipeList)
+            {
+                boolean addIt = true;
+                for (CampfireRecipe masterCrecipe : masterList)
+                {
+                    if (!masterCrecipe.isOreDictRecipe())
+                    {
+                        if (CampfireRecipe.doStackRecipesMatch(foundCrecipe, masterCrecipe))
+                        {
+                            addIt = false;
+                            break;
+                        }
+                    }
+                }
+                if (addIt)
+                    masterList.add(foundCrecipe);
+            }
+        }
+
+        if (printCampfireRecipes)
+            CommonProxy.modlog.info("Sorting final list of recipes...");
+
         ArrayList<CampfireRecipe> regList = CampfireRecipe.getRecipeList(EnumCampfireType.REGULAR);
         ArrayList<CampfireRecipe> soulList = CampfireRecipe.getRecipeList(EnumCampfireType.SOUL);
         regList.clear();
         soulList.clear();
 
-        if (printCampfireRecipes)
-            CommonProxy.modlog.info("Adding custom recipes to recipe lists...");
-
-        for (String recipe : regularRecipeList)
+        for (CampfireRecipe masterCrecipe : masterList)
         {
-            CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.REGULAR);
+            if (masterCrecipe.getTypes().matches(EnumCampfireType.REGULAR))
+                regList.add(masterCrecipe);
+            if (masterCrecipe.getTypes().matches(EnumCampfireType.SOUL))
+                soulList.add(masterCrecipe);
         }
 
-        for (String recipe : soulRecipeList)
+        Collections.sort(masterList);
+        Collections.sort(regList);
+        Collections.sort(soulList);
+
+        // signalFireStrings
+        signalFireBlocks.clear();
+        signalFireOres.clear();
+        for (String input : signalFireStrings)
         {
-            CampfireRecipe.addToRecipeList(recipe, EnumCampfireType.SOUL);
-        }
-
-        if (!recipeListInheritance.equals("no inheritance"))
-        {
-            if (recipeListInheritance.equals("soul inherits regular"))
+            Object[] output = StringParsers.parseBlockOrOre(input, 1);
+            if (output[0] != null)
             {
-                CampfireRecipe.addToRecipeList(regList, EnumCampfireType.SOUL);
+                if (output[0] instanceof String)
+                    signalFireOres.add((String) output[0]);
+                else
+                    signalFireBlocks.put((Block) output[0], (Integer) output[2]);
             }
-            else if (recipeListInheritance.equals("regular inherits soul"))
-            {
-                CampfireRecipe.addToRecipeList(soulList, EnumCampfireType.REGULAR);
-            }
-        }
-
-        // autoRecipe & autoBlacklistStrings
-        if (!autoRecipe.toString().equals(NEITHER))
-        {
-            autoBlacklistStacks.clear();
-            for (String input : autoBlacklistStrings)
-            {
-                Object[] output = StringParsers.parseItemAndMaybeMeta(input);
-                if (output[0] != null)
-                    autoBlacklistStacks.put((Item) output[0], (Integer) output[1]);
-            }
-
-            if (autoRecipeList.isEmpty() || !autoBlacklistStacks.isEmpty())
-            {
-                autoRecipeList.clear();
-
-                if (printCampfireRecipes)
-                    CommonProxy.modlog.info("Discovering furnace recipes...");
-
-                Iterator inputsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().keySet()).iterator();
-                Iterator resultsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().values()).iterator();
-
-                while (resultsit.hasNext())
-                {
-                    ItemStack inputstack = (ItemStack) inputsit.next();
-                    ItemStack resultstack = (ItemStack) resultsit.next();
-
-                    inputstack.setItemDamage(inputstack.getItemDamage() % 32767);
-                    resultstack.setItemDamage(resultstack.getItemDamage() % 32767);
-
-                    ItemStack[] frecipe = { inputstack, resultstack };
-
-                    if (frecipe[1].getItem() instanceof ItemFood)
-                    {
-                        if (autoBlacklistStacks.get(frecipe[0].getItem()) != null)
-                            if (autoBlacklistStacks.get(frecipe[0].getItem()) == frecipe[0].getItemDamage()
-                                    || autoBlacklistStacks.get(frecipe[0].getItem()) == -1)
-                                continue;
-
-                        autoRecipeList.add(new CampfireRecipe(new Object[] { frecipe[0], frecipe[1], 600 }));
-                    }
-                }
-            }
-
-            if (printCampfireRecipes)
-                CommonProxy.modlog.info("Adding discovered furnace recipes recipes to recipe lists...");
-
-            for (CampfireRecipe foundCrecipe : autoRecipeList)
-            {
-                if (autoRecipe.matches(EnumCampfireType.REGULAR))
-                {
-                    boolean addIt = true;
-                    for (CampfireRecipe regCrecipe : regList)
-                    {
-                        if (ItemStack.areItemStacksEqual(regCrecipe.getInput(), foundCrecipe.getInput()))
-                        {
-                            addIt = false;
-                            break;
-                        }
-                    }
-                    if (addIt)
-                        regList.add(foundCrecipe);
-                }
-                if (autoRecipe.matches(EnumCampfireType.SOUL))
-                {
-                    boolean addIt = true;
-                    for (CampfireRecipe soulCrecipe : soulList)
-                    {
-                        if (ItemStack.areItemStacksEqual(soulCrecipe.getInput(), foundCrecipe.getInput()))
-                        {
-                            addIt = false;
-                            break;
-                        }
-                    }
-                    if (addIt)
-                        soulList.add(foundCrecipe);
-                }
-            }
+            else if (!suppressInputErrors)
+                CommonProxy.modlog.warn("Signal Fire Blocks entry " + input + " was invalid!");
         }
 
         // dispenserBehavioursBlacklistStrings
@@ -344,25 +401,29 @@ public class CampfireBackportConfig
         {
             for (String input : dispenserBehavioursBlacklistStrings)
             {
-                Item item = (Item) StringParsers.parseItemAndMaybeMeta(input)[0];
+                Item item = (Item) StringParsers.parseItemAndMaybeMeta(input, 1)[0];
                 if (item != null)
                     dispenserBehavioursBlacklistItems.add(item);
+                else if (!suppressInputErrors)
+                    CommonProxy.modlog.warn("Dispenser Behaviours Blacklist entry " + input + " was invalid!");
             }
         }
 
         // printCampfireRecipes
         if (printCampfireRecipes)
         {
-            CommonProxy.modlog.info("Regular Campfire Recipes: ");
+            CommonProxy.modlog.info("-Regular Campfire Recipes: ");
             for (CampfireRecipe crecipe : regList)
                 CommonProxy.modlog.info(crecipe);
             CommonProxy.modlog.info("---");
 
-            CommonProxy.modlog.info("Soul Campfire Recipes: ");
+            CommonProxy.modlog.info("-Soul Campfire Recipes: ");
             for (CampfireRecipe crecipe : soulList)
                 CommonProxy.modlog.info(crecipe);
             CommonProxy.modlog.info("---");
         }
+
+        initialLoad = false;
     }
 
     public static void doDefaultConfig()
@@ -394,6 +455,9 @@ public class CampfireBackportConfig
 
         printCampfireRecipes = false;
         printDispenserBehaviours = false;
+        suppressInputErrors = false;
+
+        initialLoad = false;
 
         setConfig();
     }

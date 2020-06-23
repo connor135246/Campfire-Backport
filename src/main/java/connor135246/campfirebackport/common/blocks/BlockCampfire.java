@@ -28,6 +28,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class BlockCampfire extends Block implements ITileEntityProvider
 {
@@ -54,6 +55,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
     // metadata:
     // 2 5 3 4
     // S W N E
+    @Override
     public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack)
     {
         int facing = MathHelper.floor_double((double) (entity.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
@@ -75,11 +77,10 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         }
 
         if (stack.hasDisplayName())
-        {
             ((TileEntityCampfire) world.getTileEntity(x, y, z)).func_145951_a(stack.getDisplayName());
-        }
     }
 
+    @Override
     public void onBlockAdded(World world, int x, int y, int z)
     {
         super.onBlockAdded(world, x, y, z);
@@ -92,67 +93,35 @@ public class BlockCampfire extends Block implements ITileEntityProvider
             byte b0 = 3;
 
             if (block.func_149730_j() && !block1.func_149730_j())
-            {
                 b0 = 3;
-            }
 
             if (block1.func_149730_j() && !block.func_149730_j())
-            {
                 b0 = 2;
-            }
 
             if (block2.func_149730_j() && !block3.func_149730_j())
-            {
                 b0 = 5;
-            }
 
             if (block3.func_149730_j() && !block2.func_149730_j())
-            {
                 b0 = 4;
-            }
 
             world.setBlockMetadataWithNotify(x, y, z, b0, 2);
         }
     }
 
-    public void onPostBlockPlaced(World world, int x, int y, int z, int meta)
-    {
-        TileEntityCampfire tileent = (TileEntityCampfire) world.getTileEntity(x, y, z);
-        tileent.setThisLit(this.isLit());
-        tileent.setThisType(this.getType());
-        tileent.setThisMeta(world.getBlockMetadata(x, y, z));
-        checkSignal(world, x, y, z);
-    }
-
+    @Override
     public void onNeighborBlockChange(World world, int x, int y, int z, Block block)
     {
-        checkSignal(world, x, y, z);
+        if (isLit())
+            TileEntityCampfire.checkSignal(world, x, y, z);
     }
 
-    /**
-     * Checks if the block below is a hay bale, and updates the tile entity's signalFire state.
-     * 
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     */
-    public void checkSignal(World world, int x, int y, int z)
-    {
-        TileEntityCampfire tileent = (TileEntityCampfire) world.getTileEntity(x, y, z);
-        if (world.getBlock(x, y - 1, z) instanceof BlockHay)
-            tileent.setSignalFire(true);
-        else
-            tileent.setSignalFire(false);
-
-        tileent.markDirty();
-    }
-
+    @Override
     public TileEntity createNewTileEntity(World world, int meta)
     {
         return new TileEntityCampfire();
     }
 
+    @Override
     public boolean hasTileEntity(int meta)
     {
         return true;
@@ -171,11 +140,14 @@ public class BlockCampfire extends Block implements ITileEntityProvider
 
             else if (isLit() && !entity.isImmuneToFire() && entity instanceof EntityLivingBase)
             {
-                entity.attackEntityFrom(DamageSource.inFire, checkType(EnumCampfireType.REGULAR) ? 1.0F : 2.0F);
+                if (entity.attackEntityFrom(DamageSource.inFire, checkType(EnumCampfireType.SOUL) ? 2.0F : 1.0F))
+                    world.playSoundEffect((double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, "random.fizz", 0.5F,
+                            2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
             }
         }
     }
 
+    @Override
     public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player)
     {
         if (!isLit() && !world.isRemote)
@@ -190,6 +162,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         }
     }
 
+    @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int p_149727_6_, float p_149727_7_, float p_149727_8_,
             float p_149727_9_)
     {
@@ -206,7 +179,6 @@ public class BlockCampfire extends Block implements ITileEntityProvider
 
             if (isLit())
             {
-
                 if (player.getHeldItem().getItem() instanceof ItemSpade)
                 {
                     itemstack.damageItem(1, player);
@@ -217,7 +189,6 @@ public class BlockCampfire extends Block implements ITileEntityProvider
                     if (survival)
                         player.setCurrentItemOrArmor(0, new ItemStack(Items.bucket));
                     update = true;
-                    // player.clearItemInUse();
                 }
 
                 if (update)
@@ -266,22 +237,21 @@ public class BlockCampfire extends Block implements ITileEntityProvider
      */
     public static void updateCampfireBlockState(boolean light, World world, int x, int y, int z, String type)
     {
-
-        Block block = world.getBlock(x, y, z);
-
-        // verify that the block is what this method thinks it is
-        if (block instanceof BlockCampfire)
-        {
-            if (!((BlockCampfire) block).checkType(type))
-                return;
-        }
-        else
-            return;
-
         if (!world.isRemote)
         {
+            Block block = world.getBlock(x, y, z);
+
+            // verify that the block is what this method thinks it is
+            if (block instanceof BlockCampfire)
+            {
+                if (!((BlockCampfire) block).checkType(type))
+                    return;
+            }
+            else
+                return;
+
             int meta = world.getBlockMetadata(x, y, z);
-            TileEntityCampfire tileentity = (TileEntityCampfire) world.getTileEntity(x, y, z);
+            TileEntityCampfire tilecamp = (TileEntityCampfire) world.getTileEntity(x, y, z);
             stateChanging = true;
             BlockCampfire changeTo;
 
@@ -289,7 +259,9 @@ public class BlockCampfire extends Block implements ITileEntityProvider
             {
                 world.playSoundEffect((double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
 
-                changeTo = (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire : CampfireBackportBlocks.soul_campfire);
+                world.setBlock(x, y, z, (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire : CampfireBackportBlocks.soul_campfire));
+                
+                TileEntityCampfire.checkSignal(world, x, y, z, tilecamp);
             }
             else
             {
@@ -297,23 +269,22 @@ public class BlockCampfire extends Block implements ITileEntityProvider
                 world.spawnParticle("smoke", (double) x + 0.25D + RAND.nextDouble() / 2.0D * (double) (RAND.nextBoolean() ? 1 : -1), (double) y + 0.44D,
                         (double) z + 0.25D + RAND.nextDouble() / 2.0D * (double) (RAND.nextBoolean() ? 1 : -1), 0.0D, 0.005D, 0.0D);
 
-                tileentity.popItems(world, x, y, z);
+                tilecamp.popItems();
 
-                changeTo = (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base
-                        : CampfireBackportBlocks.soul_campfire_base);
+                world.setBlock(x, y, z, (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base
+                        : CampfireBackportBlocks.soul_campfire_base));
             }
 
-            world.setBlock(x, y, z, changeTo);
             stateChanging = false;
             world.setBlockMetadataWithNotify(x, y, z, meta, 3);
-
-            if (tileentity != null)
+            
+            if (tilecamp != null)
             {
-                tileentity.validate();
-                tileentity.markDirty();
-                tileentity.setThisLit(light);
-                tileentity.setThisType(type);
-                tileentity.setThisMeta(meta);
+                tilecamp.validate();
+                tilecamp.markDirty();
+                tilecamp.setThisLit(light);
+                tilecamp.setThisType(type);
+                tilecamp.setThisMeta(meta);
             }
         }
     }
@@ -328,7 +299,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
             if (tileent != null)
             {
                 if (!world.isRemote)
-                    tileent.popItems(world, x, y, z);
+                    tileent.popItems();
 
                 world.func_147453_f(x, y, z, p_149749_5_);
             }
@@ -337,6 +308,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         }
     }
 
+    @Override
     public boolean onBlockEventReceived(World world, int x, int y, int z, int p_149696_5_, int p_149696_6_)
     {
         super.onBlockEventReceived(world, x, y, z, p_149696_5_, p_149696_6_);
@@ -424,6 +396,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
     }
 
     @SideOnly(Side.CLIENT)
+    @Override
     public Item getItem(World world, int x, int y, int z)
     {
         return getCampfireBlockItem();
@@ -435,11 +408,13 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         return false;
     }
 
+    @Override
     public boolean renderAsNormalBlock()
     {
         return false;
     }
 
+    @Override
     public int getRenderType()
     {
         return -1;

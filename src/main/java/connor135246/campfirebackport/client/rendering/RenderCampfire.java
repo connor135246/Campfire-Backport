@@ -3,12 +3,9 @@ package connor135246.campfirebackport.client.rendering;
 import org.lwjgl.opengl.GL11;
 
 import connor135246.campfirebackport.client.models.ModelCampfire;
-import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -140,7 +137,19 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                 }
             }
         }
+    }
 
+    public void renderStatic(TileEntityCampfire tilecamp, double x, double y, double z)
+    {
+        String type = tilecamp.getThisType();
+        int animTimer = tilecamp.getAnimTimer();
+
+        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
+        GL11.glRotatef(180, 0, 0, 1);
+
+        bindTexture(getTextureLit((animTimer % 31) / 2, type));
+
+        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
     }
 
     public ResourceLocation getTextureLit(int index, String type)

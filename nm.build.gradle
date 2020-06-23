@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.4.1-NM"
+version = "1.7.10-1.5-NM"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
@@ -30,6 +30,8 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+	compile fileTree(dir: 'lib2', include: '*.jar')
+
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"

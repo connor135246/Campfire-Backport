@@ -1,7 +1,6 @@
 package connor135246.campfirebackport.common;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.Logger;
@@ -18,6 +17,7 @@ import connor135246.campfirebackport.util.CampfireBackportEventHandler;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.FMLControlledNamespacedRegistry;
@@ -78,7 +78,7 @@ public class CommonProxy
 
     public void init(FMLInitializationEvent event)
     {
-
+        FMLInterModComms.sendMessage("Waila", "register", "connor135246.campfirebackport.client.compat.CampfireBackportWailaDataProvider.register");
     }
 
     public void postInit(FMLPostInitializationEvent event)
@@ -110,7 +110,6 @@ public class CommonProxy
         }
     }
 
-    @SuppressWarnings("null")
     public static void registerShovelsAndSwordsInDispenser()
     {
         ArrayList<Item> bitemlist = CampfireBackportConfig.dispenserBehavioursBlacklistItems;
@@ -130,7 +129,7 @@ public class CommonProxy
                 BlockDispenser.dispenseBehaviorRegistry.putObject(item, new BehaviourShovel());
 
                 if (print)
-                    modlog.info("Dispenser Behaviour (Shovel) added to: " + item.getItemStackDisplayName(new ItemStack(item)));
+                    modlog.info("Dispenser Behaviour (Shovel) added to: " + new ItemStack(item).getDisplayName());
 
             }
             else if (item instanceof ItemSword)
@@ -143,7 +142,7 @@ public class CommonProxy
                 BlockDispenser.dispenseBehaviorRegistry.putObject(item, new BehaviourSword());
 
                 if (print)
-                    modlog.info("Dispenser Behaviour (Sword)  added to: " + item.getItemStackDisplayName(new ItemStack(item)));
+                    modlog.info("Dispenser Behaviour (Sword)  added to: " + new ItemStack(item).getDisplayName());
 
             }
         }
@@ -159,13 +158,13 @@ public class CommonProxy
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(item, new BehaviourShovel());
                     if (print)
-                        modlog.info("Dispenser Behaviour (Shovel) added to: " + item.getItemStackDisplayName(new ItemStack(item)));
+                        modlog.info("Dispenser Behaviour (Shovel) added to: " + new ItemStack(item).getDisplayName());
                 }
                 else // if (segment[1].equals("sword"))
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(item, new BehaviourSword());
                     if (print)
-                        modlog.info("Dispenser Behaviour (Sword)  added to: " + item.getItemStackDisplayName(new ItemStack(item)));
+                        modlog.info("Dispenser Behaviour (Sword)  added to: " + new ItemStack(item).getDisplayName());
                 }
                 continue;
             }
@@ -178,17 +177,19 @@ public class CommonProxy
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(block, new BehaviourShovel());
                     if (print)
-                        modlog.info("Dispenser Behaviour (Shovel) added to: " + item.getItemStackDisplayName(new ItemStack(block)));
+                        modlog.info("Dispenser Behaviour (Shovel) added to: " + new ItemStack(block).getDisplayName());
                 }
                 else // if (segment[1].equals("sword"))
                 {
                     BlockDispenser.dispenseBehaviorRegistry.putObject(block, new BehaviourSword());
                     if (print)
-                        modlog.info("Dispenser Behaviour (Sword)  added to: " + item.getItemStackDisplayName(new ItemStack(block)));
+                        modlog.info("Dispenser Behaviour (Sword)  added to: " + new ItemStack(block).getDisplayName());
                 }
+                continue;
             }
+            if (!CampfireBackportConfig.suppressInputErrors)
+                modlog.warn("Dispenser Behaviour Whitelist entry " + witem + " was invalid!");
         }
-
     }
 
     public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire)

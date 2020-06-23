@@ -30,7 +30,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.4.1"
+version = "1.7.10-1.5"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
@@ -44,6 +44,20 @@ targetCompatibility = 1.8
 
 dependencies {
     embed 'org.spongepowered:mixin:0.7+'
+	compile fileTree(dir: 'lib2', include: '*.jar')
+	
+	// you may put jars on which you depend on in ./libs
+    // or you may define them like so..
+    //compile "some.group:artifact:version:classifier"
+    //compile "some.group:artifact:version"
+
+    // real examples
+    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
+    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+
+    // for more info...
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
     /* Mixin 0.8 breaks with 1.7.10, but can be made to work by embedding these. However,
 	   doing so overrides the libraries provided by Forge, which will likely result in other mods breaking. */ 
@@ -83,18 +97,6 @@ def outSrgFile = tasks.compileJava.temporaryDir.toString() + "/outSrg.srg"
 afterEvaluate {
     tasks.compileJava.options.compilerArgs += ["-AreobfSrgFile=${tasks.reobf.srg}", "-AoutSrgFile=${outSrgFile}", "-AoutRefMapFile=${outRefMapFile}"];
 }
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
 reobf {
     addExtraSrgFile outSrgFile
