@@ -14,8 +14,7 @@ public enum EnumCampfireType
     NEITHER(false, false, "neither"), REG_ONLY(true, false, "regular only"), SOUL_ONLY(false, true, "soul only"), BOTH(true, true, "both");
 
     // don't want to make a spelling mistake!
-    public static final String REGULAR = "regular";
-    public static final String SOUL = "soul";
+    public static final String REGULAR = "regular", SOUL = "soul";
 
     private final boolean regular;
     private final boolean soul;
@@ -33,6 +32,11 @@ public enum EnumCampfireType
     public String toString()
     {
         return stringForm;
+    }
+
+    public static int toInt(String type)
+    {
+        return type.equals(SOUL) ? 1 : 0;
     }
 
     public boolean matches(BlockCampfire block)

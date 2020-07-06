@@ -3,6 +3,7 @@ package connor135246.campfirebackport.client.compat;
 import java.util.List;
 
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
+import connor135246.campfirebackport.util.Reference;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
 import mcp.mobius.waila.api.IWailaDataProvider;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 public class CampfireBackportWailaDataProvider implements IWailaDataProvider
@@ -36,21 +38,21 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
         if (tileent instanceof TileEntityCampfire)
         {
             NBTTagCompound data = accessor.getNBTData();
-            NBTTagList items = data.getTagList("Items", 10);
+            NBTTagList items = data.getTagList(TileEntityCampfire.items, 10);
 
             if (items.tagCount() == 0)
             {
-                tooltip.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + "Empty");
+                tooltip.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".waila.empty"));
             }
             else
             {
-                int[] cookTimes = data.getIntArray("CookingTimes");
-                int[] cookTotalTimes = data.getIntArray("CookingTotalTimes");
+                int[] cookTimes = data.getIntArray(TileEntityCampfire.cookTimes);
+                int[] cookTotalTimes = data.getIntArray(TileEntityCampfire.totalTimes);
 
                 for (int i = 0; i < items.tagCount(); ++i)
                 {
                     NBTTagCompound compound = items.getCompoundTagAt(i);
-                    byte slot = compound.getByte("Slot");
+                    byte slot = compound.getByte(TileEntityCampfire.slot);
                     if (slot >= 0 && slot < 4)
                     {
                         ItemStack invStack = ItemStack.loadItemStackFromNBT(compound);

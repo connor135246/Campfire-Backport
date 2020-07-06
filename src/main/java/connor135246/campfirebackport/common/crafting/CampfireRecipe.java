@@ -3,36 +3,25 @@ package connor135246.campfirebackport.common.crafting;
 import java.util.ArrayList;
 
 import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.CampfireBackportConfig;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
-import net.minecraftforge.oredict.OreDictionary;
+import net.minecraft.util.StatCollector;
 
-public class CampfireRecipe implements Comparable<CampfireRecipe>
+public class CampfireRecipe extends GenericCustomInput implements Comparable<CampfireRecipe>
 {
-    /**
-     * for recipes that were defined by an ItemStack, this is the ItemStack with a size of 1.<br>
-     * for recipes that were defined by an OreDict, this is null.
-     */
-    private ItemStack inputStack;
-    /**
-     * for recipes that were defined by an ItemStack, this is null.<br>
-     * for recipes that were defined by an OreDict, this is the name of the OreDict.
-     */
-    private String inputOre;
-    /** this is the input stack size. */
-    private int inputSize;
+
+    public static final String SIGNAL = "signal";
+ 
     private ItemStack output;
     private int cookingTime;
-    /** whether or not meta was specified. */
-    private boolean metaMatters;
-    /** the types of campfires that this recipe applies to */
-    private EnumCampfireType types = EnumCampfireType.NEITHER;
-    /** a modifier to the sorting order. it's 0 by default. it's set to 1 for recipes created by Auto Recipe Discovery. */
-    private int sortPriority = 0;
+    private Boolean signalFire = null;
 
     /** the master list of recipes! */
     private static ArrayList<CampfireRecipe> masterRecipeList = new ArrayList<CampfireRecipe>();
@@ -44,10 +33,12 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
     /**
      * Converts a string into a campfire recipe. If it's invalid, says so in the console.<br>
      * <br>
-     * Time is a number. It's set to 1 if it's less than 1. See {@link StringParsers#parseItemStackOrOreWithSize(String)} for the other formats.
+     * Cooking Time is a number. It's set to 1 if it's less than 1. <br>
+     * signal means the recipe only works on signal fires. notsignal means the recipe doesn't work on signal fires.<br>
+     * See {@link StringParsers#parseItemStackOrOreOrClassWithNBTOrDataWithSize(String)} for the input/output format.
      * 
      * @param recipe
-     *            - a string in the format [ItemStack OR ItemStack with a size OR Ore Dictionary Name]/[ItemStack OR ItemStack with a size]/[Time]
+     *            - a string in the format [ANY INPUT]/[ANY OUTPUT]/[Cooking Time]/[signal|notsignal]
      * @param types
      *            - the types of campfire this is being added to
      */
@@ -57,59 +48,66 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
         {
             String[] segment = recipe.split("/");
 
-            Object[] input = StringParsers.parseItemStackOrOreWithSize(segment[0]);
+            // input
 
-            this.inputSize = MathHelper.clamp_int((Integer) input[1], 1, 4);
+            customGInput(StringParsers.parseItemOrOreOrToolOrClassWithNBTOrDataWithSize(segment[0], true), types, false, 4);
 
-            if (input[0] instanceof String)
-                this.inputOre = (String) input[0];
-            else
-                this.inputStack = new ItemStack((Item) input[0], 1, (Integer) input[2]);
+            // output
 
-            this.metaMatters = (Integer) input[2] != -1;
+            Object[] output = StringParsers.parseItemOrOreOrToolOrClassWithNBTOrDataWithSize(segment[1], false);
 
-            Object[] output = StringParsers.parseItemStackOrOreWithSize(segment[1]);
-            this.output = new ItemStack((Item) output[0], (Integer) output[1], (Integer) output[2]);
+            ItemStack outputStack = new ItemStack((Item) output[0], MathHelper.clamp_int((Integer) output[1], 1, 64), (Integer) output[2]);
+
+            if (!((NBTTagCompound) output[3]).hasNoTags())
+            {
+                outputStack.setTagCompound((NBTTagCompound) output[3]);
+                outputStack.stackTagCompound.removeTag(StringParsers.GCI_DATATYPE);
+            }
+
+            this.output = outputStack;
+
+            // cooking time
 
             if (segment.length > 2)
                 this.cookingTime = Math.max(Integer.parseInt(segment[2]), 1);
             else
                 this.cookingTime = 600;
 
-            this.types = types;
+            // signal fire setting
+
+            if (segment.length > 3)
+                this.signalFire = segment[3].equals(SIGNAL);
         }
         catch (Exception excep)
         {
-            if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn("Recipe " + recipe + " has invalid inputs/outputs!");
-            this.inputOre = null;
-            this.inputStack = null;
+            this.input = null;
             this.output = null;
-            this.types = null;
         }
     }
 
     /**
-     * for creating recipes from Auto Recipe Discovery. sortPriority is reduced.
+     * for creating recipes from Auto Recipe Discovery. {@link GenericCustomInput#sortPriority} is reduced. cookingTime is 600.
      */
-    public CampfireRecipe(ItemStack input, ItemStack output, int cookingTime, EnumCampfireType types)
+    public CampfireRecipe(ItemStack input, ItemStack output, EnumCampfireType types)
     {
-        this.inputSize = input.stackSize;
-        this.inputStack = input.copy();
-        this.inputStack.stackSize = 1;
+        try
+        {
+            autoGInput(ItemStack.copyItemStack(input), types);
 
-        this.metaMatters = input.getItemDamage() != 32767;
+            this.output = output;
+            this.cookingTime = 600;
 
-        this.output = output;
-        this.cookingTime = cookingTime;
-
-        this.types = types;
-
-        this.sortPriority = 1;
+            setSortPriority(50);
+        }
+        catch (Exception excep)
+        {
+            this.input = null;
+            this.output = null;
+        }
     }
 
     /**
-     * Tries to make a CampfireRecipe based on user input for the given campfire types and add it the master recipe list.<br>
+     * Tries to make a <code>CampfireRecipe</code> based on user input for the given campfire types and add it the master recipe list.<br>
      * See {@link #CampfireRecipe(String, EnumCampfireType)}.
      * 
      * @param recipe
@@ -118,10 +116,10 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
      *            - the types of campfire this recipe should apply to
      * @return true if the recipe was added successfully, false if it wasn't
      */
-    public static boolean addToRecipeList(String recipe, EnumCampfireType types)
+    public static boolean addToMasterList(String recipe, EnumCampfireType types)
     {
         CampfireRecipe crecipe = new CampfireRecipe(recipe, types);
-        if ((crecipe.getInputStack() != null || crecipe.getInputOre() != null) && crecipe.getOutput() != null)
+        if (crecipe.getInput() != null && crecipe.getOutput() != null)
         {
             getMasterList().add(crecipe);
             return true;
@@ -129,14 +127,9 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
         else
         {
             if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn("Recipe " + recipe + " has invalid inputs/outputs!");
+                CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_recipe", recipe));
             return false;
         }
-    }
-
-    public static ArrayList<CampfireRecipe> getRecipeList(String type)
-    {
-        return type.equals(EnumCampfireType.REGULAR) ? regRecipeList : (type.equals(EnumCampfireType.SOUL) ? soulRecipeList : new ArrayList<CampfireRecipe>());
     }
 
     public static ArrayList<CampfireRecipe> getMasterList()
@@ -144,122 +137,44 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
         return masterRecipeList;
     }
 
+    public static ArrayList<CampfireRecipe> getRecipeList(String type)
+    {
+        return type.equals(EnumCampfireType.REGULAR) ? regRecipeList : (type.equals(EnumCampfireType.SOUL) ? soulRecipeList : new ArrayList<CampfireRecipe>());
+    }
+
     /**
-     * Finds a CampfireRecipe in the given campfire type that applies to the given ItemStack.
+     * Finds a <code>CampfireRecipe</code> in the given campfire type that applies to the given <code>ItemStack</code>.
      * 
      * @param stack
      * @param type
-     * @return a matching CampfireRecipe, or null if none was found
+     * @param signalFire
+     *            - is the campfire calling this a signal fire?
+     * @return a matching <code>CampfireRecipe</code>, or null if none was found
      */
-    public static CampfireRecipe findRecipe(ItemStack stack, String type)
+    public static CampfireRecipe findRecipe(ItemStack stack, String type, boolean signalFire)
     {
         for (CampfireRecipe crecipe : getRecipeList(type))
         {
-            if (matches(crecipe, stack))
+            if (matches(crecipe, stack) && (crecipe.doesSignalMatter() ? (crecipe.requiresSignalFire() == signalFire) : true))
                 return crecipe;
         }
         return null;
     }
 
-    /**
-     * @param crecipe
-     * @param stack
-     * @return true if the given CampfireRecipe applies to the given ItemStack
-     */
-    public static boolean matches(CampfireRecipe crecipe, ItemStack stack)
-    {
-        return crecipe.isOreDictRecipe() ? matchesTheOre(crecipe, stack) : matchesTheStack(crecipe, stack);
-    }
-
-    public static boolean matchesTheStack(CampfireRecipe crecipe, ItemStack stack)
-    {
-        return crecipe.doesMetaMatter() ? OreDictionary.itemMatches(crecipe.getInputStack(), stack, true)
-                : crecipe.getInputStack().getItem() == stack.getItem();
-    }
-
-    public static boolean matchesTheOre(CampfireRecipe crecipe, ItemStack stack)
-    {
-        return matchesTheOre(crecipe.getInputOre(), stack);
-    }
-
-    public static boolean matchesTheOre(String ore, ItemStack stack)
-    {
-        for (int id : OreDictionary.getOreIDs(stack))
-        {
-            if (id == OreDictionary.getOreID(ore))
-                return true;
-        }
-        return false;
-    }
-
-    /**
-     * meant for comparing two campfire recipes whose {@link #isOreDictRecipe()} is false
-     * 
-     * @param crecipe1
-     * @param crecipe2
-     * @return true if the campfire recipes are the same, false if they aren't
-     */
-    public static boolean doStackRecipesMatch(CampfireRecipe crecipe1, CampfireRecipe crecipe2)
-    {
-        return matchesTheStack(crecipe1, crecipe2.getInputStack()) && crecipe1.doesMetaMatter() == crecipe2.doesMetaMatter()
-                && crecipe1.getTypes() == crecipe2.getTypes();
-    }
-
+    // toString
     /**
      * for easy readin
      */
     @Override
     public String toString()
     {
-        String inputToString;
-        if (isOreDictRecipe())
-            inputToString = "{[OreDict: " + getInputOre() + "]";
-        else if (doesMetaMatter() || anIffyCheckToJustifyImprovedReadability())
-            inputToString = "{[" + getInputStack().getDisplayName() + "]";
-        else
-            inputToString = "{[" + getInputStack().getDisplayName() + " (any metadata)]";
-
-        return inputToString + (isMultiInput() ? " x " + inputSize : "") + " -> [" + output.getDisplayName() + "] x " + output.stackSize + ", " + cookingTime
-                + " Ticks} ";// + getTypes();
-    }
-
-    /**
-     * only used by {@link #toString()}
-     */
-    public boolean anIffyCheckToJustifyImprovedReadability()
-    {
-        return ((new ItemStack(getInputStack().getItem(), 1, 0)).getDisplayName().equals(new ItemStack(getInputStack().getItem(), 1, 1).getDisplayName()));
+        return super.toString() + (isMultiInput() ? " x " + getInputSize() : "") + " -> [" + getOutput().getDisplayName()
+                + (getOutput().hasTagCompound() ? " with NBT:" + getOutput().getTagCompound() : "")
+                + "]" + (getOutput().stackSize > 1 ? " x " + getOutput().stackSize : "") + ", " + getCookingTime() + " Ticks"
+                + (doesSignalMatter() ? " (" + (requiresSignalFire() ? "must" : "must not") + " be a signal fire)" : "");
     }
 
     // Getters and Setters
-
-    /**
-     * @return true if this recipe has a value set in {@link #inputOre}, false otherwise
-     */
-    public boolean isOreDictRecipe()
-    {
-        return inputOre != null ? true : false;
-    }
-
-    public ItemStack getInputStack()
-    {
-        return inputStack;
-    }
-
-    public String getInputOre()
-    {
-        return inputOre;
-    }
-
-    public int getInputSize()
-    {
-        return inputSize;
-    }
-
-    public boolean doesMetaMatter()
-    {
-        return metaMatters;
-    }
 
     public ItemStack getOutput()
     {
@@ -271,41 +186,21 @@ public class CampfireRecipe implements Comparable<CampfireRecipe>
         return cookingTime;
     }
 
-    public boolean isMultiInput()
+    public boolean doesSignalMatter()
     {
-        return inputSize > 1;
+        return signalFire != null;
     }
 
-    public EnumCampfireType getTypes()
+    public Boolean requiresSignalFire()
     {
-        return types;
+        return signalFire;
     }
 
-    public void setTypes(EnumCampfireType types)
-    {
-        this.types = types;
-    }
-
-    public int getSortPriority()
-    {
-        return sortPriority;
-    }
-
+    // Sorting
     @Override
     public int compareTo(CampfireRecipe crecipe)
     {
-        int value = 0;
-
-        // recipes with isMultiInput = true should go MUCH closer to the start of the list.
-        value -= 2 * Boolean.compare(this.isMultiInput(), crecipe.isMultiInput());
-        // recipes with doesMetaMatter = true should go closer to the start of the list.
-        value -= Boolean.compare(this.doesMetaMatter(), crecipe.doesMetaMatter());
-        // recipes with isOreDicted = true should go MUCH MUCH closer to the end of the list.
-        value += 4 * Boolean.compare(this.isOreDictRecipe(), crecipe.isOreDictRecipe());
-        // recipes created by Auto Recipe Discovery should go MUCH MUCH MUCH closer to the end of the list.
-        value += 8 * Integer.compare(this.getSortPriority(), crecipe.getSortPriority());
-
-        return value;
+        return super.compareTo(crecipe);
     }
 
 }

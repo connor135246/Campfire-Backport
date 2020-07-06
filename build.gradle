@@ -30,7 +30,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.5.1"
+version = "1.7.10-1.6"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 

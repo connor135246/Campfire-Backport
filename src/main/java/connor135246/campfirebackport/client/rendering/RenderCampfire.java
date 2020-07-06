@@ -6,7 +6,6 @@ import connor135246.campfirebackport.client.models.ModelCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -23,7 +22,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
     private static final ResourceLocation TEXTURE_BASE = new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_base_tile.png");
 
     private static final double BASE_X_OFFSET = 0.9375;
-    private static final double BASE_Y_OFFSET = 0.44;
+    private static final double BASE_Y_OFFSET = 0.45;
     private static final double BASE_Z_OFFSET = 0.9375;
     private static final double ACROSS = 0.875;
     private static final double EDGE = 0.125;
@@ -62,11 +61,9 @@ public class RenderCampfire extends TileEntitySpecialRenderer
             lit = tilecamp.getThisLit();
             type = tilecamp.getThisType();
             dir = tilecamp.getThisMeta();
-            animTimer = tilecamp.getAnimTimer();// < 0 ? 0 : tilecamp.getAnimTimer();
+            animTimer = tilecamp.getAnimTimer();
             renderItems = true;
         }
-        // else
-        // tilecamp.incrementAnimTimer();
 
         float angle;
         switch (dir)
@@ -86,6 +83,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         }
 
         GL11.glPushMatrix();
+        
         GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
         GL11.glRotatef(180, 0, 0, 1);
 
@@ -97,7 +95,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
             bindTexture(TEXTURE_BASE);
 
         model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
-
+                
         GL11.glPopMatrix();
 
         if (renderItems)
@@ -128,7 +126,6 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                     GL11.glRotatef(270, 0, 0, 1);
 
                     GL11.glScalef(0.625F, 0.625F, 0.625F);
-                    OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 200f, 200f);
                     RenderManager.instance.renderEntityWithPosYaw(entItem[invslot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
 
                     GL11.glEnable(GL11.GL_LIGHTING);
@@ -139,20 +136,20 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         }
     }
 
-    public void renderStatic(TileEntityCampfire tilecamp, double x, double y, double z)
+    public void renderSimple(TileEntityCampfire tilecamp)
     {
-        String type = tilecamp.getThisType();
-        int animTimer = tilecamp.getAnimTimer();
-
-        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
+        GL11.glTranslated(0.5, 1.5, 0.5);
         GL11.glRotatef(180, 0, 0, 1);
 
-        bindTexture(getTextureLit((animTimer % 31) / 2, type));
+        if (tilecamp.getThisLit())
+            bindTexture(getTextureLit((tilecamp.getAnimTimer() % 31) / 2, tilecamp.getThisType()));
+        else
+            bindTexture(TEXTURE_BASE);
 
         model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
     }
 
-    public ResourceLocation getTextureLit(int index, String type)
+    public static ResourceLocation getTextureLit(int index, String type)
     {
         return type.equals(EnumCampfireType.SOUL) ? new ResourceLocation(Reference.MODID + ":" + "textures/blocks/soul_campfire_tile" + index + ".png")
                 : new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_tile" + index + ".png");

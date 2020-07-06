@@ -18,8 +18,11 @@ public class NEIConfig implements IConfigureNEI
     @Override
     public void loadConfig()
     {
-        API.registerRecipeHandler((ICraftingHandler) new NEICampfireHandler());
-        API.registerUsageHandler((IUsageHandler) new NEICampfireHandler());
+        API.registerRecipeHandler((ICraftingHandler) new NEICampfireRecipeHandler());
+        API.registerUsageHandler((IUsageHandler) new NEICampfireRecipeHandler());
+        
+        API.registerRecipeHandler((ICraftingHandler) new NEICampfireStateChangerHandler());
+        API.registerUsageHandler((IUsageHandler) new NEICampfireStateChangerHandler());
     }
 
     @Override
@@ -31,6 +34,6 @@ public class NEIConfig implements IConfigureNEI
     @Override
     public String getVersion()
     {
-        return Reference.VERSION;
+        return "1.7.10-1.6";
     }
 }

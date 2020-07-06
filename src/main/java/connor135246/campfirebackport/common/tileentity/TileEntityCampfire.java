@@ -3,12 +3,13 @@ package connor135246.campfirebackport.common.tileentity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
+import net.minecraft.world.WorldServer;
 import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.CampfireBackportConfig;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.crafting.CampfireRecipe;
+import connor135246.campfirebackport.common.crafting.GenericCustomInput;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -26,6 +27,8 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -35,6 +38,18 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     private static final Random RAND = new Random();
     private static final int[] slotsSides = new int[] { 0, 1, 2, 3 };
     private static final int[] slotsEnds = new int[] {};
+    // NBT keys
+    public static final String items = "Items",
+            slot = "Slot",
+            cookTimes = "CookingTimes",
+            totalTimes = "CookingTotalTimes",
+            signal = "SignalFire",
+            regenWait = "RegenWaitTimer",
+            campType = "CampfireType",
+            campLit = "CampfireLit",
+            campMeta = "CampfireMeta",
+            lifetime = "Life",
+            name = "CustomName";
     // main variables
     private ItemStack[] inventory = new ItemStack[4];
     private int[] cookingTimes = new int[4];
@@ -45,11 +60,13 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     private String thisType;
     private Boolean thisLit;
     private Integer thisMeta;
-    // variables that don't need to be saved to nbt
-    private int animTimer = RAND.nextInt(32);
+    private int life = 0;
+    // variables that don't need to be saved to NBT
     private boolean rainAndSky = false;
     private boolean firstTick = true;
     private boolean refreshThis = false;
+    // only used client side
+    private int animTimer = RAND.nextInt(32);
 
     @Override
     public void updateEntity()
@@ -65,10 +82,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             if (firstTick)
             {
-                checkSignal(getWorldObj(), xCoord, yCoord, zCoord, this);
+                checkSignal();
+                resetLife();
                 firstTick = false;
             }
-            
+
             // literally just for the waila display
             if (getWorldObj().getTotalWorldTime() % 40L == 0)
                 this.markDirty();
@@ -85,6 +103,27 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     BlockCampfire.updateCampfireBlockState(false, getWorldObj(), xCoord, yCoord, zCoord, getThisType());
                     rainAndSky = false;
                 }
+
+                if (CampfireBackportConfig.burnOutTimer[getThisTypeToInt()] != -1
+                        && (!isSignalFire() || (isSignalFire() && CampfireBackportConfig.signalFiresBurnOut.matches(getThisType()))))
+                {
+                    decrementLife();
+
+                    if (getLife() <= 0)
+                    {
+                        if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getThisTypeToInt()])
+                        {
+                            popItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getThisTypeToInt()]), getWorldObj(), xCoord, yCoord,
+                                    zCoord);
+
+                            playFizzAndAddSmokeServerSide(65, 0.25);
+
+                            getWorldObj().setBlock(xCoord, yCoord, zCoord, Blocks.air);
+                        }
+                        else
+                            BlockCampfire.updateCampfireBlockState(false, getWorldObj(), xCoord, yCoord, zCoord, getThisType());
+                    }
+                }
             }
         }
         else
@@ -94,12 +133,10 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             // fixes the animation looking a little weird right when placed
             if (!firstTick)
-                ++animTimer;
-            else
+                incrementAnimTimer();
+
+            if (firstTick)
                 firstTick = false;
-            
-            if (animTimer == 31000000)
-                animTimer = 0;
         }
 
     }
@@ -154,7 +191,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
                 if (getCookingTimeInSlot(slot) >= getTotalCookingTimeInSlot(slot))
                 {
-                    CampfireRecipe crecipe = CampfireRecipe.findRecipe(itemstack, getThisType());
+                    CampfireRecipe crecipe = CampfireRecipe.findRecipe(itemstack, getThisType(), isSignalFire());
 
                     if (crecipe != null)
                     {
@@ -164,7 +201,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                         }
                         else
                         {
-                            popStackedItem(crecipe.getOutput());
+                            popStackedItem(crecipe.getOutput(), getWorldObj(), xCoord, yCoord, zCoord);
                             setInventorySlotContents(slot, null);
                         }
                     }
@@ -186,7 +223,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         int target = crecipe.getInputSize();
         ArrayList<Integer> found = new ArrayList<Integer>(4);
         found.add(startSlot);
-        boolean stackIn = !crecipe.isOreDictRecipe();
         boolean[] skips = new boolean[] { false, false, false, false };
 
         for (int s = 0; s < getSizeInventory(); ++s)
@@ -197,7 +233,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             ItemStack sStack = getStackInSlot(s);
             if (sStack != null)
             {
-                if (stackIn ? CampfireRecipe.matchesTheStack(crecipe, sStack) : CampfireRecipe.matchesTheOre(crecipe, sStack))
+                if (GenericCustomInput.matches(crecipe, sStack))
                 {
                     skips[s] = true;
 
@@ -207,7 +243,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
                         if (found.size() == target)
                         {
-                            popStackedItem(crecipe.getOutput());
+                            popStackedItem(crecipe.getOutput(), getWorldObj(), xCoord, yCoord, zCoord);
                             for (int k : found)
                                 setInventorySlotContents(k, null);
                             return skips;
@@ -220,9 +256,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Generates big smoke particles above the campfire, vanilla smoke particles above the items in the campfire, and vanilla smoke particles above the middle if it's raining.
+     * Generates big smoke particles above the campfire, vanilla smoke particles above the items in the campfire, and some vanilla smoke particles above the middle if it's raining.
      */
-    public void addParticles()
+    private void addParticles()
     {
         int setting = (Minecraft.getMinecraft().gameSettings.particleSetting + 1);
         int multiplier = setting % 2 == 1 ? setting ^ 2 : setting;
@@ -245,8 +281,23 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
         if (RAND.nextFloat() < 0.11F)
         {
+            Block block = Blocks.air;
+
+            if (CampfireBackportConfig.colourfulSmoke.matches(getThisType()))
+            {
+                Block blockBelow = getWorldObj().getBlock(xCoord, yCoord - 1, zCoord);
+
+                if (blockBelow != Blocks.air && (getWorldObj().getBlockPowerInput(xCoord, yCoord, zCoord) > 0
+                        || getWorldObj().isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord)))
+                {
+                    block = blockBelow;
+                }
+            }
+
             for (int i = 0; i < RAND.nextInt(2) + 2; ++i)
-                CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, isSignalFire());
+            {
+                CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, isSignalFire(), block);
+            }
         }
 
         if (rainAndSky)
@@ -258,57 +309,83 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Checks if the block below is a signal fire block, and updates the tile entity's signalFire state.
+     * Generates a lot of vanilla smoke particles above the campfire and plays a fizzing sound.<br>
+     * It's server side particle spawning for when a campfire is extinguished.
      * 
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param tilecamp
-     *            - the tile entity to update
+     * @param particles
+     *            - approx number of particles to spawn
+     * @param height
+     *            - additional height to add to particle spawn location
      */
-    public static void checkSignal(World world, int x, int y, int z, TileEntityCampfire tilecamp)
+    public void playFizzAndAddSmokeServerSide(int particles, double height)
     {
-        Block block = world.getBlock(x, y - 1, z);
+        if (!getWorldObj().isRemote)
+        {
+            getWorldObj().playSoundEffect((double) xCoord + 0.5D, (double) yCoord + 0.5D, (double) zCoord + 0.5D, "random.fizz", 0.5F,
+                    RAND.nextFloat() * 0.4F + 0.8F);
+
+            ((WorldServer) getWorldObj()).func_147487_a("smoke", (double) xCoord + 0.5D, (double) yCoord + height, (double) zCoord + 0.5D,
+                    MathHelper.getRandomIntegerInRange(RAND, particles - 5, particles + 5), 0.3D, 0.1D, 0.3D, 0.005D);
+        }
+    }
+
+    /**
+     * Checks if the block below is a signal fire block, and updates the {@link #signalFire} state.
+     * 
+     * @return {@link #signalFire}
+     */
+    public boolean checkSignal()
+    {
+        Block block = getWorldObj().getBlock(xCoord, yCoord - 1, zCoord);
 
         if (block == Blocks.air)
         {
-            if (tilecamp.isSignalFire())
-                tilecamp.setSignalFire(false);
-            return;
+            if (isSignalFire())
+                setSignalFire(false);
+            return false;
         }
 
-        int meta = world.getBlockMetadata(x, y - 1, z);
+        int meta = getWorldObj().getBlockMetadata(xCoord, yCoord - 1, zCoord);
 
         if (CampfireBackportConfig.signalFireBlocks.get(block) != null)
         {
-            if (CampfireBackportConfig.signalFireBlocks.get(block) == -1 || CampfireBackportConfig.signalFireBlocks.get(block) == meta)
+            if (CampfireBackportConfig.signalFireBlocks.get(block) == OreDictionary.WILDCARD_VALUE
+                    || CampfireBackportConfig.signalFireBlocks.get(block) == meta)
             {
-                if (!tilecamp.isSignalFire())
-                    tilecamp.setSignalFire(true);
-                return;
+                if (!isSignalFire())
+                    setSignalFire(true);
+                return true;
             }
         }
         else
         {
             for (int id : OreDictionary.getOreIDs(new ItemStack(block)))
             {
-                if (CampfireBackportConfig.signalFireOres.contains(OreDictionary.getOreName(id)))
+                if (CampfireBackportConfig.signalFireOres.contains(id))
                 {
-                    if (!tilecamp.isSignalFire())
-                        tilecamp.setSignalFire(true);
-                    return;
+                    if (!isSignalFire())
+                        setSignalFire(true);
+                    return true;
                 }
             }
         }
-        if (tilecamp.isSignalFire())
-            tilecamp.setSignalFire(false);
+        if (isSignalFire())
+            setSignalFire(false);
+        return false;
     }
 
+    /**
+     * Helper function that redirects to {@link #checkSignal()} for the campfire at the world and block given.
+     * 
+     * @param world
+     * @param x
+     * @param y
+     * @param z
+     */
     public static void checkSignal(World world, int x, int y, int z)
     {
         TileEntityCampfire tilecamp = (TileEntityCampfire) world.getTileEntity(x, y, z);
-        checkSignal(world, x, y, z, tilecamp);
+        tilecamp.checkSignal();
     }
 
     @Override
@@ -340,23 +417,29 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         super.readFromNBT(compound);
 
-        if (!compound.hasKey("CampfireType"))
+        if (!compound.hasKey(campType))
             refreshThis = true;
 
-        setSignalFire(compound.getBoolean("SignalFire"));
-        int[] nbtintarray1 = compound.getIntArray("CookingTimes");
-        int[] nbtintarray2 = compound.getIntArray("CookingTotalTimes");
-        this.regenWaitTimer = compound.getInteger("RegenWaitTimer");
-        setThisType(compound.getString("CampfireType"));
-        setThisLit(compound.getBoolean("CampfireLit"));
-        setThisMeta(compound.getInteger("CampfireMeta"));
+        setSignalFire(compound.getBoolean(signal));
 
-        NBTTagList nbttaglist = compound.getTagList("Items", 10);
+        // make sure we don't get an IndexOutOfBoundsError later if the data wasn't found
+        int[] nbtintarray1 = compound.hasKey(cookTimes) ? compound.getIntArray(cookTimes) : new int[] { 0, 0, 0, 0 };
+        int[] nbtintarray2 = compound.hasKey(totalTimes) ? compound.getIntArray(totalTimes) : new int[] { 600, 600, 600, 600 };
+
+        this.regenWaitTimer = compound.getInteger(regenWait);
+
+        setThisType(compound.getString(campType));
+        setThisLit(compound.getBoolean(campLit));
+        setThisMeta(compound.getInteger(campMeta));
+
+        this.life = compound.getInteger(lifetime);
+
+        NBTTagList nbttaglist = compound.getTagList(items, 10);
         inventory = new ItemStack[getSizeInventory()];
         for (int i = 0; i < nbttaglist.tagCount(); ++i)
         {
             NBTTagCompound nbttagcompound1 = nbttaglist.getCompoundTagAt(i);
-            byte slot = nbttagcompound1.getByte("Slot");
+            byte slot = nbttagcompound1.getByte(this.slot);
             if (slot >= 0 && slot < getSizeInventory())
             {
                 setStackInSlot(slot, ItemStack.loadItemStackFromNBT(nbttagcompound1));
@@ -365,8 +448,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             }
         }
 
-        if (compound.hasKey("CustomName", 8))
-            func_145951_a(compound.getString("CustomName"));
+        if (compound.hasKey(name, 8))
+            func_145951_a(compound.getString(name));
     }
 
     @Override
@@ -374,13 +457,18 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         super.writeToNBT(compound);
 
-        compound.setBoolean("SignalFire", isSignalFire());
-        compound.setIntArray("CookingTimes", cookingTimes);
-        compound.setIntArray("CookingTotalTimes", cookingTotalTimes);
-        compound.setInteger("RegenWaitTimer", regenWaitTimer);
-        compound.setString("CampfireType", getThisType());
-        compound.setBoolean("CampfireLit", getThisLit());
-        compound.setInteger("CampfireMeta", getThisMeta());
+        compound.setBoolean(signal, isSignalFire());
+
+        compound.setIntArray(cookTimes, cookingTimes);
+        compound.setIntArray(totalTimes, cookingTotalTimes);
+
+        compound.setInteger(regenWait, regenWaitTimer);
+
+        compound.setString(campType, getThisType());
+        compound.setBoolean(campLit, getThisLit());
+        compound.setInteger(campMeta, getThisMeta());
+
+        compound.setInteger(lifetime, life);
 
         NBTTagList nbttaglist = new NBTTagList();
         for (int slot = 0; slot < getSizeInventory(); ++slot)
@@ -388,15 +476,15 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             if (inventory[slot] != null)
             {
                 NBTTagCompound nbttagcompound1 = new NBTTagCompound();
-                nbttagcompound1.setByte("Slot", (byte) slot);
+                nbttagcompound1.setByte(this.slot, (byte) slot);
                 inventory[slot].writeToNBT(nbttagcompound1);
                 nbttaglist.appendTag(nbttagcompound1);
             }
         }
-        compound.setTag("Items", nbttaglist);
+        compound.setTag(items, nbttaglist);
 
         if (hasCustomInventoryName())
-            compound.setString("CustomName", getInventoryName());
+            compound.setString(name, getInventoryName());
     }
 
     @Override
@@ -450,16 +538,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     @Override
     public void setInventorySlotContents(int slot, ItemStack stack)
     {
-        if (stack != null)
-        {
-            setStackInSlot(slot, stack.splitStack(1));
-            setTotalCookingTimeInSlot(slot, stack);
-        }
-        else
-        {
-            setStackInSlot(slot, null);
-            setTotalCookingTimeInSlot(slot, 600);
-        }
+        setStackInSlot(slot, stack == null ? null : stack.splitStack(1));
+        setTotalCookingTimeInSlot(slot, stack);
 
         resetCookingTimeInSlot(slot);
 
@@ -469,12 +549,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
-        return CampfireRecipe.findRecipe(stack, getThisType()) != null;
+        return CampfireRecipe.findRecipe(stack, getThisType(), isSignalFire()) != null;
     }
 
     /**
-     * Tries to add the ItemStack to the campfire's inventory. Called by {@link BlockCampfire#onBlockActivated(World, int, int, int, EntityPlayer, int, float, float, float)
-     * BlockCampfire#onBlockActivated}.
+     * Tries to add the <code>ItemStack</code> to the campfire's inventory. Called by
+     * {@link BlockCampfire#onBlockActivated(World, int, int, int, EntityPlayer, int, float, float, float) BlockCampfire#onBlockActivated}.
      * 
      * @param stack
      *            - the stack (in the player's hand)
@@ -521,37 +601,37 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             if (itemstack != null)
             {
-                popItem(itemstack);
-                setStackInSlot(slot, null);
+                popItem(itemstack, getWorldObj(), xCoord, yCoord, zCoord);
+                setInventorySlotContents(slot, null);
             }
         }
     }
 
     /**
-     * Drops the given ItemStack into the world above the campfire, one stackSize at a time.
+     * Drops the given <code>ItemStack</code>, one stackSize at a time.
      * 
      * @param itemstack
      */
-    public void popStackedItem(ItemStack itemstack)
+    public static void popStackedItem(ItemStack itemstack, World world, int x, int y, int z)
     {
         ItemStack oneStack = ItemStack.copyItemStack(itemstack);
         oneStack.stackSize = 1;
 
         for (int i = 0; i < itemstack.stackSize; ++i)
-            popItem(oneStack.copy());
+            popItem(ItemStack.copyItemStack(oneStack), world, x, y, z);
     }
 
     /**
-     * Drops the given ItemStack into the world above the campfire.
+     * Drops the given <code>ItemStack</code>.
      * 
      * @param itemstack
      */
-    public void popItem(ItemStack itemstack)
+    public static void popItem(ItemStack itemstack, World world, int x, int y, int z)
     {
-        EntityItem entityitem = new EntityItem(getWorldObj(),
-                xCoord + RAND.nextDouble() * 0.75 + 0.125,
-                yCoord + RAND.nextDouble() * 0.75 + 0.5,
-                zCoord + RAND.nextDouble() * 0.75 + 0.125,
+        EntityItem entityitem = new EntityItem(world,
+                x + RAND.nextDouble() * 0.75 + 0.125,
+                y + RAND.nextDouble() * 0.75 + 0.5,
+                z + RAND.nextDouble() * 0.75 + 0.125,
                 ItemStack.copyItemStack(itemstack));
 
         if (itemstack.hasTagCompound())
@@ -561,13 +641,13 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         entityitem.motionY = RAND.nextGaussian() * 0.05 + 0.2;
         entityitem.motionZ = RAND.nextGaussian() * 0.05;
 
-        getWorldObj().spawnEntityInWorld(entityitem);
+        world.spawnEntityInWorld(entityitem);
     }
 
     @Override
     public String getInventoryName()
     {
-        return hasCustomInventoryName() ? customName : "Cook Stuff";
+        return hasCustomInventoryName() ? customName : StatCollector.translateToLocal("tile.campfire.inventory.name");
     }
 
     @Override
@@ -631,6 +711,30 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     // Getters and Setters
 
+    /**
+     * Sets the cooking time in the slot based on the campfire recipe of the <code>ItemStack</code>. If the <code>ItemStack</code> doesn't have a recipe or the
+     * <code>ItemStack</code> is null, sets it to 600.
+     * 
+     * @param slot
+     *            - the slot receiving an <code>ItemStack</code>
+     * @param stack
+     *            - the <code>ItemStack</code> being added
+     */
+    public void setTotalCookingTimeInSlot(int slot, ItemStack stack)
+    {
+        if (stack != null)
+        {
+            CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getThisType(), isSignalFire());
+
+            if (crecipe != null)
+            {
+                setTotalCookingTimeInSlot(slot, crecipe.getCookingTime());
+                return;
+            }
+        }
+        setTotalCookingTimeInSlot(slot, 600);
+    }
+
     // lit
     /**
      * Returns the cached lit state of this tile entity. If it hasn't been cached yet, gets it from the world, but if this isn't on a campfire block, just returns a lit campfire.
@@ -671,6 +775,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public String setThisType(String type)
     {
         return thisType = type;
+    }
+
+    public int getThisTypeToInt()
+    {
+        return EnumCampfireType.toInt(getThisType());
     }
 
     // thisMeta
@@ -723,6 +832,30 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         animTimer = frame;
     }
 
+    public void incrementAnimTimer()
+    {
+        ++animTimer;
+        if (animTimer == Integer.MAX_VALUE)
+            animTimer = 0;
+    }
+
+    // life
+    public int getLife()
+    {
+        return life;
+    }
+
+    public void decrementLife()
+    {
+        if (life > Integer.MIN_VALUE)
+            --life;
+    }
+
+    public void resetLife()
+    {
+        life = Math.round(CampfireBackportConfig.burnOutTimer[getThisTypeToInt()] * (0.9F + RAND.nextFloat() * 0.2F));
+    }
+
     // signalFire
     public boolean isSignalFire()
     {
@@ -761,24 +894,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public int getTotalCookingTimeInSlot(int slot)
     {
         return cookingTotalTimes[slot];
-    }
-
-    /**
-     * Sets the cooking time in the slot based on the cooking time of the ItemStack. If the ItemStack doesn't have a recipe, sets it to 600.
-     * 
-     * @param slot
-     *            - the slot receiving an ItemStack
-     * @param stack
-     *            - the ItemStack being added
-     */
-    public void setTotalCookingTimeInSlot(int slot, ItemStack stack)
-    {
-        CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getThisType());
-
-        if (crecipe != null)
-            setTotalCookingTimeInSlot(slot, crecipe.getCookingTime());
-        else
-            setTotalCookingTimeInSlot(slot, 600);
     }
 
     public void setTotalCookingTimeInSlot(int slot, int time)

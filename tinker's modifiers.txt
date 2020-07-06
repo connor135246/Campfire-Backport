@@ -1,0 +1,24 @@
+# tinker's construct nbt
+
+{InfiTool:{
+HarvestLevel:1
+MiningSpeed:1
+Beheading:1
+Fiery:1 
+Necrotic:1 (Life Steal)
+Unbreaking:1 (Reinforced)
+Moss:3 (why 3?????)
+Lava:1b (Auto-Smelt)
+Emerald:1b
+SilkTouch:1b (Silky)
+Broken:0b
+Flux:1b
+Diamond:1b
+Shoddy:1.0f (positive = Stonebound, negative = Jagged)
+Knockback:0.1f (also: Piston:[1,10,1,])
+ModAntiSpider:[1,4,1,] (Bane of Arthropods)
+Redstone:[1,50,1,] (Haste)
+ModSmite:[1,36,1,] (Smite)
+ModAttack:[1,72,1,] (Sharpness)
+Lapis:[1,1,] (Luck)
+}}

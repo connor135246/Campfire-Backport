@@ -1,0 +1,197 @@
+# Detailed Campfire Backport Config Descriptions
+
+You can also find this information at https://github.com/connor135246/Campfire-Backport/wiki.
+
+# Specific Formats
+# [Custom Campfire Recipes]
+-There are 3 sections to this one. Separate each section with a /.
+-The first section is # [Custom Input] (see below). "@number" is clamped between 1 and 4.
+-The second section is # [Custom Output] (see below).
+-The third section is the cooking time, which is optional. For inputs that are more than one item, all items must have reached this cooking time. 
+If cooking time is not given, it defaults to 600. 
+-The fourth section is the signal fire setting, which is optional.
+It can be "signal" or "notsignal".
+"signal" means the campfire must be a signal fire to cook the item.
+"notsignal" means the campfire must not be a signal fire to cook the item.
+If not included, whether or not the campfire is a signal fire doesn't matter.
+Some example recipes:
+-A raw porkchop turns into a cooked porkchop:
+	minecraft:porkchop/minecraft:cooked_porkchop
+-An unlit campfire turns into a lit campfire:
+	campfirebackport:campfire_base/campfirebackport:campfire
+-Regular stone bricks turns into cracked stone bricks:
+	minecraft:stonebrick:0/minecraft:stonebrick:2
+-Sand or red sand turns into glass:
+	minecraft:sand/minecraft:glass
+-4 rotten flesh turns into 2 leather after 600 ticks:
+	minecraft:rotten_flesh@4/minecraft:leather@2
+-A stick turns into 4 torches after 20 ticks:
+	minecraft:stick/minecraft:torch@4/20
+-A birch log turns into 2 charcoal after 1 minute:
+	minecraft:log:2/minecraft:coal:1@2/1200
+-4 items in the logWood ore dictionary turns into 5 charcoal after 30 seconds, but only campfires that aren't signal fires:
+	ore:logWood@4/minecraft:coal:1@5/600/notsignal
+-Any music disc turns into a diamond after 4321 ticks, but only on signal fire campfires:
+	ore:record/minecraft:diamond/4321/onlysignal
+-An undamaged wooden sword is enchanted with fire aspect II after 5 seconds:
+	minecraft:wooden_sword:0/minecraft:wooden_sword[ench:20,2]/100
+-2 iron pickaxes each enchanted with efficieny of at least level 2 turns into a damaged diamond pickaxe after 5 minutes:
+	minecraft:iron_pickaxe[ench:32,2]@2/minecraft:diamond_pickaxe:900/6000
+-3 items in the blockGlass ore dictionary enchanted with smite level 4 or higher turns into 4 gold ingots named "Stewart" and enchanted with knockback 10 and looting 6:
+	ore:blockGlass[ench:17,4]@3/minecraft:gold_ingot{display:{Name:"Stewart"},ench:[{id:19,lvl:10},{id:21,lvl:6}]}@4
+-Any item enchated with sharpness of at least level 1 turns into an egg
+	[ench:16,1]/minecraft:egg
+-3 of any pickaxe turns into a diamond hoe with knockback 10 after 1 second
+	tool:pickaxe@3/minecraft:diamond_hoe[ench:19,10]/20
+	
+# [Custom Extinguishers/Ignitors]
+-There are 3 sections to this one. Separate each section with a /.
+-The first section is the way this extinguisher/ignitor can be used.
+It can be "left" or "right", for left click or right click.
+Additionally, you can add "+dispensable" to make this extinguisher/ignitor work in a dispenser as well. More on this in a second.
+-The second section is # [Custom Input] (see below), but there are some differences.
+If you added "+dispensable" to the first section, # [Custom Input] shouldn't be an NBT-only input.
+If you do add "+dispensable" to an NBT-only input, it'll be treated as not having "+dispensable" and you'll get a warning in console.
+USE CAUTION when assigning "+dispensable", if the item you specify already has a dispenser behaviour, that behaviour will be overwritten.
+For example, if you add "+dispensable" to a fire charge, dispensers will no longer fire them as projectiles.
+This is just because of the way dispenser behaviours work in minecraft.
+IMPORTANT: Dispenser behaviours are ONLY registered when the game is loaded!
+When you add a dispensable recipe from the in-game config screen, it won't actually be dispensable until you quit and reload!
+In the same way, if you remove a dispensable recipe, it won't actually stop being dispensable until you quit and reload!
+-The third section is what should happen after extinguishing/igniting the campfire.
+"stackable" means the item used will be reduced in stack size by the "@number" from # [Custom Input].
+"damageable" means the item used will be damaged by the "@number" from # [Custom Input].
+"none" means neither of these things will happen.
+Additionally, you can specify an item to be added to the inventory afterward by putting a >, and then a # [Custom Output] (see below).
+Some example extinguishers/ignitors:
+-Right-clicking with a snow block turns into 2 snowballs and can be used from a dispenser
+	right+dispensable/minecraft:snow/stackable>minecraft:snowball@2
+-Right-clicking with a milk bucket turns into an empty bucket
+	right/minecraft:milk_bucket/stackable>minecraft:bucket
+-Left-clicking with any sword enchanted with fire aspect and can be used from a dispenser
+	left+dispensable/class:net.minecraft.item.ItemSword[ench:20,1]/damageable
+-Right-clicking with any shovel and can be used from a dispenser
+	right+dispensable/tool:shovel/damageable
+-Left-clicking with any Tinker's Construct tool that has Auto-Smelt
+	left/[Tinkers:[B:{Lava:1}]]/damageable
+-Left-clicking with 5 of any stickWood and can be used from a dispenser
+	left+dispensable/ore:stickWood@5/stackable
+-Left-clicking with a bow enchanted with flame damages it by 10 points
+	left/minecraft:bow[ench:50,1]@10/damageable
+-Right-clicking with immersive engineering's jerrycan with at least 1000 mB of water (uses the water)
+	right/ImmersiveEngineering:jerrycan[Fluid:"water",MinAmount:1000]/none
+-Right-clicking with a wooden sword returns a wooden sword enchanted with fire aspect
+	right/minecraft:wooden_sword/stackable>minecraft:wooden_sword[ench:20,2]
+-Left-clicking with 3 of any stairs enchanted with fire aspect of at least level 3 returns a lit furnace named Oops
+	left/class:net.minecraft.block.BlockStairs[ench:20,3]/stackable>minecraft:furnace:1{display:{Name:"Oops"}}
+
+	
+# General Formats
+# [Custom Input]
+-It can be based on a namespaced Item, an Ore Dictionary entry, a tool class, a Class, or NBT.
+-Namespaced Items are in the format "modid:name:metadata".
+The ":metadata" part is optional. If it isn't there, any metadata of the item will work.
+For example, minecraft:sand refers to both Sand and Red Sand, but minecraft:sand:0 refers to only Sand.
+-Ore Dictionary entries are in the format "ore:oreName".
+For example, ore:logWood refers to anything registered in the logWood ore.
+-Tool classes are in the format "tool:toolClass".
+There are 3 vanilla tool classes: pickaxe, shovel, and axe. Simply type tool:pickaxe or tool:shovel or tool:axe.
+Modded tool classes work as well.
+-Classes are more technical. They refer to the actual Java Class used by an item or block.
+You may have to dip into the vanilla code or the github of other mods to get it. It has to be a full package and class name, prepended by "class:".
+For example, class:net.minecraft.item.ItemSword refers to any item that uses the ItemSword Class or extends it, which includes all vanilla swords.
+Another example, class:net.minecraft.block.BlockStairs, refers to any block that uses the BlockStairs Class or extends it, which includes all vanilla stairs.
+Mods usually will extend the vanilla classes, especially for things like swords and armor. That's the main intended use.
+There's no check here other than that the class exists, so you could technically do class:net.minecraft.item.Item to refer to every single item in the game, but I really wouldn't recommend it.
+-Next is the NBT, which can be attached to an Item/Ore/tool/Class or exist on its own. You can type it out exactly like you would in a command.
+For example, minecraft:diamond_pickaxe{display:{Name:"Super Pick"}}.
+Unfortunately, this modifier isn't very useful. That's because the NBT tag must match EXACTLY.
+For example, you might want to check for the Unbreaking enchantment on a Golden Shovel, so you type minecraft:golden_shovel{ench:[{id:34,lvl:1}]}.
+But this will refer to Golden Shovels whose only enchantment is Unbreaking at exactly level 1 without any other NBT.
+So some specific NBT things have been given a special format you can type it in to test in a more lenient way.
+For enchantments, that format is "[ench:id,minlevel]".
+For example, minecraft:golden_shovel[ench:34,1] refers to any Golden Shovel that has an Unbreaking enchantment of at least level 1, and may or may not have other NBT.
+Another special NBT format is the Fluid Container format, for items that hold fluids: "[Fluid:"fluidname",MinAmount:minamount]".
+For example, examplemod:fluidcontainer[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in the fluidcontainer from examplemod.
+The last NBT format is even more special than the others. This one can only exist on its own, without an Item/Ore/tool/Class.
+It's the Tinker's Construct Modifiers format. It allows you to check whether a Tinker's tool has specific modifiers on it.
+This one's rather complicated, so it gets its own section. See # [Tinker's Construct Modifiers Format].
+By the way, NBT-only inputs will display in NEI as a written book. Hover over it to see what you want to know.
+-Lastly, there's the number of inputs. You can set it by adding "@number" to the end of your input.
+For example, minecraft:dye:4@64 or ore:ingotIron@15 or minecraft:stone_axe[ench:16,3]@4.
+It's set to 1 by default if not included.
+-Check the console for error messages if your input didn't parse! 
+-NOTE: The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
+-Tip: Recipes and Extinguishers/Ignitors are sorted based on their input. 
+Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
+Within each of these categories, inputs with NBT data have higher priority, and inputs that have a size greater than 1 have the most priority.
+When you try to use an item on a campfire, it will use whatever recipe matches first. (Also, Recipes are checked before Extinguishers/Ignitors.) 
+This allows you to have, for example, an Ore Dictionary recipe that applies to every logWood, but allows you to override it for specific logWood if you'd like.
+Check the order of your recipes by setting the config option #Debug: Print Campfire Recipes to true, or just viewing recipes in NEI.
+
+# [Custom Output]
+-It's based on a namespaced Item.
+-Namespaced Items are in the format "modid:name:metadata".
+The ":metadata" part is optional. If it isn't there, it defaults to 0.
+For example, minecraft:coal and minecraft:coal:0 both refer to coal, and minecraft:coal:1 refers to charcoal.
+Once you've typed out your namespaced Item, you can add optional modifiers to the recipe.
+-The first modifier is the NBT. Type it out exactly like you would in a command.
+For example, minecraft:diamond_pickaxe{display:{Name:"Super Pick"}}.
+Or you can use one of the special formats from # [Custom Input] (but NOT # [Tinker's Construct Modifiers Format]).
+For example, minecraft:stone_axe[ench:16,3].
+-The second modifier is the number of outputs. You can set it by adding @number to the end of your output.
+For example, minecraft:dye:4@2 or mineraft:iron_ingot@13 or minecraft:stone_axe[ench:16,3]@64.
+It's set to 1 by default if not included.
+NOTE: The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
+
+# [Tinker's Construct Modifiers Format]
+I'd recommend using TiC Tooltips to see more information about modifiers.
+-General Format:
+	[Tinkers:[I:{integer modifiers}B:{byte modifiers}F:{float modifiers}IA:{integer array modifiers}]
+Each section is optional, but they must be in the order Integer, Byte, Float, Integer Array.
+Each section can contain multiple modifiers separated by commas.
+Below are the supported modifiers organized by section.
+-Integer Modifiers: These can be any integer, almost always positive. They will match items with the given value or greater.
+	HarvestLevel
+	MiningSpeed
+	Beheading
+	Fiery (25 Blaze Powder per modifier slot)
+	Necrotic (Called Life Steal in the tooltip.)
+	Unbreaking (Called Reinforced in the tooltip.)
+	Moss (Called Auto-Repair in the tooltip. Ball of Moss sets it to 3.)
+-Byte Modifiers: These are 1 or 0, where 1 means true and 0 means false. They will match items with the exact value given.
+	Lava (Called Auto-Smelt in the tooltip.)
+	Emerald (Called Durability +50% in the tooltip.)
+	Diamond (Called Durability +500 in the tooltip.)
+	SilkTouch (Called Silky in the tooltip.)
+	Broken (Whether the tool is broken or not.)
+	Flux (If the tool uses RF instead of durability.)
+-Float Modifiers: These can be any decimal number. If positive, they will match items with the given value or greater. If negative, they will match items with the given value or smaller. If zero, they will match items with exactly zero.
+	Knockback (Goes up 0.1 at a time. 10 Pistons per modifier slot)
+	Shoddy (positive values indicate Stonebound, negative values indicate Jagged.)
+-Integer Array Modifiers: These can be any integer, always positive. They will match items with the given value or greater.
+	Redstone (Called Haste in the tooltip. 50 Redstone per modifier slot)
+	ModAttack (Called Sharpness in the tooltip. 72 Quartz per modifier slot)
+	ModSmite (Called Smite in the tooltip. 36 Consecrated Soil per modifier slot)
+	ModAntiSpider (Called Bane of Arthropods in the tooltip. 4 Fermented Spider Eyes per modifier slot)
+	Lapis (Called Luck in the tooltip. Fortune for pickaxes, Looting for swords. 450 Lapis Lazuli is the maximum)
+Any arbitrary modifier should work as long as you put it in the correct section. The above modifiers will look nicer in NEI though.
+Some examples:
+-Matches any Tinker's Construct tool:
+	[Tinkers:[]]
+-Matches any tool that's had at least one Blaze Powder added to it:
+	[Tinkers:[I:{Fiery:1}]]
+-Matches any tool with Auto-Smelt:
+	[Tinkers:[B:{Lava:1}]]
+-Matches any tool that isn't broken:
+	[Tinkers:[B:{Broken:0}]]
+-Matches a tool that's Jagged, with at least one Redstone added to it, with a Diamond added to it, and with a Harvest Level of at least 1 (stone pickaxe level):
+	[Tinkers:[I:{HarvestLevel:1}B:{Diamond:1}F:{Shoddy:-1.0}IA:{Redstone:1}]]
+-Matches a tool that's Stonebound 2, with Auto-Smelt, with Beheading 1 or greater, with a Ball of Moss added to it, with at least one full modifier of Fiery (25 Blaze Powder), and with at least half a modifier of Knockback (5 Pistons):
+	[Tinkers:[I:{Beheading:1,Moss:3,Fiery:25}B:{Lava:1}F:{Shoddy:2.0,Knockback:0.5}]]
+
+# Also...
+Added a command, "/campfirebackport_nbt".
+If you use it without any arguments, it will print the NBT of your held item to chat.
+You can also use it like "/campfirebackport_nbt <x> <y> <z>" in which case it will print the NBT of a tile entity at that location to chat.
+Basically, it's like "/data get" from 1.13+, or "/blockdata", "/entitydata" from 1.12.

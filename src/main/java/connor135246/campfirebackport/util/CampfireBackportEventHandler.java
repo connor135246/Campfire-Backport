@@ -2,18 +2,16 @@ package connor135246.campfirebackport.util;
 
 import org.lwjgl.opengl.GL11;
 
-import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.CampfireBackportConfig;
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
 import connor135246.campfirebackport.common.CommonProxy;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
 public class CampfireBackportEventHandler
@@ -24,6 +22,9 @@ public class CampfireBackportEventHandler
     @SideOnly(Side.CLIENT)
     public void onRenderWorldLast(RenderWorldLastEvent event)
     {
+        // botania license attribution clause, etc etc
+        // damn you vazkii!!!!! but thanks
+
         Tessellator tessellator = Tessellator.instance;
 
         Profiler profiler = Minecraft.getMinecraft().mcProfiler;
@@ -52,10 +53,11 @@ public class CampfireBackportEventHandler
             }
             else
             {
-                CommonProxy.modlog.warn("You had an old (v1.3 or earlier) config file on game load! Config settings have changed a lot since then!");
-                CommonProxy.modlog.warn("Delete or rename the old config file, then restart minecraft to get a new one.");
-                CommonProxy.modlog.warn("No settings will be saved from the in-game config screen.");
+                CommonProxy.modlog.warn(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error"));
+                CommonProxy.modlog.warn(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config.error.1"));
+                CommonProxy.modlog.warn(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config.error.2"));
             }
         }
     }
+
 }

@@ -11,6 +11,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
@@ -40,9 +41,9 @@ public class ClientProxy extends CommonProxy
     }
 
     @Override
-    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire)
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire, Block colourer)
     {
-        EntityBigSmokeFX smokey = new EntityBigSmokeFX(world, x, y, z, signalFire);
+        EntityBigSmokeFX smokey = new EntityBigSmokeFX(world, x, y, z, signalFire, colourer);
 
         Minecraft.getMinecraft().effectRenderer.addEffect(smokey);
     }
