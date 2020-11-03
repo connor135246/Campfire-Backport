@@ -1,131 +1,113 @@
 package connor135246.campfirebackport.common;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-
 import org.apache.logging.log4j.Logger;
-
-import com.google.common.io.Files;
 
 import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.config.ConfigNetworkManager.SendConfigMessage;
 import connor135246.campfirebackport.util.CampfireBackportEventHandler;
-import connor135246.campfirebackport.util.CommandNBT;
+import connor135246.campfirebackport.util.CommandCampfireBackport;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
 
 public class CommonProxy
 {
 
-    public static Configuration config;
-    public static boolean useDefaultConfig = false;
+    public static Logger modlog;
+
+    public static boolean isThaumcraftLoaded = false;
+    public static boolean isMineTweaker3Loaded = false;
 
     public static CampfireBackportEventHandler handler = new CampfireBackportEventHandler();
 
-    public static Logger modlog;
+    public static SimpleNetworkWrapper simpleNetwork;
 
     public void preInit(FMLPreInitializationEvent event)
     {
-        config = new Configuration(event.getSuggestedConfigurationFile());
+        modlog = event.getModLog();
 
         MinecraftForge.EVENT_BUS.register(handler);
         FMLCommonHandler.instance().bus().register(handler);
+        FMLCommonHandler.instance().bus().register(CampfireBackport.instance);
 
-        modlog = event.getModLog();
+        simpleNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
+        simpleNetwork.registerMessage(SendConfigMessage.Handler.class, SendConfigMessage.class, 1, Side.CLIENT);
 
-        // old (pre-1.4) config is very different. old configs will be safely renamed and a new config will be created.
-        if (config.hasKey(Configuration.CATEGORY_GENERAL, "Regen Level"))
-        {
-            try
-            {
-                modlog.info(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config"));
-                Files.move(config.getConfigFile(), new File(config.getConfigFile().getCanonicalPath() + "_1.3"));
-                config = new Configuration(event.getSuggestedConfigurationFile());
-            }
-            catch (Exception excep)
-            {
-                modlog.error(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config.error.0"));
-                modlog.error(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config.error.1"));
-                modlog.error(StatCollector.translateToLocal(Reference.MODID + ".preinit.rename_old_config.error.2"));
-                useDefaultConfig = true;
-            }
-        }
-
-        // Create Config Explanation File
-        try
-        {
-            File explanation = new File(event.getModConfigurationDirectory(), Reference.README_FILENAME);
-            if (explanation.createNewFile())
-            {
-                modlog.info(StatCollector.translateToLocal(Reference.MODID + ".preinit.create_explanation"));
-                PrintWriter explanationWriter = new PrintWriter(new FileWriter(explanation));
-                for (int i = 0; i < 197; ++i)
-                    explanationWriter.println(StatCollector.translateToLocal(Reference.MODID + ".config.explanation." + i));
-                explanationWriter.close();
-            }
-        }
-        catch (Exception excep)
-        {
-            modlog.error(StatCollector.translateToLocal(Reference.MODID + ".preinit.create_explanation.error.0"));
-            modlog.error(StatCollector.translateToLocal(Reference.MODID + ".preinit.create_explanation.error.1"));
-        }
-
+        CampfireBackportConfig.prepareConfig(event);
         CampfireBackportBlocks.preInit();
         GameRegistry.registerTileEntity(TileEntityCampfire.class, Reference.MODID + ":" + "campfire");
     }
 
     public void init(FMLInitializationEvent event)
     {
-        FMLInterModComms.sendMessage("Waila", "register", "connor135246.campfirebackport.client.compat.CampfireBackportWailaDataProvider.register");
+        FMLInterModComms.sendMessage("Waila", "register", Reference.MOD_PACKAGE + ".client.compat.waila.CampfireBackportWailaDataProvider.register");
     }
 
     public void postInit(FMLPostInitializationEvent event)
     {
-        config.load();
-        syncConfig();
+        modCompat();
+        CampfireBackportConfig.doConfig(0, true);
     }
-    
+
     public void serverLoad(FMLServerStartingEvent event)
     {
-        event.registerServerCommand(new CommandNBT());
+        event.registerServerCommand(new CommandCampfireBackport());
     }
 
-    public static void syncConfig()
+    //
+
+    /**
+     * checks for specific mod compatibility
+     */
+    public static void modCompat()
     {
-        try
+        if (Loader.isModLoaded("MineTweaker3"))
         {
-            if (!useDefaultConfig)
+            try
             {
-                FMLCommonHandler.instance().bus().register(CampfireBackport.instance);
-                CampfireBackportConfig.doConfig(config);
-                config.save();
+                Class.forName(Reference.MOD_PACKAGE + ".common.compat.crafttweaker.CampfireBackportCraftTweaking").getDeclaredMethod("postInit").invoke(null);
+                isMineTweaker3Loaded = true;
             }
-            else
+            catch (Exception excep)
             {
-                CampfireBackportConfig.doDefaultConfig();
+                modlog.error("Error while initializing MineTweaker3 (CraftTweaker) compat! Please report this bug!");
             }
         }
-        catch (Exception excep)
+
+        if (Loader.isModLoaded("Thaumcraft"))
         {
-            modlog.catching(excep);
+            try
+            {
+                Class.forName(Reference.MOD_PACKAGE + ".common.compat.thaumcraft.CampfireBackportWandTriggerManager").getDeclaredMethod("postInit")
+                        .invoke(null);
+                isThaumcraftLoaded = true;
+            }
+            catch (Exception excep)
+            {
+                modlog.error("Error while initializing Thaumcraft compat! Please report this bug!");
+            }
         }
     }
 
-    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire, Block colourer)
+    /**
+     * Makes campfire smoke particles client side.
+     */
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire, Block colourer, int meta)
     {
         ;
     }

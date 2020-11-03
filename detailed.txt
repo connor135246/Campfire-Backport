@@ -1,53 +1,226 @@
-# Detailed Campfire Backport Config Descriptions
+You can find the most recent version of this information at https://github.com/connor135246/Campfire-Backport/wiki
 
-You can also find this information at https://github.com/connor135246/Campfire-Backport/wiki.
+Table of Contents
+# Command
+# Campfire Backport CraftTweaking
+	# [Campfire Cooking Recipes]
+	# [Campfire Extinguishers / Ignitors]
+	# [Burn Out Biome / Dimension Timers]
+# Campfire Backport Config Settings in Detail
+	# Specific Formats
+		# [Campfire Cooking Recipes]
+		# [Campfire Extinguishers / Ignitors]
+		# [Burn Out Biome / Dimension Timers]
+		# [Campfire Drops]
+	# General Formats
+		# [Custom Input]
+		# [Custom Output]
+		# [Tinker's Construct Modifiers Format]
+
+---
+	
+# Command
+The command "/campfirebackport" has four subcommands:
+-/campfirebackport dumpinfo
+Dumps this text file to the config folder.
+-/campfirebackport nbt [player] OR /campfirebackport nbt <x> <y> <z>
+Prints out the NBT of the player's held item OR the NBT of the tile entity at the location.
+-/campfirebackport reload
+Reloads the config from file. Sends the new config to all players on the server. Useful if you want to change a config setting on a server without having to restart it.
+-/campfirebackport help
+Displays this list of commands.
+
+---
+
+# Campfire Backport CraftTweaking
+Campfire cooking recipes, campfire extinguishers/ignitors, and burn out biome/dimension timers can be made with CraftTweaker.
+Tips:
+-Pressing the "uses" hotkey when hovering over a campfire in NEI will bring up all Recipes and Extinguishers / Ignitors.
+-When using a damageable item as an input, don't forget to set its damage as a wildcard. For example, <minecraft:iron_sword> only applies to undamaged iron swords, but <minecraft:iron_sword:*> applies to iron swords with any amount of damage.
+-To make an input require specific NBT Tags, use .withTag(tag) AND .onlyWithTag(tag). If you only put .withTag(tag), it will be completely ignored. If you only put .onlyWithTag(tag), it won't show up as having the tag in NEI.
+-To make an output have specific NBT Tags, use .withTag(tag).
+
+
+# [Campfire Cooking Recipes]
+Campfire cooking recipes are added with the command: 
+mods.campfirebackport.addCampfireRecipe(String types, IIngredient input OR IIngredient[] input, IItemStack output, @Optional Integer cookingTime, @Optional String signalFire, @Optional IItemStack byproduct, @Optional Double byproductChance);
+-String types
+The campfire types this recipe applies to. Must be "regular", "soul", or "both".
+-IIngredient OR IIngredient[] input
+Up to 4 inputs in an array, because a campfire has 4 slots.
+If it's just 1 input, you don't have to put it in an array.
+-IItemStack output
+The output.
+-@Optional Integer cookingTime
+It's the number of ticks until the item cooks. 
+If not included, defaults to 600.
+-@Optional String signalFire
+If "signal", the campfire must be a signal fire to cook this recipe.
+If "notsignal", the campfire must NOT be a signal fire to cook this recipe.
+If "any", it doesn't matter.
+If not included, it defaults to "any".
+-@Optional IItemStack byproduct
+It's simply another output that can have a chance to be produced.
+-@Optional Double byproductChance
+This is the chance for the byproduct to be produced.
+It's a decimal number between 0.0 and 1.0.
+If not included, it defaults to 1.0 (100%).
+
+Some example recipes:
+-A glass bottle turns into a water bottle after 63 ticks on any campfire
+	mods.campfirebackport.addCampfireRecipe("both", <minecraft:glass_bottle>, <minecraft:potion>, 63);
+-An iron ingot and a gold ingot turn into an emerald on regular campfires
+	mods.campfirebackport.addCampfireRecipe("regular", [<ore:ingotIron>, <ore:ingotGold>], <minecraft:emerald>);
+-A diamond axe turns into two full stacks of redstone after 2 ticks on a soul campfire that isn't a signal fire
+	mods.campfirebackport.addCampfireRecipe("soul", <minecraft:diamond_axe:*>, <minecraft:redstone> * 64, 2, "notsignal", <minecraft:redstone> * 64);
+-4 of any planks turn into 3 diamonds after 4821 ticks on a soul campfire that is a signal fire
+	mods.campfirebackport.addCampfireRecipe("soul", [<ore:plankWood>, <ore:plankWood>, <ore:plankWood>, <ore:plankWood>], <minecraft:diamond> * 3, 4821, "signal");
+-Make an iron ingot with the lore "wibbly wobbly" and have a 50% chance of a gold ingot after 221 ticks by putting a sand (or a red sand) and a dirt (or a podzol) on any campfire
+	mods.campfirebackport.addCampfireRecipe("both", [<minecraft:sand:*>, <minecraft:dirt:*>], <minecraft:iron_ingot>.withTag({display: {Lore:["wibbly wobbly"]}}), 221, "any", <minecraft:gold_ingot>, 0.5);
+
+
+# [Campfire Extinguishers / Ignitors]
+Campfire Extinguishers / Ignitors are added with the commands:
+mods.campfirebackport.addCampfireExtinguisher(String types, IIngredient input, String usageType, @Optional int damageOrReduceBy, @Optional IItemStack output, @Optional boolean leftClick);
+mods.campfirebackport.addCampfireIgnitor(String types, IIngredient input, String usageType, @Optional int damageOrReduceBy, @Optional IItemStack output, @Optional boolean leftClick);
+-String types
+The campfire types this extinguisher / ignitor applies to. Must be "regular", "soul", or "both".
+-IIngredient input
+The input used to extinguish / ignite the campfire.
+-String usageType
+How the input is used up. Must be "damageable", "stackable", or "none".
+If "damageable", the input will be damaged. Use this one if the input has durability.
+If "stackable", the input will be reduced in stack size.
+If "none", neither will happen.
+-@Optional int damageOrReduceBy
+How much the input is damaged / reduced by.
+If usageType is "damageable", the input will be damaged by this amount.
+If usageType is "stackable", the input is required to have at least this stack size to be used, and will be reduced in stack size by this amount.
+If usageType is "none", the input won't be damaged or reduced in stack size. The input is still required to have this stack size to be used, however.
+If not included, defaults to 1.
+-@Optional IItemStack output
+The item that is returned after extinguishing / igniting. For example, a water bucket returning a bucket.
+If not included, defaults to null.
+-@Optional boolean leftClick
+If true, the extinguisher / ignitor is used by left clicking the campfire.
+If false, the extinguisher / ignitor is used by right clicking the campfire.
+If not included, defaults to false.
+Since right clicking a campfire checks for cooking recipes first, you might want to set this to true if the input is also a cooking recipe input.
+
+Some example extinguishers/ignitors:
+-Right-clicking with an iron hoe extinguishes soul campfires and is damaged by 6 points
+	mods.campfirebackport.addCampfireExtinguisher("soul", <minecraft:iron_hoe:*>, "damageable", 6);
+-Right-clicking with 3 of any glass block ignites campfires and gives the player 2 sand blocks named "Martha"
+	mods.campfirebackport.addCampfireIgnitor("both", <ore:blockGlass>, "stackable", 3, (<minecraft:sand> * 2).withTag({display: {Name:"Martha"}}));
+-Left-clicking with a boat extinguishes regular campfires and gives the player 3 oak planks
+	mods.campfirebackport.addCampfireExtinguisher("regular", <minecraft:boat>, "stackable", 1, <minecraft:planks> * 3, true);
+-Left-clicking with a flint and steel extinguishes soul campfires
+	mods.campfirebackport.addCampfireExtinguisher("soul", <minecraft:flint_and_steel:*>, "damageable", 1, null, true);
+
+	
+# [Burn Out Biome / Dimension Timers]
+Burn Out Biome / Dimension Timers are added with the command:
+addBurnOutTimer(String types, Integer biomeId, Integer dimensionId, int timer);
+-String types
+The campfire types this timer applies to. Must be "regular", "soul", or "both".
+-Integer biomeId
+The ID of the biome this rule should apply to.
+If the biome shouldn't matter for this rule, put null.
+-Integer dimensionId
+The ID of the dimension this rule should apply to.
+If the dimension shouldn't matter for this rule, put null.
+-int timer
+The number of ticks until the campfire will burn out.
+Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
+Tips:
+-Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
+-If no timers apply, campfires will use the value from Burn Out Timers. 
+-You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
+-If you don't know your biome IDs, there are mods such as Tell Me that will output a list for you. Dimension IDs can be found in your saves. Some mods allow you to change biome or dimension IDs in their config.
+
+Some example timers:
+-Soul campfires never burn out in the nether
+	mods.campfirebackport.addBurnOutRule("soul", null, -1, -1);
+-Regular campfires burn out after around a minute in swamp biomes
+	mods.campfirebackport.addBurnOutRule("regular", 6, null, 1200);
+-All campfires burn out immediately in ocean biomes that are in the nether
+	mods.campfirebackport.addBurnOutRule("both", 0, -1, 0);
+-Regular campfires burn out after around an hour in mushroom island biomes that are in the end
+	mods.campfirebackport.addBurnOutRule("regular", 14, 1, 72000);
+
+---
+
+# Campfire Backport Config Settings in Detail
+In most cases, it'll be easier and cleaner to do these with CraftTweaker. But there are some things you can only do here.
+Tips:
+-Pressing the "uses" hotkey when hovering over a campfire in NEI will bring up all Recipes and Extinguishers / Ignitors.
+-Check the console for error messages if your input didn't parse! 
+-The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
+-Recipes and Extinguishers/Ignitors are sorted based on their input. 
+Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
+Within each of these categories, inputs with NBT data have higher priority, and inputs that use more than one item have the most priority.
+When you try to use an item on a campfire, it will use whatever recipe matches first. (Also, Recipes are checked before Extinguishers/Ignitors.) 
+This allows you to have, for example, an Ore Dictionary recipe that applies to every logWood, but allows you to override it for specific logWood if you'd like.
+Check the order of your recipes by setting the config option #Debug: Print Campfire Recipes to true, or just viewing recipes in NEI.
+
 
 # Specific Formats
-# [Custom Campfire Recipes]
--There are 3 sections to this one. Separate each section with a /.
--The first section is # [Custom Input] (see below). "@number" is clamped between 1 and 4.
--The second section is # [Custom Output] (see below).
--The third section is the cooking time, which is optional. For inputs that are more than one item, all items must have reached this cooking time. 
+# [Campfire Cooking Recipes]
+-There are up to 6 sections in this one. Separate each section with a /.
+-The first section is anywhere from one to four # [Custom Input] (see below), each separated with an &.
+-The second section is the output # [Custom Output] (see below).
+-The third section is the cooking time, which is optional. It's the number of ticks until the item cooks. 
+For inputs that are more than one item, all items must have reached this cooking time. 
 If cooking time is not given, it defaults to 600. 
 -The fourth section is the signal fire setting, which is optional.
-It can be "signal" or "notsignal".
+It can be "signal" or "notsignal" or "any".
 "signal" means the campfire must be a signal fire to cook the item.
-"notsignal" means the campfire must not be a signal fire to cook the item.
-If not included, whether or not the campfire is a signal fire doesn't matter.
+"notsignal" means the campfire must NOT be a signal fire to cook the item.
+"any" means it doesn't matter, which is the default.
+-The fifth section is the byproduct # [Custom Output] (see below), which is optional. It's simply another output that can have a chance to be produced.
+-The sixth section is the byproduct chance, which is optional. It's a decimal number between 0.0 and 1.0 representing the chance for the byproduct.
+If byproduct chance is not given, it defaults to 1.0 (100%).
+
 Some example recipes:
--A raw porkchop turns into a cooked porkchop:
+-A raw porkchop turns into a cooked porkchop
 	minecraft:porkchop/minecraft:cooked_porkchop
--An unlit campfire turns into a lit campfire:
+-An unlit campfire turns into a lit campfire
 	campfirebackport:campfire_base/campfirebackport:campfire
--Regular stone bricks turns into cracked stone bricks:
+-Regular stone bricks turns into cracked stone bricks
 	minecraft:stonebrick:0/minecraft:stonebrick:2
--Sand or red sand turns into glass:
+-Sand or red sand turns into glass
 	minecraft:sand/minecraft:glass
--4 rotten flesh turns into 2 leather after 600 ticks:
-	minecraft:rotten_flesh@4/minecraft:leather@2
--A stick turns into 4 torches after 20 ticks:
-	minecraft:stick/minecraft:torch@4/20
--A birch log turns into 2 charcoal after 1 minute:
+-A birch log turns into 2 charcoal after 1 minute
 	minecraft:log:2/minecraft:coal:1@2/1200
--4 items in the logWood ore dictionary turns into 5 charcoal after 30 seconds, but only campfires that aren't signal fires:
+-4 rotten flesh turns into 2 leather after 600 ticks
+	minecraft:rotten_flesh@4/minecraft:leather@2
+-Any music disc turns into a diamond after 4321 ticks, but only on signal fire campfires
+	ore:record/minecraft:diamond/4321/signal
+-4 items in the logWood ore dictionary turns into 5 charcoal after 30 seconds, but only on campfires that aren't signal fires
 	ore:logWood@4/minecraft:coal:1@5/600/notsignal
--Any music disc turns into a diamond after 4321 ticks, but only on signal fire campfires:
-	ore:record/minecraft:diamond/4321/onlysignal
--An undamaged wooden sword is enchanted with fire aspect II after 5 seconds:
+-1 brown mushroom, 1 red mushroom, and 1 bowl turns into mushroom stew after 63 ticks, but only on signal fire campfires
+	minecraft:brown_mushroom&minecraft:red_mushroom&minecraft:bowl/minecraft:mushroom_stew/63/signal
+-1 bucket of milk, 1 wheat, 1 sugar, and 1 egg turns into a cake, and returns a bucket
+	minecraft:milk_bucket&minecraft:wheat&minecraft:sugar&minecraft:egg/minecraft:cake/600/any/minecraft:bucket
+-1 carrot and 3 gold nuggets turns into a golden carrot
+	minecraft:carrot&minecraft:gold_nugget@3/minecraft:golden_carrot
+-An undamaged wooden sword is enchanted with fire aspect II after 5 seconds
 	minecraft:wooden_sword:0/minecraft:wooden_sword[ench:20,2]/100
--2 iron pickaxes each enchanted with efficieny of at least level 2 turns into a damaged diamond pickaxe after 5 minutes:
+-2 iron pickaxes each enchanted with efficieny of at least level 2 turns into a damaged diamond pickaxe after 5 minutes
 	minecraft:iron_pickaxe[ench:32,2]@2/minecraft:diamond_pickaxe:900/6000
--3 items in the blockGlass ore dictionary enchanted with smite level 4 or higher turns into 4 gold ingots named "Stewart" and enchanted with knockback 10 and looting 6:
+-3 items in the blockGlass ore dictionary enchanted with smite level 4 or higher turns into 4 gold ingots named "Stewart" and enchanted with knockback 10 and looting 6
 	ore:blockGlass[ench:17,4]@3/minecraft:gold_ingot{display:{Name:"Stewart"},ench:[{id:19,lvl:10},{id:21,lvl:6}]}@4
 -Any item enchated with sharpness of at least level 1 turns into an egg
 	[ench:16,1]/minecraft:egg
 -3 of any pickaxe turns into a diamond hoe with knockback 10 after 1 second
 	tool:pickaxe@3/minecraft:diamond_hoe[ench:19,10]/20
 	
-# [Custom Extinguishers/Ignitors]
+	
+# [Campfire Extinguishers / Ignitors]
 -There are 3 sections to this one. Separate each section with a /.
--The first section is the way this extinguisher/ignitor can be used.
+-The first section is the way this extinguisher / ignitor can be used.
 It can be "left" or "right", for left click or right click.
+Since right clicking a campfire checks for cooking recipes first, you might want to set this to "left" if the input is also a cooking recipe input.
 Additionally, you can add "+dispensable" to make this extinguisher/ignitor work in a dispenser as well. More on this in a second.
 -The second section is # [Custom Input] (see below), but there are some differences.
 If you added "+dispensable" to the first section, # [Custom Input] shouldn't be an NBT-only input.
@@ -58,11 +231,12 @@ This is just because of the way dispenser behaviours work in minecraft.
 IMPORTANT: Dispenser behaviours are ONLY registered when the game is loaded!
 When you add a dispensable recipe from the in-game config screen, it won't actually be dispensable until you quit and reload!
 In the same way, if you remove a dispensable recipe, it won't actually stop being dispensable until you quit and reload!
--The third section is what should happen after extinguishing/igniting the campfire.
-"stackable" means the item used will be reduced in stack size by the "@number" from # [Custom Input].
-"damageable" means the item used will be damaged by the "@number" from # [Custom Input].
+-The third section is what should happen after extinguishing / igniting the campfire.
+"damageable" means the item used will be damaged by the "@number" from the # [Custom Input].
+"stackable" means the item used will be reduced in stack size by the "@number" from the # [Custom Input].
 "none" means neither of these things will happen.
 Additionally, you can specify an item to be added to the inventory afterward by putting a >, and then a # [Custom Output] (see below).
+
 Some example extinguishers/ignitors:
 -Right-clicking with a snow block turns into 2 snowballs and can be used from a dispenser
 	right+dispensable/minecraft:snow/stackable>minecraft:snowball@2
@@ -84,7 +258,39 @@ Some example extinguishers/ignitors:
 	right/minecraft:wooden_sword/stackable>minecraft:wooden_sword[ench:20,2]
 -Left-clicking with 3 of any stairs enchanted with fire aspect of at least level 3 returns a lit furnace named Oops
 	left/class:net.minecraft.block.BlockStairs[ench:20,3]/stackable>minecraft:furnace:1{display:{Name:"Oops"}}
+	
+	
+# [Burn Out Biome / Dimension Timers]
+-There are 3 sections to this one. Separate each section with a /.
+-The first section is the campfire types this timer applies to.
+Must be "regular", "soul", or "both".
+-The second section is the biome and/or dimension id.
+Type "biome:id" or "dimension:id". For biomes, the id can't be negative.
+You can give both a biome and dimension id at the same time, by putting an & between.
+For example, "biome:4&dimension:-1".
+-The third section is the number of ticks until the campfire will burn out.
+Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
+Tips:
+-Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
+-If no timers apply, campfires will use the value from Burn Out Timers. 
+-You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
+-If you don't know your biome IDs, there are mods such as Tell Me that will output a list for you. Dimension IDs can be found in your saves. Some mods allow you to change biome or dimension IDs in their config.
 
+Some example timers:
+-Soul campfires never burn out in the nether
+	soul/dimension:-1/-1
+-Regular campfires burn out after around a minute in swamp biomes
+	regular/biome:6/1200
+-All campfires burn out immediately in ocean biomes that are in the nether
+	both/biome:0&dimension:-1/0
+-Regular campfires burn out after around an hour in mushroom island biomes that are in the end
+	regular/dimension:1&biome:14/72000
+	
+	
+# [Campfire Drops]
+These use the same format as # [Custom Output] (see below).
+
+---
 	
 # General Formats
 # [Custom Input]
@@ -120,14 +326,7 @@ By the way, NBT-only inputs will display in NEI as a written book. Hover over it
 -Lastly, there's the number of inputs. You can set it by adding "@number" to the end of your input.
 For example, minecraft:dye:4@64 or ore:ingotIron@15 or minecraft:stone_axe[ench:16,3]@4.
 It's set to 1 by default if not included.
--Check the console for error messages if your input didn't parse! 
--NOTE: The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
--Tip: Recipes and Extinguishers/Ignitors are sorted based on their input. 
-Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
-Within each of these categories, inputs with NBT data have higher priority, and inputs that have a size greater than 1 have the most priority.
-When you try to use an item on a campfire, it will use whatever recipe matches first. (Also, Recipes are checked before Extinguishers/Ignitors.) 
-This allows you to have, for example, an Ore Dictionary recipe that applies to every logWood, but allows you to override it for specific logWood if you'd like.
-Check the order of your recipes by setting the config option #Debug: Print Campfire Recipes to true, or just viewing recipes in NEI.
+
 
 # [Custom Output]
 -It's based on a namespaced Item.
@@ -142,14 +341,14 @@ For example, minecraft:stone_axe[ench:16,3].
 -The second modifier is the number of outputs. You can set it by adding @number to the end of your output.
 For example, minecraft:dye:4@2 or mineraft:iron_ingot@13 or minecraft:stone_axe[ench:16,3]@64.
 It's set to 1 by default if not included.
-NOTE: The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
+
 
 # [Tinker's Construct Modifiers Format]
-I'd recommend using TiC Tooltips to see more information about modifiers.
+I'd recommend using the mod TiC Tooltips to see more information about modifiers.
 -General Format:
 	[Tinkers:[I:{integer modifiers}B:{byte modifiers}F:{float modifiers}IA:{integer array modifiers}]
 Each section is optional, but they must be in the order Integer, Byte, Float, Integer Array.
-Each section can contain multiple modifiers separated by commas.
+Each section can contain multiple modifiers separated by commas. But note that the sections themselves are not separated by commas!
 Below are the supported modifiers organized by section.
 -Integer Modifiers: These can be any integer, almost always positive. They will match items with the given value or greater.
 	HarvestLevel
@@ -175,7 +374,7 @@ Below are the supported modifiers organized by section.
 	ModSmite (Called Smite in the tooltip. 36 Consecrated Soil per modifier slot)
 	ModAntiSpider (Called Bane of Arthropods in the tooltip. 4 Fermented Spider Eyes per modifier slot)
 	Lapis (Called Luck in the tooltip. Fortune for pickaxes, Looting for swords. 450 Lapis Lazuli is the maximum)
-Any arbitrary modifier should work as long as you put it in the correct section. The above modifiers will look nicer in NEI though.
+Any arbitrary modifier from other mods should work as long as you put it in the correct section. The above modifiers will look nicer in NEI though.
 Some examples:
 -Matches any Tinker's Construct tool:
 	[Tinkers:[]]
@@ -189,9 +388,3 @@ Some examples:
 	[Tinkers:[I:{HarvestLevel:1}B:{Diamond:1}F:{Shoddy:-1.0}IA:{Redstone:1}]]
 -Matches a tool that's Stonebound 2, with Auto-Smelt, with Beheading 1 or greater, with a Ball of Moss added to it, with at least one full modifier of Fiery (25 Blaze Powder), and with at least half a modifier of Knockback (5 Pistons):
 	[Tinkers:[I:{Beheading:1,Moss:3,Fiery:25}B:{Lava:1}F:{Shoddy:2.0,Knockback:0.5}]]
-
-# Also...
-Added a command, "/campfirebackport_nbt".
-If you use it without any arguments, it will print the NBT of your held item to chat.
-You can also use it like "/campfirebackport_nbt <x> <y> <z>" in which case it will print the NBT of a tile entity at that location to chat.
-Basically, it's like "/data get" from 1.13+, or "/blockdata", "/entitydata" from 1.12.

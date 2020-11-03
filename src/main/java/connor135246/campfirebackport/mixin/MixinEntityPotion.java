@@ -12,13 +12,15 @@ import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+/**
+ * This mixin allows thrown splash potions to put out campfires where they land.
+ */
 @Mixin(EntityPotion.class)
 public abstract class MixinEntityPotion extends EntityThrowable
 {
     public MixinEntityPotion(World p_i1776_1_)
     {
         super(p_i1776_1_);
-        // TODO Auto-generated constructor stub
     }
 
     @Inject(method = "onImpact", at = @At(value = "INVOKE", ordinal = 0))
@@ -33,11 +35,12 @@ public abstract class MixinEntityPotion extends EntityThrowable
         for (int[] check : posArray)
         {
             Block block = this.worldObj.getBlock(check[0], check[1], check[2]);
-
             if (block instanceof BlockCampfire)
             {
-                if (((BlockCampfire) block).isLit())
-                    BlockCampfire.updateCampfireBlockState(false, worldObj, check[0], check[1], check[2], ((BlockCampfire) block).getType());
+                BlockCampfire cblock = (BlockCampfire) block;
+
+                if (cblock.isLit())
+                    cblock.toggleCampfireBlockState(this.worldObj, check[0], check[1], check[2]);
             }
         }
     }

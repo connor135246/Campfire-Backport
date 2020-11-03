@@ -8,13 +8,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+/**
+ * This mixin allows small fireball entities (such as the ones fired by blazes or launched from dispensers using fire charges) to light campfires.
+ */
 @Mixin(EntitySmallFireball.class)
 public abstract class MixinEntitySmallFireball extends EntityFireball
 {
@@ -22,7 +23,6 @@ public abstract class MixinEntitySmallFireball extends EntityFireball
     public MixinEntitySmallFireball(World p_i1759_1_)
     {
         super(p_i1759_1_);
-        // TODO Auto-generated constructor stub
     }
 
     @Inject(method = "onImpact",
@@ -38,12 +38,13 @@ public abstract class MixinEntitySmallFireball extends EntityFireball
             int z = mop.blockZ;
 
             Block block = this.worldObj.getBlock(x, y, z);
-
             if (block instanceof BlockCampfire)
             {
-                if (!((BlockCampfire) block).isLit())
+                BlockCampfire cblock = (BlockCampfire) block;
+
+                if (!cblock.isLit())
                 {
-                    BlockCampfire.updateCampfireBlockState(true, worldObj, x, y, z, ((BlockCampfire)block).getType());
+                    cblock.toggleCampfireBlockState(this.worldObj, x, y, z);
                     this.setDead();
                     ci.cancel();
                 }
@@ -57,5 +58,5 @@ public abstract class MixinEntitySmallFireball extends EntityFireball
             ci.cancel();
         }
     }
-    
+
 }

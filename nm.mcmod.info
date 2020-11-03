@@ -2,7 +2,7 @@
 {
   "modid": "campfirebackport",
   "name": "Campfire Backport",
-  "description": "adds campfires & soul campfires from modern minecraft, with some config options.\nThis is the NO MIXINS version. That means fireballs won't be able to light campfires, and thrown splash potions won't be able to put them out.",
+  "description": "adds campfires & soul campfires from modern minecraft, with some config options.\nThis is the NO MIXINS version. That means fireballs won't be able to light campfires, and thrown splash potions won't be able to put them out. Also, mobs won't avoid walking onto campfires.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "https://github.com/connor135246/Campfire-Backport",

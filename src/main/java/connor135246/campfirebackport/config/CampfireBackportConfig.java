@@ -1,22 +1,29 @@
 package connor135246.campfirebackport.config;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import com.google.common.io.Files;
 
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
-import connor135246.campfirebackport.common.crafting.CampfireRecipe;
-import connor135246.campfirebackport.common.crafting.CampfireStateChanger;
-import connor135246.campfirebackport.common.crafting.GenericCustomInput;
+import connor135246.campfirebackport.common.recipes.BurnOutRule;
+import connor135246.campfirebackport.common.recipes.CampfireRecipe;
+import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
@@ -36,9 +43,16 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 public class CampfireBackportConfig
 {
 
+    // config
+
+    public static Configuration config;
+    public static File configDirectory;
+
+    public static boolean useDefaultConfig = false;
     public static boolean initialLoad = true;
 
     // config settings
+
     public static boolean charcoalOnly;
     public static boolean soulSoilOnly;
 
@@ -61,9 +75,15 @@ public class CampfireBackportConfig
 
     public static EnumCampfireType putOutByRain;
 
+    public static EnumCampfireType damaging;
+
+    public static double[] visCosts;
+
     public static int[] burnOutTimer;
+    public static String[] burnOutRules;
     public static EnumCampfireType signalFiresBurnOut;
     public static double[] burnToNothingChances;
+    public static EnumCampfireType burnOutAsItem;
 
     public static String[] signalFireStrings;
 
@@ -84,9 +104,8 @@ public class CampfireBackportConfig
     public static boolean suppressInputErrors;
 
     // lists made from config settings
-    public static ArrayList<Item> dispenserBlacklistItems = new ArrayList<Item>();
 
-    public static ArrayList<CampfireRecipe> autoRecipeList = new ArrayList<CampfireRecipe>();
+    public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
 
     public static Map<Item, Integer> autoBlacklistStacks = new HashMap<Item, Integer>();
     public static Set<Integer> autoBlacklistOres = new HashSet<Integer>();
@@ -96,223 +115,268 @@ public class CampfireBackportConfig
 
     public static ItemStack[] campfireDropsStacks = new ItemStack[2];
 
-    public static void doConfig(Configuration config)
+    // doing config things!
+
+    /**
+     * makes config file
+     */
+    public static void prepareConfig(FMLPreInitializationEvent event)
     {
-        getConfig(config);
-        setConfig();
+        config = new Configuration(event.getSuggestedConfigurationFile());
+        configDirectory = event.getModConfigurationDirectory();
+
+        // old (pre-1.4) config is very different due to no soul campfires. old configs will be safely renamed and a new config will be created.
+        if (config.hasKey(Configuration.CATEGORY_GENERAL, "Regen Level"))
+        {
+            try
+            {
+                CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config"));
+                Files.move(config.getConfigFile(), new File(config.getConfigFile().getCanonicalPath() + "_1.3"));
+                config = new Configuration(event.getSuggestedConfigurationFile());
+            }
+            catch (IOException excep)
+            {
+                CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.0"));
+                CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.1"));
+                CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.2"));
+                useDefaultConfig = true;
+            }
+        }
+
+        // delete old config explanation file
+        File explanation = new File(configDirectory, Reference.MODID + ".readme1.6.cfg");
+        if (explanation.exists())
+            explanation.delete();
     }
 
-    public static void getConfig(Configuration config)
+    /**
+     * Handles loading/saving config settings.<br>
+     * Mode:<br>
+     * 0 - Configuration object is loaded from file, settings are taken from it, related values are set, and Configuration object is saved to file.<br>
+     * Used for when the file has changed or is being created.<br>
+     * 1 - Settings are taken from Configuration object, related values are set, and Configuration object is saved to file.<br>
+     * Used for when the Configuration object has changed, but not the file. Ex: changes in config GUI.<br>
+     * 2 - Related values are set.<br>
+     * Used for when config settings have changed (but not the Configuration object), and related values must be updated (but not saved to file). Ex: receiving external server
+     * config settings.
+     * 
+     * @param mode
+     *            - 0, 1, or 2
+     * @param stopConsoleSpam
+     *            - if true, nothing will be printed to console while setting values, regardless of config settings
+     */
+    public static void doConfig(int mode, boolean stopConsoleSpam)
     {
-        // TODO delete property???
-        // "Dispenser Behaviours"
-        // "Dispenser Behaviours Whitelist"
-        // "#Debug: Print Dispenser Behaviours"
+        if (-1 < mode || mode < 3)
+        {
+            if (!useDefaultConfig)
+            {
+                if (mode == 0)
+                    config.load();
+
+                if (mode != 2)
+                    getConfig();
+
+                if (stopConsoleSpam)
+                {
+                    boolean tempPrint = printCustomRecipes;
+                    boolean tempSuppress = suppressInputErrors;
+
+                    printCustomRecipes = false;
+                    suppressInputErrors = true;
+
+                    setConfig();
+
+                    printCustomRecipes = tempPrint;
+                    suppressInputErrors = tempSuppress;
+                }
+                else
+                    setConfig();
+
+                if (mode != 2)
+                    config.save();
+            }
+            else
+            {
+                doDefaultConfig();
+            }
+        }
+    }
+
+    /**
+     * grabs settings from Configuration object
+     */
+    private static void getConfig()
+    {
         config.setCategoryPropertyOrder(Configuration.CATEGORY_GENERAL, ConfigReference.configOrder);
 
-        // Getting
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "charcoal"))
-                .setRequiresMcRestart(true).getBoolean();
+                StringParsers.translateComment("charcoal")).setRequiresMcRestart(true).getBoolean();
 
         soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, false,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "soul_soil"))
-                .setRequiresMcRestart(true).getBoolean();
+                StringParsers.translateComment("soul_soil")).setRequiresMcRestart(true).getBoolean();
 
-        regenCampfires = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.regenCampfires, ConfigReference.NEITHER,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "regen"),
-                ConfigReference.regOrSoulSettings).getString());
+        regenCampfires = enumFromConfig(ConfigReference.regenCampfires, ConfigReference.NEITHER, "regen");
 
         regularRegen = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.regularRegen, ConfigReference.defaultRegRegen,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "regen_settings"),
-                0, 10000, true, 4).getIntList();
-
-        regularRegen[0] = MathHelper.clamp_int(regularRegen[0], 0, 31);
-        regularRegen[2] = MathHelper.clamp_int(regularRegen[2], 0, 100);
+                StringParsers.translateComment("regen_settings"), 0, 10000, true, 4).getIntList();
 
         soulRegen = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulRegen, ConfigReference.defaultSoulRegen,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "regen_settings"),
-                0, 10000, true, 4).getIntList();
+                StringParsers.translateComment("regen_settings"), 0, 10000, true, 4).getIntList();
 
-        soulRegen[0] = MathHelper.clamp_int(soulRegen[0], 0, 31);
-        soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 100);
+        autoRecipe = enumFromConfig(ConfigReference.autoRecipe, ConfigReference.BOTH, "auto");
 
-        autoRecipe = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.autoRecipe, ConfigReference.BOTH,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "auto"),
-                ConfigReference.regOrSoulSettings).getString());
+        autoBlacklistStrings = listFromConfig(ConfigReference.autoBlacklistStrings, ConfigReference.empty,
+                StringParsers.itemMetaOrePat, "auto_blacklist");
 
-        autoBlacklistStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.autoBlacklistStrings, new String[] {},
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "auto_blacklist"),
-                StringParsers.itemMetaOrePat)
-                .getStringList();
+        regularRecipeList = listFromConfig(ConfigReference.regularRecipeList, ConfigReference.defaultRecipeList,
+                StringParsers.recipePat, "recipes", ConfigReference.regular);
 
-        regularRecipeList = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.regularRecipeList, ConfigReference.defaultRecipeList,
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "recipes", ConfigReference.regular, Reference.README_FILENAME),
-                StringParsers.recipePat)
-                .getStringList();
+        soulRecipeList = listFromConfig(ConfigReference.soulRecipeList, ConfigReference.empty,
+                StringParsers.recipePat, "recipes", ConfigReference.soul);
 
-        soulRecipeList = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulRecipeList, new String[] {},
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "recipes", ConfigReference.soul, Reference.README_FILENAME),
-                StringParsers.recipePat)
-                .getStringList();
+        recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
 
-        recipeListInheritance = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.recipeListInheritance, ConfigReference.SOUL_GETS_REG,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "recipes_inheritance"),
-                ConfigReference.inheritanceSettings).getString();
+        automation = enumFromConfig(ConfigReference.automation, ConfigReference.BOTH, "automation");
 
-        automation = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.automation, ConfigReference.BOTH,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "automation"),
-                ConfigReference.regOrSoulSettings).getString());
+        startUnlit = enumFromConfig(ConfigReference.startUnlit, ConfigReference.NEITHER, "default_unlit");
 
-        startUnlit = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.startUnlit, ConfigReference.NEITHER,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "default_unlit"),
-                ConfigReference.regOrSoulSettings).setRequiresMcRestart(true).getString());
+        rememberState = enumFromConfig(ConfigReference.rememberState, ConfigReference.NEITHER, "remember_state");
 
-        rememberState = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.rememberState, ConfigReference.NEITHER,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "remember_state"),
-                ConfigReference.regOrSoulSettings).getString());
+        silkNeeded = enumFromConfig(ConfigReference.silkNeeded, ConfigReference.BOTH, "silk");
 
-        silkNeeded = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.silkNeeded, ConfigReference.BOTH,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "silk"),
-                ConfigReference.regOrSoulSettings).getString());
+        putOutByRain = enumFromConfig(ConfigReference.putOutByRain, ConfigReference.NEITHER, "rained_out");
 
-        putOutByRain = EnumCampfireType.campfireCheck.get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.putOutByRain, ConfigReference.NEITHER,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "rained_out"),
-                ConfigReference.regOrSoulSettings).getString());
+        damaging = enumFromConfig(ConfigReference.damaging, ConfigReference.BOTH, "damaging");
+
+        visCosts = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.visCosts, ConfigReference.defaultVisCosts,
+                StringParsers.translateComment("vis_costs"), 0.0, Double.MAX_VALUE, true, 4).getDoubleList();
 
         burnOutTimer = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnOutTimer, ConfigReference.defaultBurnOuts,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "burn_out_timer"),
-                -1, Integer.MAX_VALUE, true, 2).getIntList();
+                StringParsers.translateComment("burn_out_timer"), -1, Integer.MAX_VALUE, true, 2).getIntList();
 
-        signalFiresBurnOut = EnumCampfireType.campfireCheck
-                .get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.signalFiresBurnOut, ConfigReference.NEITHER,
-                        StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "signals_burn_out"),
-                        ConfigReference.regOrSoulSettings).getString());
+        burnOutRules = listFromConfig(ConfigReference.burnOutRules, ConfigReference.empty,
+                StringParsers.burnOutRulesPat, "burn_out_rules");
+
+        signalFiresBurnOut = enumFromConfig(ConfigReference.signalFiresBurnOut, ConfigReference.NEITHER, "signals_burn_out");
 
         burnToNothingChances = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnToNothingChances, ConfigReference.defaultBurnToNothingChances,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "burn_to_nothing"),
-                0.0, 1.0, true, 2).getDoubleList();
+                StringParsers.translateComment("burn_to_nothing"), 0.0, 1.0, true, 2).getDoubleList();
 
-        signalFireStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.signalFireStrings, ConfigReference.defaultSignalFireBlocks,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "signal_fire_blocks"),
-                StringParsers.itemMetaOrePat)
-                .getStringList();
+        burnOutAsItem = enumFromConfig(ConfigReference.burnOutAsItem, ConfigReference.NEITHER, "burn_out_as_item");
+
+        signalFireStrings = listFromConfig(ConfigReference.signalFireStrings, ConfigReference.defaultSignalFireBlocks,
+                StringParsers.itemMetaOrePat, "signal_fire_blocks");
 
         campfireDropsStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.campfireDropsStrings, ConfigReference.defaultCampfireDrops,
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "campfire_drops", Reference.README_FILENAME),
-                true, 2, StringParsers.itemMetaAnySimpleDataSizeOREmptyPat)
+                StringParsers.translateComment("campfire_drops"), true, 2, StringParsers.itemMetaAnySimpleDataSizeOREmptyPat)
                 .getStringList();
 
-        colourfulSmoke = EnumCampfireType.campfireCheck
-                .get(config.get(Configuration.CATEGORY_GENERAL, ConfigReference.colourfulSmoke, ConfigReference.NEITHER,
-                        StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "colourful_smoke"),
-                        ConfigReference.regOrSoulSettings).getString());
+        colourfulSmoke = enumFromConfig(ConfigReference.colourfulSmoke, ConfigReference.NEITHER, "colourful_smoke");
 
-        dispenserBlacklistStrings = config
-                .get(Configuration.CATEGORY_GENERAL, ConfigReference.dispenserBlacklistStrings, new String[] {},
-                        StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "dispenser_blacklist"),
-                        StringParsers.itemPat)
-                .setRequiresMcRestart(true).getStringList();
+        dispenserBlacklistStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.dispenserBlacklistStrings, ConfigReference.empty,
+                StringParsers.translateComment("dispenser_blacklist"), StringParsers.itemPat).setRequiresMcRestart(true).getStringList();
 
-        regularExtinguishersList = config
-                .get(Configuration.CATEGORY_GENERAL, ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
-                        StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "state_changers", ConfigReference.extinguisher,
-                                ConfigReference.regular, Reference.README_FILENAME),
-                        StringParsers.stateChangePat)
-                .getStringList();
+        regularExtinguishersList = listFromConfig(ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
+                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher, ConfigReference.regular);
 
-        soulExtinguishersList = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulExtinguishersList, new String[] {},
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "state_changers", ConfigReference.extinguisher,
-                        ConfigReference.soul,
-                        Reference.README_FILENAME),
-                StringParsers.stateChangePat)
-                .getStringList();
+        soulExtinguishersList = listFromConfig(ConfigReference.soulExtinguishersList, ConfigReference.empty,
+                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher, ConfigReference.soul);
 
-        extinguishersListInheritance = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.extinguishersListInheritance, ConfigReference.SOUL_GETS_REG,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "extinguishers_inheritance"),
-                ConfigReference.inheritanceSettings).getString();
+        extinguishersListInheritance = inheritanceFromConfig(ConfigReference.extinguishersListInheritance, "extinguishers_inheritance");
 
-        regularIgnitorsList = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.regularIgnitorsList, ConfigReference.defaultIgnitorsList,
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "state_changers", ConfigReference.ignitor, ConfigReference.regular,
-                        Reference.README_FILENAME),
-                StringParsers.stateChangePat)
-                .getStringList();
+        regularIgnitorsList = listFromConfig(ConfigReference.regularIgnitorsList, ConfigReference.defaultIgnitorsList,
+                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor, ConfigReference.regular);
 
-        soulIgnitorsList = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulIgnitorsList, new String[] {},
-                StatCollector.translateToLocalFormatted(ConfigReference.TRANSLATE_PREFIX + "state_changers", ConfigReference.ignitor, ConfigReference.soul,
-                        Reference.README_FILENAME),
-                StringParsers.stateChangePat)
-                .getStringList();
+        soulIgnitorsList = listFromConfig(ConfigReference.soulIgnitorsList, ConfigReference.empty,
+                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor, ConfigReference.soul);
 
-        ignitorsListInheritance = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.ignitorsListInheritance, ConfigReference.SOUL_GETS_REG,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "ignitors_inheritance"),
-                ConfigReference.inheritanceSettings).getString();
+        ignitorsListInheritance = inheritanceFromConfig(ConfigReference.ignitorsListInheritance, "ignitors_inheritance");
 
         printCustomRecipes = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.printCustomRecipes, false,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "print_recipes"))
-                .getBoolean();
+                StringParsers.translateComment("print_recipes")).getBoolean();
 
         suppressInputErrors = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.suppressInputErrors, false,
-                StatCollector.translateToLocal(ConfigReference.TRANSLATE_PREFIX + "suppress_errors"))
-                .getBoolean();
+                StringParsers.translateComment("suppress_errors")).getBoolean();
     }
 
-    public static void setConfig()
+    private static EnumCampfireType enumFromConfig(String key, String defaultValue, String translationKey)
     {
+        return Optional.ofNullable(EnumCampfireType.FROM_NAME.get(config.get(Configuration.CATEGORY_GENERAL, key, defaultValue,
+                StringParsers.translateComment(translationKey), ConfigReference.enumSettings).getString()))
+                .orElse(EnumCampfireType.FROM_NAME.get(defaultValue));
+    }
+
+    private static String inheritanceFromConfig(String key, String translationKey)
+    {
+        return config.get(Configuration.CATEGORY_GENERAL, key, ConfigReference.SOUL_GETS_REG, StringParsers.translateComment(translationKey),
+                ConfigReference.inheritanceSettings).getString();
+    }
+
+    private static String[] listFromConfig(String key, String[] defaultList, Pattern pat, String translationKey, Object... translationArgs)
+    {
+        return config.get(Configuration.CATEGORY_GENERAL, key, defaultList, StringParsers.translateComment(translationKey, translationArgs), pat)
+                .getStringList();
+    }
+
+    /**
+     * sets up recipe lists, etc from config settings
+     */
+    private static void setConfig()
+    {
+        CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".config.info.setting_config"));
+
         // startUnlit & charcoalOnly & soulSoilOnly
         if (initialLoad)
         {
-            GameRegistry.addRecipe(
-                    new ShapedOreRecipe(
-                            new ItemStack(
-                                    startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
-                            " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
+            GameRegistry.addRecipe(new ShapedOreRecipe(
+                    new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsRegular(), EnumCampfireType.regular)),
+                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
 
             if (!charcoalOnly)
                 GameRegistry.addRecipe(
                         new ShapedOreRecipe(
-                                new ItemStack(
-                                        startUnlit.matches(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire),
+                                new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsRegular(), EnumCampfireType.regular)),
                                 " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
 
             Block soulSoil = GameData.getBlockRegistry().getObject("netherlicious:SoulSoil");
 
             if (soulSoil != Blocks.air)
                 GameRegistry.addRecipe(
-                        new ShapedOreRecipe(
-                                new ItemStack(
-                                        startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
-                                                : CampfireBackportBlocks.soul_campfire),
+                        new ShapedOreRecipe(new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsSoul(), EnumCampfireType.soul)),
                                 " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(soulSoil), 'C', "logWood"));
 
             if (soulSoil == Blocks.air || !soulSoilOnly)
                 GameRegistry.addRecipe(
-                        new ShapedOreRecipe(
-                                new ItemStack(
-                                        startUnlit.matches(EnumCampfireType.SOUL) ? CampfireBackportBlocks.soul_campfire_base
-                                                : CampfireBackportBlocks.soul_campfire),
+                        new ShapedOreRecipe(new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsSoul(), EnumCampfireType.soul)),
                                 " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand), 'C', "logWood"));
         }
 
-        // regularRecipeList & soulRecipeList & recipeListInheritance
-        ArrayList<CampfireRecipe> masterRecipeList = CampfireRecipe.getMasterList();
-        masterRecipeList.clear();
+        // regularRegen & soulRegen
+        regularRegen[0] = MathHelper.clamp_int(regularRegen[0], 0, 31);
+        regularRegen[2] = MathHelper.clamp_int(regularRegen[2], 0, 100);
 
-        if (printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.parsing_recipes"));
+        soulRegen[0] = MathHelper.clamp_int(soulRegen[0], 0, 31);
+        soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 100);
+
+        // regularRecipeList & soulRecipeList & recipeListInheritance
+        CampfireRecipe.clearRecipeLists();
+
+        if (regularRecipeList.length != 0 || soulRecipeList.length != 0)
+            ConfigReference.logInfo("parsing_recipes");
 
         for (String recipe : regularRecipeList)
-            CampfireRecipe.addToMasterList(recipe,
+            CampfireRecipe.addToRecipeLists(recipe,
                     recipeListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY);
         for (String recipe : soulRecipeList)
-            CampfireRecipe.addToMasterList(recipe,
+            CampfireRecipe.addToRecipeLists(recipe,
                     recipeListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY);
 
         // autoRecipe & autoBlacklistStrings
         if (autoRecipe != EnumCampfireType.NEITHER)
         {
-            if (printCustomRecipes && autoBlacklistStrings.length != 0)
-                CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.parsing_auto_blacklist"));
+            if (autoBlacklistStrings.length != 0)
+                ConfigReference.logInfo("parsing_auto_blacklist");
 
             autoBlacklistStacks.clear();
             autoBlacklistOres.clear();
@@ -325,20 +389,16 @@ public class CampfireBackportConfig
                         throw new Exception();
                     else if (output[0] instanceof Integer)
                         autoBlacklistOres.add((Integer) output[0]);
-                    else
+                    else if (!(autoBlacklistStacks.containsKey((Item) output[0]) && autoBlacklistStacks.get((Item) output[0]) == OreDictionary.WILDCARD_VALUE))
                         autoBlacklistStacks.put((Item) output[0], (Integer) output[2]);
                 }
                 catch (Exception excep)
                 {
-                    if (!suppressInputErrors)
-                        CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_auto_blacklist", input));
+                    ConfigReference.logError("invalid_auto_blacklist", input);
                 }
             }
 
-            autoRecipeList.clear();
-
-            if (printCustomRecipes)
-                CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.discovering_autos"));
+            ConfigReference.logInfo("discovering_autos");
 
             Iterator inputsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().keySet()).iterator();
             Iterator resultsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().values()).iterator();
@@ -364,121 +424,83 @@ public class CampfireBackportConfig
                                 continue iteratorLoop;
                         }
                     }
-                    CampfireRecipe furnaceRecipe = new CampfireRecipe(inputstack, resultstack, autoRecipe);
-                    if (furnaceRecipe.getInput() != null && furnaceRecipe.getOutput() != null)
-                        autoRecipeList.add(new CampfireRecipe(inputstack, resultstack, autoRecipe));
-                }
-            }
 
-            if (printCustomRecipes)
-                CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.adding_autos"));
-
-            for (CampfireRecipe foundCrecipe : autoRecipeList)
-            {
-                boolean addIt = true;
-                for (CampfireRecipe masterCrecipe : masterRecipeList)
-                {
-                    if (masterCrecipe.isItemInput() && GenericCustomInput.doStackRecipesMatch(foundCrecipe, masterCrecipe))
+                    CampfireRecipe furnaceRecipe = CampfireRecipe.createAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
+                    if (furnaceRecipe != null && furnaceRecipe.getInputs().length > 0 && furnaceRecipe.getInputs()[0] != null)
                     {
-                        addIt = false;
-                        break;
+                        boolean addIt = true;
+                        for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
+                        {
+                            if (CampfireRecipe.doStackRecipesMatch(furnaceRecipe, masterCrecipe))
+                            {
+                                addIt = false;
+                                break;
+                            }
+                        }
+                        if (addIt)
+                            CampfireRecipe.addToRecipeLists(furnaceRecipe);
                     }
                 }
-                if (addIt)
-                    masterRecipeList.add(foundCrecipe);
             }
         }
 
-        if (printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.sorting_recipes"));
+        for (CampfireRecipe crecipe : CampfireRecipe.getCraftTweakerList())
+            CampfireRecipe.addToRecipeLists(crecipe);
 
-        ArrayList<CampfireRecipe> regRecipeList = CampfireRecipe.getRecipeList(EnumCampfireType.REGULAR);
-        ArrayList<CampfireRecipe> soulRecipeList = CampfireRecipe.getRecipeList(EnumCampfireType.SOUL);
-        regRecipeList.clear();
-        soulRecipeList.clear();
-
-        for (CampfireRecipe masterCrecipe : masterRecipeList)
-        {
-            if (masterCrecipe.getTypes().matches(EnumCampfireType.REGULAR))
-                regRecipeList.add(masterCrecipe);
-            if (masterCrecipe.getTypes().matches(EnumCampfireType.SOUL))
-                soulRecipeList.add(masterCrecipe);
-        }
-
-        Collections.sort(masterRecipeList);
-        Collections.sort(regRecipeList);
-        Collections.sort(soulRecipeList);
+        CampfireRecipe.sortRecipeLists();
 
         // dispenserBlacklistStrings
-        if (printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.parsing_dispenser_blacklist"));
+        if (dispenserBlacklistStrings.length != 0)
+            ConfigReference.logInfo("parsing_dispenser_blacklist");
 
-        if (dispenserBlacklistItems.isEmpty())
+        dispenserBlacklistItems.clear();
+        for (String input : dispenserBlacklistStrings)
         {
-            for (String input : dispenserBlacklistStrings)
+            try
             {
-                try
-                {
-                    Item item = (Item) StringParsers.parseItemAndMaybeMeta(input, 1, new NBTTagCompound(), true)[0];
-                    if (item == null)
-                        throw new Exception();
-                    dispenserBlacklistItems.add(item);
-                }
-                catch (Exception excep)
-                {
-                    if (!suppressInputErrors)
-                        CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_dispenser_blacklist", input));
-                }
+                Item item = (Item) StringParsers.parseItemAndMaybeMeta(input, 1, new NBTTagCompound(), true)[0];
+                if (item == null)
+                    throw new Exception();
+                dispenserBlacklistItems.add(item);
+            }
+            catch (Exception excep)
+            {
+                ConfigReference.logError("invalid_dispenser_blacklist", input);
             }
         }
 
         // regularIgnitors & soulIgnitors & ignitorsInheritance & regularExtinguishers & soulExtinguishers & extinguishersInheritance
-        ArrayList<CampfireStateChanger> masterStateChangerList = CampfireStateChanger.getMasterList();
-        masterStateChangerList.clear();
+        CampfireStateChanger.clearStateChangerLists();
 
-        if (printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.parsing_state_changers"));
+        if (regularExtinguishersList.length != 0 || regularIgnitorsList.length != 0 || soulExtinguishersList.length != 0 || soulIgnitorsList.length != 0)
+            ConfigReference.logInfo("parsing_state_changers");
 
         for (String recipe : regularExtinguishersList)
-            CampfireStateChanger.addToMasterList(recipe,
-                    extinguishersListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
-                    true);
+            CampfireStateChanger.addToStateChangerLists(recipe,
+                    extinguishersListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, true);
         for (String recipe : soulExtinguishersList)
-            CampfireStateChanger.addToMasterList(recipe,
+            CampfireStateChanger.addToStateChangerLists(recipe,
                     extinguishersListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, true);
 
         for (String recipe : regularIgnitorsList)
-            CampfireStateChanger.addToMasterList(recipe,
-                    ignitorsListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
-                    false);
+            CampfireStateChanger.addToStateChangerLists(recipe,
+                    ignitorsListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, false);
         for (String recipe : soulIgnitorsList)
-            CampfireStateChanger.addToMasterList(recipe,
-                    ignitorsListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY,
-                    false);
+            CampfireStateChanger.addToStateChangerLists(recipe,
+                    ignitorsListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, false);
 
-        if (printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.sorting_state_changers"));
+        for (CampfireStateChanger cstate : CampfireStateChanger.getCraftTweakerList())
+            CampfireStateChanger.addToStateChangerLists(cstate);
 
-        ArrayList<CampfireStateChanger> leftStateChangerList = CampfireStateChanger.getStateChangerList(true);
-        ArrayList<CampfireStateChanger> rightStateChangerList = CampfireStateChanger.getStateChangerList(false);
-        leftStateChangerList.clear();
-        rightStateChangerList.clear();
-
-        for (CampfireStateChanger masterCstate : masterStateChangerList)
-        {
-            if (masterCstate.isLeftClick())
-                leftStateChangerList.add(masterCstate);
-            else
-                rightStateChangerList.add(masterCstate);
-        }
-
-        Collections.sort(masterStateChangerList);
-        Collections.sort(leftStateChangerList);
-        Collections.sort(rightStateChangerList);
+        CampfireStateChanger.sortStateChangerLists();
 
         // signalFireStrings
         signalFireBlocks.clear();
         signalFireOres.clear();
+
+        if (signalFireStrings.length != 0)
+            ConfigReference.logInfo("parsing_signal_blocks");
+
         for (String input : signalFireStrings)
         {
             try
@@ -488,19 +510,33 @@ public class CampfireBackportConfig
                     throw new Exception();
                 else if (output[0] instanceof Integer)
                     signalFireOres.add((Integer) output[0]);
-                else
+                else if (!(signalFireBlocks.containsKey((Block) output[0]) && signalFireBlocks.get((Block) output[0]) == OreDictionary.WILDCARD_VALUE))
                     signalFireBlocks.put((Block) output[0], (Integer) output[2]);
             }
             catch (Exception excep)
             {
-                if (!suppressInputErrors)
-                    CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_signal_fire_block", input));
+                ConfigReference.logError("invalid_signal_fire_block", input);
             }
         }
+
+        // burnOutTimer & burnOutRules
+        BurnOutRule.setDefaultBurnOutRules(burnOutTimer[0], burnOutTimer[1]);
+
+        if (burnOutRules.length != 0)
+            ConfigReference.logInfo("parsing_burn_out_rules");
+
+        BurnOutRule.clearRules();
+        for (String input : burnOutRules)
+            BurnOutRule.addToRules(input);
+
+        for (BurnOutRule brule : BurnOutRule.getCraftTweakerRules())
+            BurnOutRule.addToRules(brule);
 
         // campfireDropsStrings
         campfireDropsStacks[0] = ConfigReference.defaultRegDrop.copy();
         campfireDropsStacks[1] = ConfigReference.defaultSoulDrop.copy();
+
+        ConfigReference.logInfo("parsing_drops");
 
         for (int i = 0; i < campfireDropsStacks.length; ++i)
         {
@@ -511,42 +547,57 @@ public class CampfireBackportConfig
                     Object[] output = StringParsers.parseItemOrOreOrToolOrClassWithNBTOrDataWithSize(campfireDropsStrings[i], false);
                     if (output[0] == null)
                         throw new Exception();
+
                     ItemStack drop = new ItemStack((Item) output[0], (Integer) output[1], (Integer) output[2]);
                     if (!((NBTTagCompound) output[3]).hasNoTags())
                         drop.setTagCompound((NBTTagCompound) output[3]);
+
                     campfireDropsStacks[i] = drop;
                 }
             }
             catch (Exception excep)
             {
-                if (!suppressInputErrors)
-                    CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_drops", campfireDropsStrings[i]));
+                ConfigReference.logError("invalid_drops", campfireDropsStrings[i]);
             }
         }
+
+        ConfigReference.logInfo("done");
 
         // printCampfireRecipes
         if (printCustomRecipes)
         {
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.print_recipes.reg"));
-            for (CampfireRecipe crecipe : regRecipeList)
-                CommonProxy.modlog.info(crecipe);
-            CommonProxy.modlog.info("---");
+            if (!CampfireRecipe.getMasterList().isEmpty())
+            {
+                ConfigReference.logInfo("print_recipes");
+                for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
+                    CommonProxy.modlog.info(crecipe);
+                CommonProxy.modlog.info("---");
+            }
 
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.print_recipes.soul"));
-            for (CampfireRecipe crecipe : soulRecipeList)
-                CommonProxy.modlog.info(crecipe);
-            CommonProxy.modlog.info("---");
+            if (!CampfireStateChanger.getMasterList().isEmpty())
+            {
+                ConfigReference.logInfo("print_state_changers");
+                for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
+                    CommonProxy.modlog.info(cstate);
+                CommonProxy.modlog.info("---");
+            }
 
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".info.print_state_changers"));
-            for (CampfireStateChanger cstate : masterStateChangerList)
-                CommonProxy.modlog.info(cstate);
-            CommonProxy.modlog.info("---");
+            if (!BurnOutRule.getRules().isEmpty())
+            {
+                ConfigReference.logInfo("print_burn_out_rules");
+                for (BurnOutRule brule : BurnOutRule.getRules())
+                    CommonProxy.modlog.info(brule);
+                CommonProxy.modlog.info("---");
+            }
         }
 
         initialLoad = false;
     }
 
-    public static void doDefaultConfig()
+    /**
+     * sets config with the default settings, ignoring the Configuration object
+     */
+    private static void doDefaultConfig()
     {
         charcoalOnly = false;
         soulSoilOnly = false;
@@ -556,10 +607,10 @@ public class CampfireBackportConfig
         soulRegen = ConfigReference.defaultSoulRegen;
 
         autoRecipe = EnumCampfireType.BOTH;
-        autoBlacklistStrings = new String[] {};
+        autoBlacklistStrings = ConfigReference.empty;
 
         regularRecipeList = ConfigReference.defaultRecipeList;
-        soulRecipeList = new String[] {};
+        soulRecipeList = ConfigReference.empty;
         recipeListInheritance = ConfigReference.SOUL_GETS_REG;
 
         automation = EnumCampfireType.BOTH;
@@ -570,9 +621,15 @@ public class CampfireBackportConfig
 
         putOutByRain = EnumCampfireType.NEITHER;
 
+        damaging = EnumCampfireType.BOTH;
+
+        visCosts = ConfigReference.defaultVisCosts;
+
         burnOutTimer = ConfigReference.defaultBurnOuts;
+        burnOutRules = ConfigReference.empty;
         signalFiresBurnOut = EnumCampfireType.NEITHER;
         burnToNothingChances = ConfigReference.defaultBurnToNothingChances;
+        burnOutAsItem = EnumCampfireType.NEITHER;
 
         signalFireStrings = ConfigReference.defaultSignalFireBlocks;
 
@@ -580,13 +637,13 @@ public class CampfireBackportConfig
 
         colourfulSmoke = EnumCampfireType.NEITHER;
 
-        dispenserBlacklistStrings = new String[] {};
+        dispenserBlacklistStrings = ConfigReference.empty;
 
         regularExtinguishersList = ConfigReference.defaultExtinguishersList;
-        soulExtinguishersList = new String[] {};
+        soulExtinguishersList = ConfigReference.empty;
         extinguishersListInheritance = ConfigReference.SOUL_GETS_REG;
         regularIgnitorsList = ConfigReference.defaultIgnitorsList;
-        soulIgnitorsList = new String[] {};
+        soulIgnitorsList = ConfigReference.empty;
         ignitorsListInheritance = ConfigReference.SOUL_GETS_REG;
 
         printCustomRecipes = false;

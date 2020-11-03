@@ -17,9 +17,135 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderCampfire extends TileEntitySpecialRenderer
 {
+
+    public static final RenderCampfire INSTANCE = new RenderCampfire();
+
+    private static final String TEXTURES_LOCATION = Reference.MODID + ":" + "textures/blocks/";
+    private static final ResourceLocation BASE_TEXTURE = new ResourceLocation(TEXTURES_LOCATION + "campfire_base_tile.png");
+
     private ModelCampfire model;
-    private EntityItem entItem[] = new EntityItem[4];
-    private static final ResourceLocation TEXTURE_BASE = new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_base_tile.png");
+
+    private EntityItem invRender[] = new EntityItem[4];
+
+    // https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571543-forge-rendering-an-item-on-your-block
+    // thanks
+
+    public RenderCampfire()
+    {
+        model = new ModelCampfire();
+    }
+
+    @Override
+    public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float scale)
+    {
+        TileEntityCampfire ctile = (TileEntityCampfire) tile;
+
+        boolean lit = true;
+        String type = EnumCampfireType.regular;
+        int dir = 2;
+        int animTimer = 0;
+        boolean renderItems = false;
+
+        if (ctile.hasWorldObj())
+        {
+            lit = ctile.isLit();
+            type = ctile.getType();
+            dir = ctile.getBlockMetadata();
+            animTimer = ctile.getAnimTimer();
+            renderItems = true;
+        }
+
+        float angle;
+        switch (dir)
+        {
+        default:
+            angle = 0F;
+            break;
+        case 5:
+            angle = 90F;
+            break;
+        case 3:
+            angle = 180F;
+            break;
+        case 4:
+            angle = 270F;
+            break;
+        }
+
+        GL11.glPushMatrix();
+
+        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
+        GL11.glRotatef(180, 0, 0, 1);
+
+        GL11.glRotatef(angle, 0.0F, 1.0F, 0.0F);
+
+        if (lit)
+            bindTexture(getLitTexture((animTimer % 31) / 2, type));
+        else
+            bindTexture(BASE_TEXTURE);
+
+        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
+
+        GL11.glPopMatrix();
+
+        if (renderItems)
+        {
+            int[] iro = getRenderSlotMappingFromMeta(dir);
+
+            for (int invSlot = 0; invSlot < ctile.getSizeInventory(); ++invSlot)
+            {
+                ItemStack stack = ctile.getStackInSlot(invSlot);
+
+                if (stack != null)
+                {
+                    int renderSlot = iro[invSlot];
+
+                    if (invRender[invSlot] == null || invRender[invSlot].getEntityItem().toString() != stack.toString())
+                        invRender[invSlot] = new EntityItem(ctile.getWorldObj(), x, y, z, stack);
+
+                    GL11.glPushMatrix();
+                    invRender[invSlot].hoverStart = 0.0F;
+                    RenderItem.renderInFrame = true;
+                    GL11.glDisable(GL11.GL_LIGHTING);
+
+                    double[] position = getRenderPositionFromRenderSlot(renderSlot, false);
+                    GL11.glTranslated(position[0] + x, position[1] + y, position[2] + z);
+
+                    GL11.glRotatef(180, 0, 1, 1);
+                    GL11.glRotatef(renderSlot * -90, 0, 0, 1);
+                    GL11.glRotatef(270, 0, 0, 1);
+
+                    GL11.glScalef(0.625F, 0.625F, 0.625F);
+                    RenderManager.instance.renderEntityWithPosYaw(invRender[invSlot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
+
+                    GL11.glEnable(GL11.GL_LIGHTING);
+                    RenderItem.renderInFrame = false;
+                    GL11.glPopMatrix();
+                }
+            }
+        }
+    }
+
+    public void renderSimple(boolean lit, String type, int animTimer)
+    {
+        GL11.glTranslated(0.5, 1.5, 0.5);
+        GL11.glRotatef(180, 0, 0, 1);
+
+        if (lit)
+            bindTexture(getLitTexture((animTimer % 31) / 2, type));
+        else
+            bindTexture(BASE_TEXTURE);
+
+        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
+    }
+
+    public static ResourceLocation getLitTexture(int index, String type)
+    {
+        return new ResourceLocation(EnumCampfireType.option(type, TEXTURES_LOCATION + "campfire_tile" + index + ".png",
+                TEXTURES_LOCATION + "soul_campfire_tile" + index + ".png"));
+    }
+
+    // Rendering Positions
 
     private static final double BASE_X_OFFSET = 0.9375;
     private static final double BASE_Y_OFFSET = 0.45;
@@ -36,124 +162,6 @@ public class RenderCampfire extends TileEntitySpecialRenderer
             { BASE_X_OFFSET - ACROSS + SMOKE_OFFSET, BASE_Y_OFFSET, BASE_Z_OFFSET - EDGE },
             { BASE_X_OFFSET + EDGE - ACROSS, BASE_Y_OFFSET, BASE_Z_OFFSET - ACROSS + SMOKE_OFFSET } };
     private static final int[][] RENDER_SLOT_MAPPING = new int[][] { { 3, 0, 1, 2 }, { 1, 2, 3, 0 }, { 2, 3, 0, 1 }, { 0, 1, 2, 3 } };
-
-    // https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571543-forge-rendering-an-item-on-your-block
-    // thanks
-
-    public RenderCampfire()
-    {
-        model = new ModelCampfire();
-    }
-
-    @Override
-    public void renderTileEntityAt(TileEntity tileent, double x, double y, double z, float scale)
-    {
-        TileEntityCampfire tilecamp = (TileEntityCampfire) tileent;
-
-        boolean lit = true;
-        String type = EnumCampfireType.REGULAR;
-        int dir = 2;
-        int animTimer = 0;
-        boolean renderItems = false;
-
-        if (tilecamp.hasWorldObj())
-        {
-            lit = tilecamp.getThisLit();
-            type = tilecamp.getThisType();
-            dir = tilecamp.getThisMeta();
-            animTimer = tilecamp.getAnimTimer();
-            renderItems = true;
-        }
-
-        float angle;
-        switch (dir)
-        {
-        default:
-            angle = 0;
-            break;
-        case 5:
-            angle = 90F;
-            break;
-        case 3:
-            angle = 180F;
-            break;
-        case 4:
-            angle = 270F;
-            break;
-        }
-
-        GL11.glPushMatrix();
-        
-        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
-        GL11.glRotatef(180, 0, 0, 1);
-
-        GL11.glRotatef(angle, 0.0F, 1.0F, 0.0F);
-
-        if (lit)
-            bindTexture(getTextureLit((animTimer % 31) / 2, type));
-        else
-            bindTexture(TEXTURE_BASE);
-
-        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
-                
-        GL11.glPopMatrix();
-
-        if (renderItems)
-        {
-            int[] iro = getRenderSlotMappingFromMeta(dir);
-
-            for (int invslot = 0; invslot < tilecamp.getSizeInventory(); ++invslot)
-            {
-                ItemStack stack = tilecamp.getStackInSlot(invslot);
-
-                if (stack != null)
-                {
-                    int renderSlot = iro[invslot];
-
-                    if (entItem[invslot] == null || entItem[invslot].getEntityItem().toString() != stack.toString())
-                        entItem[invslot] = new EntityItem(tilecamp.getWorldObj(), x, y, z, stack);
-
-                    GL11.glPushMatrix();
-                    entItem[invslot].hoverStart = 0.0F;
-                    RenderItem.renderInFrame = true;
-                    GL11.glDisable(GL11.GL_LIGHTING);
-
-                    double[] position = getRenderPositionFromRenderSlot(renderSlot, false);
-                    GL11.glTranslated(position[0] + x, position[1] + y, position[2] + z);
-
-                    GL11.glRotatef(180, 0, 1, 1);
-                    GL11.glRotatef(renderSlot * -90, 0, 0, 1);
-                    GL11.glRotatef(270, 0, 0, 1);
-
-                    GL11.glScalef(0.625F, 0.625F, 0.625F);
-                    RenderManager.instance.renderEntityWithPosYaw(entItem[invslot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
-
-                    GL11.glEnable(GL11.GL_LIGHTING);
-                    RenderItem.renderInFrame = false;
-                    GL11.glPopMatrix();
-                }
-            }
-        }
-    }
-
-    public void renderSimple(TileEntityCampfire tilecamp)
-    {
-        GL11.glTranslated(0.5, 1.5, 0.5);
-        GL11.glRotatef(180, 0, 0, 1);
-
-        if (tilecamp.getThisLit())
-            bindTexture(getTextureLit((tilecamp.getAnimTimer() % 31) / 2, tilecamp.getThisType()));
-        else
-            bindTexture(TEXTURE_BASE);
-
-        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
-    }
-
-    public static ResourceLocation getTextureLit(int index, String type)
-    {
-        return type.equals(EnumCampfireType.SOUL) ? new ResourceLocation(Reference.MODID + ":" + "textures/blocks/soul_campfire_tile" + index + ".png")
-                : new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_tile" + index + ".png");
-    }
 
     /**
      * Returns the mapping of inventory slots to render slots based on block metadata. This is so that inventory slots are always rendered counterclockwise starting with the front

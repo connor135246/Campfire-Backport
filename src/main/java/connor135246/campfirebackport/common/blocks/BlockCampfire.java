@@ -3,9 +3,9 @@ package connor135246.campfirebackport.common.blocks;
 import java.util.ArrayList;
 import java.util.Random;
 
-import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.common.crafting.CampfireStateChanger;
-import connor135246.campfirebackport.common.crafting.GenericCustomInput;
+import javax.annotation.Nullable;
+
+import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -13,22 +13,24 @@ import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
-import net.minecraft.block.ITileEntityProvider;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.event.ForgeEventFactory;
 
-public class BlockCampfire extends Block implements ITileEntityProvider
+public class BlockCampfire extends BlockContainer
 {
     private static final Random RAND = new Random();
 
@@ -43,16 +45,18 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.4375F, 1.0F);
         this.setHardness(2.0F);
         this.setResistance(2.0F);
-        this.lit = lit;
-        this.type = type;
         this.setStepSound(Block.soundTypeWood);
         this.setCreativeTab(CreativeTabs.tabDecorations);
-        this.isBlockContainer = true;
+
+        this.lit = lit;
+        this.type = type;
     }
 
-    // metadata:
-    // 2 5 3 4
-    // S W N E
+    /**
+     * metadata:<br>
+     * 2 5 3 4<br>
+     * S W N E
+     */
     @Override
     public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase entity, ItemStack stack)
     {
@@ -74,36 +78,22 @@ public class BlockCampfire extends Block implements ITileEntityProvider
             break;
         }
 
-        if (stack.hasDisplayName())
-            ((TileEntityCampfire) world.getTileEntity(x, y, z)).func_145951_a(stack.getDisplayName());
-    }
-
-    @Override
-    public void onBlockAdded(World world, int x, int y, int z)
-    {
-        super.onBlockAdded(world, x, y, z);
-        if (!world.isRemote)
+        if (stack.hasTagCompound())
         {
-            Block block = world.getBlock(x, y, z - 1);
-            Block block1 = world.getBlock(x, y, z + 1);
-            Block block2 = world.getBlock(x - 1, y, z);
-            Block block3 = world.getBlock(x + 1, y, z);
-            byte b0 = 3;
+            TileEntity tile = world.getTileEntity(x, y, z);
+            if (tile instanceof TileEntityCampfire)
+            {
+                TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-            if (block.func_149730_j() && !block1.func_149730_j())
-                b0 = 3;
+                if (stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag))
+                    ctile.readFromNBTIfItExists(stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag), true);
 
-            if (block1.func_149730_j() && !block.func_149730_j())
-                b0 = 2;
-
-            if (block2.func_149730_j() && !block3.func_149730_j())
-                b0 = 5;
-
-            if (block3.func_149730_j() && !block2.func_149730_j())
-                b0 = 4;
-
-            world.setBlockMetadataWithNotify(x, y, z, b0, 2);
+                if (stack.hasDisplayName())
+                    ctile.setCustomInventoryName(stack.getDisplayName());
+            }
         }
+
+        TileEntityCampfire.checkSignal(world, x, y, z);
     }
 
     @Override
@@ -119,27 +109,21 @@ public class BlockCampfire extends Block implements ITileEntityProvider
     }
 
     @Override
-    public boolean hasTileEntity(int meta)
-    {
-        return true;
-    }
-
-    @Override
     public void onEntityCollidedWithBlock(World world, int x, int y, int z, Entity entity)
     {
         if (!world.isRemote)
         {
             if (!isLit() && entity.isBurning())
             {
-                entity.extinguish();
-                updateCampfireBlockState(true, world, x, y, z, this.type);
+                toggleCampfireBlockState(world, x, y, z);
             }
-
-            else if (isLit() && !entity.isImmuneToFire() && entity instanceof EntityLivingBase)
+            else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
-                if (entity.attackEntityFrom(DamageSource.inFire, checkType(EnumCampfireType.SOUL) ? 2.0F : 1.0F))
-                    world.playSoundEffect((double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, "random.fizz", 0.5F,
+                if (entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.option(getType(), 1.0F, 2.0F)))
+                {
+                    world.playSoundEffect((double) x + 0.5D, (double) y + 0.4375D, (double) z + 0.5D, "random.fizz", 0.5F,
                             2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
+                }
             }
         }
     }
@@ -147,43 +131,33 @@ public class BlockCampfire extends Block implements ITileEntityProvider
     @Override
     public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player)
     {
-        if (!world.isRemote)
-        {
-            ItemStack stack = player.getCurrentEquippedItem();
-            if (stack != null)
-                doStateChangers(world, x, y, z, player, !player.capabilities.isCreativeMode, stack, true);
-        }
+        ItemStack stack = player.getCurrentEquippedItem();
+
+        if (stack != null)
+            doStateChangers(!player.capabilities.isCreativeMode, stack, true, world, x, y, z, player);
     }
 
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int p_149727_6_, float p_149727_7_, float p_149727_8_,
-            float p_149727_9_)
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ)
     {
         ItemStack stack = player.getCurrentEquippedItem();
 
         if (stack != null)
-        {            
+        {
             boolean survival = !player.capabilities.isCreativeMode;
 
-            TileEntity tileent = world.getTileEntity(x, y, z);
+            TileEntity tile = world.getTileEntity(x, y, z);
+            if (tile instanceof TileEntityCampfire && ((TileEntityCampfire) tile).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
+                return true;
 
-            if (tileent instanceof TileEntityCampfire)
-                if (((TileEntityCampfire) tileent).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
-                    return true;
-
-            return doStateChangers(world, x, y, z, player, survival, stack, false);
+            return doStateChangers(survival, stack, false, world, x, y, z, player);
         }
         return false;
     }
 
     /**
-     * Finds state changers that match the given <code>ItemStack</code> and this campfire block, and executes them.
+     * Finds state changers that match the given ItemStack and this campfire block, and executes them.
      * 
-     * @param world
-     * @param x
-     * @param y
-     * @param z
-     * @param player
      * @param survival
      *            - is the player in survival mode
      * @param stack
@@ -193,35 +167,36 @@ public class BlockCampfire extends Block implements ITileEntityProvider
      *            {@link #onBlockActivated(World, int, int, int, EntityPlayer, int, float, float, float)}?
      * @return true if the campfire's state was changed, false otherwise
      */
-    private boolean doStateChangers(World world, int x, int y, int z, EntityPlayer player, boolean survival, ItemStack stack, boolean leftClick)
+    private boolean doStateChangers(boolean survival, ItemStack stack, boolean leftClick, World world, int x, int y, int z, EntityPlayer player)
     {
-        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, this);
+        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, getType(), isLit());
 
         if (cstate != null)
         {
-            if (!world.isRemote)
+            toggleCampfireBlockState(world, x, y, z);
+
+            if (survival)
             {
-                updateCampfireBlockState(!isLit(), world, x, y, z, getType());
+                if (cstate.getInput().getDataType() == 3)
+                    cstate.getInput().doFluidEmptying(stack);
 
-                if (survival)
+                if (cstate.isUsageTypeDamageable())
+                    stack.damageItem(cstate.getInput().getInputSize(), player);
+                else if (cstate.isUsageTypeStackable())
                 {
-                    if (cstate.getDataType() == 2)
-                        GenericCustomInput.doFluidEmptying(cstate, stack);
-
-                    if (cstate.getUsageType().equals(CampfireStateChanger.DAMAGEABLE))
-                        stack.damageItem(cstate.getInputSize(), player);
-                    else if (cstate.getUsageType().equals(CampfireStateChanger.STACKABLE))
-                        stack.stackSize -= cstate.getInputSize();
+                    stack.stackSize -= cstate.getInput().getInputSize();
+                    if (stack.stackSize <= 0)
+                        player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
                 }
             }
-            
-            if (cstate.hasReturnStack())
+
+            if (cstate.hasOutputs())
             {
-                ItemStack returned = ItemStack.copyItemStack(cstate.getReturnStack());
+                ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
                 if (!player.inventory.addItemStackToInventory(returned))
                     player.dropPlayerItemWithRandomChoice(returned, false);
             }
-            
+
             return true;
         }
         return false;
@@ -232,103 +207,99 @@ public class BlockCampfire extends Block implements ITileEntityProvider
      * 
      * @param light
      *            - true to update to lit, false to update to unlit
-     * @param world
-     * @param x
-     * @param y
-     * @param z
      * @param type
      *            - the type of campfire this is
      */
-    public static void updateCampfireBlockState(boolean light, World world, int x, int y, int z, String type)
+    public static void updateCampfireBlockState(boolean light, String type, World world, int x, int y, int z)
     {
         if (!world.isRemote)
         {
-            Block block = world.getBlock(x, y, z);
-            TileEntityCampfire tilecamp;
+            Block oldCblock = world.getBlock(x, y, z);
+            TileEntity tile = world.getTileEntity(x, y, z);
+            TileEntityCampfire ctile;
 
             // verify that the block is what this method thinks it is
-            if (block instanceof BlockCampfire && ((BlockCampfire) block).checkType(type) && world.getTileEntity(x, y, z) instanceof TileEntityCampfire)
-                tilecamp = (TileEntityCampfire) world.getTileEntity(x, y, z);
+            if (oldCblock instanceof BlockCampfire && ((BlockCampfire) oldCblock).getType().equals(type) && tile instanceof TileEntityCampfire)
+                ctile = (TileEntityCampfire) tile;
             else
                 return;
 
-            int meta = world.getBlockMetadata(x, y, z);
+            BlockCampfire newCblock = (BlockCampfire) CampfireBackportBlocks.getBlockFromLitAndType(light, type);
+
             stateChanging = true;
+
+            world.setBlock(x, y, z, newCblock, world.getBlockMetadata(x, y, z), 3);
 
             if (light)
             {
-                world.playSoundEffect((double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
-
-                world.setBlock(x, y, z,
-                        (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire : CampfireBackportBlocks.soul_campfire));
-
-                tilecamp.checkSignal();
-                tilecamp.resetLife();
+                world.playSoundEffect((double) x + 0.5D, (double) y + 0.4375D, (double) z + 0.5D, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
+                ctile.checkSignal();
+                ctile.resetLife();
+                ctile.resetRegenWaitTimer();
             }
             else
             {
-                tilecamp.playFizzAndAddSmokeServerSide(20, 0.45);
-
-                tilecamp.popItems();
-
-                world.setBlock(x, y, z, (BlockCampfire) (type.equals(EnumCampfireType.REGULAR) ? CampfireBackportBlocks.campfire_base
-                        : CampfireBackportBlocks.soul_campfire_base));
+                ctile.playFizzAndAddSmokeServerSide(20, 0.45);
+                ctile.popItems();
             }
 
-            stateChanging = false;
-            world.setBlockMetadataWithNotify(x, y, z, meta, 3);
+            ctile.updateContainingBlockInfo();
+            ctile.validate();
 
-            tilecamp.validate();
-            tilecamp.markDirty();
-            tilecamp.setThisLit(light);
-            tilecamp.setThisType(type);
-            tilecamp.setThisMeta(meta);
+            stateChanging = false;
         }
     }
 
+    /**
+     * Helper function that does {@link #updateCampfireBlockState(boolean, String, World, int, int, int)} for this block.
+     */
+    public void toggleCampfireBlockState(World world, int x, int y, int z)
+    {
+        updateCampfireBlockState(!isLit(), getType(), world, x, y, z);
+    }
+
     @Override
-    public void breakBlock(World world, int x, int y, int z, Block p_149749_5_, int p_149749_6_)
+    public void breakBlock(World world, int x, int y, int z, Block block, int meta)
     {
         if (!stateChanging)
         {
             if (!world.isRemote)
             {
-                TileEntityCampfire tileent = (TileEntityCampfire) world.getTileEntity(x, y, z);
-
-                if (tileent != null)
-                    tileent.popItems();
+                TileEntity tile = world.getTileEntity(x, y, z);
+                if (tile instanceof TileEntityCampfire)
+                    ((TileEntityCampfire) tile).popItems();
             }
-            world.func_147453_f(x, y, z, p_149749_5_);
-            super.breakBlock(world, x, y, z, p_149749_5_, p_149749_6_);
+            world.func_147453_f(x, y, z, block);
+            super.breakBlock(world, x, y, z, block, meta);
         }
     }
 
-    @Override
-    public boolean onBlockEventReceived(World world, int x, int y, int z, int p_149696_5_, int p_149696_6_)
-    {
-        super.onBlockEventReceived(world, x, y, z, p_149696_5_, p_149696_6_);
-        TileEntity tileentity = world.getTileEntity(x, y, z);
-        return tileentity != null ? tileentity.receiveClientEvent(p_149696_5_, p_149696_6_) : false;
-    }
-
     @SideOnly(Side.CLIENT)
+    @Override
     public void randomDisplayTick(World world, int x, int y, int z, Random random)
     {
         if (isLit())
         {
             if (random.nextInt(10) == 0)
             {
-                world.playSound((double) (x + 0.5F), (double) (y + 0.5F), (double) (z + 0.5F),
+                world.playSound((double) (x + 0.5F), (double) (y + 0.4375F), (double) (z + 0.5F),
                         Reference.MODID + ":" + "block.campfire.crackle",
                         0.5F + random.nextFloat(), random.nextFloat() * 0.7F + 0.6F, false);
             }
 
-            if (random.nextInt(5) == 0 && checkType(EnumCampfireType.REGULAR))
+            if (random.nextInt(5) == 0 && EnumCampfireType.isRegular(getType()))
             {
-                world.spawnParticle("lava", (double) (x + 0.5F), (double) (y + 0.5F), (double) (z + 0.5F),
+                world.spawnParticle("lava", (double) (x + 0.5F), (double) (y + 0.4375F), (double) (z + 0.5F),
                         (double) (random.nextFloat() / 2.0F), 5.0E-5D, (double) (random.nextFloat() / 2.0F));
             }
         }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public Item getItem(World world, int x, int y, int z)
+    {
+        return getCampfireBlockItem();
     }
 
     /**
@@ -339,26 +310,7 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         if (CampfireBackportConfig.rememberState.matches(this))
             return Item.getItemFromBlock(this);
         else
-        {
-            if (checkType(EnumCampfireType.SOUL))
-                return Item.getItemFromBlock(
-                        CampfireBackportConfig.startUnlit.matches(this) ? CampfireBackportBlocks.soul_campfire_base : CampfireBackportBlocks.soul_campfire);
-            else
-                return Item.getItemFromBlock(
-                        CampfireBackportConfig.startUnlit.matches(this) ? CampfireBackportBlocks.campfire_base : CampfireBackportBlocks.campfire);
-        }
-    }
-
-    @Override
-    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune)
-    {
-        ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
-        if (CampfireBackportConfig.silkNeeded.matches(this))
-            drops.add(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeToInt()]));
-        else
-            drops.add(new ItemStack(getCampfireBlockItem(), 1, 0));
-
-        return drops;
+            return Item.getItemFromBlock(CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.matches(this), getType()));
     }
 
     /**
@@ -371,22 +323,99 @@ public class BlockCampfire extends Block implements ITileEntityProvider
     }
 
     @Override
-    protected ItemStack createStackedBlock(int meta)
-    {
-        return new ItemStack(getCampfireBlockItem(), 1, 0);
-    }
-
-    @Override
     protected boolean canSilkHarvest()
     {
         return CampfireBackportConfig.silkNeeded.matches(this);
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
-    public Item getItem(World world, int x, int y, int z)
+    public boolean removedByPlayer(World world, EntityPlayer player, int x, int y, int z, boolean willHarvest)
     {
-        return getCampfireBlockItem();
+        if (willHarvest)
+            return true;
+        else
+            return super.removedByPlayer(world, player, x, y, z, willHarvest);
+    }
+
+    @Override
+    public void harvestBlock(World world, EntityPlayer player, int x, int y, int z, int meta)
+    {
+        player.addStat(StatList.mineBlockStatArray[getIdFromBlock(this)], 1);
+        player.addExhaustion(0.025F);
+
+        ArrayList<ItemStack> drops = getDropsInAllScenarios(player, world, x, y, z, meta);
+
+        ForgeEventFactory.fireBlockHarvesting(drops, world, this, x, y, z, meta, EnchantmentHelper.getFortuneModifier(player), 1.0F,
+                EnchantmentHelper.getSilkTouchModifier(player), player);
+
+        for (ItemStack stack : drops)
+            dropBlockAsItem(world, x, y, z, stack);
+
+        world.setBlockToAir(x, y, z);
+    }
+
+    @Override
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int meta, int fortune)
+    {
+        return getDropsInAllScenarios(null, world, x, y, z, meta);
+    }
+
+    /**
+     * Sometimes you have silk touch, sometimes you don't. Sometimes silk touch matters, sometimes it doesn't. Sometimes I need to copy stuff from the tile entity, sometimes I
+     * don't. There's a whole lot to cover.
+     * 
+     * @param player
+     *            - can be null, if it wasn't broken by a player
+     */
+    private ArrayList<ItemStack> getDropsInAllScenarios(@Nullable EntityPlayer player, World world, int x, int y, int z, int meta)
+    {
+        ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+
+        if (!canSilkHarvest() || (player != null && EnchantmentHelper.getSilkTouchModifier(player)))
+        {
+            ItemStack dropstack = new ItemStack(getCampfireBlockItem(), 1, 0);
+
+            TileEntity tile = world.getTileEntity(x, y, z);
+            if (tile instanceof TileEntityCampfire)
+            {
+                TileEntityCampfire ctile = (TileEntityCampfire) tile;
+                
+                boolean lifeMatters = isLit() && CampfireBackportConfig.burnOutAsItem.matches(this);
+                boolean nameMatters = ctile.hasCustomInventoryName();
+
+                if (lifeMatters || nameMatters)
+                {
+                    NBTTagCompound droptag = new NBTTagCompound();
+                    NBTTagCompound droptiletag = new NBTTagCompound();
+
+                    if (lifeMatters)
+                    {
+                        droptiletag.setInteger(TileEntityCampfire.KEY_Life, ctile.getLife());
+                        droptiletag.setInteger(TileEntityCampfire.KEY_StartingLife, ctile.getStartingLife());
+                        droptiletag.setLong(TileEntityCampfire.KEY_PreviousTimestamp, world.getTotalWorldTime());
+                    }
+
+                    if (nameMatters)
+                    {
+                        droptag.setTag("display", new NBTTagCompound());
+                        droptag.getCompoundTag("display").setString("Name", ctile.getInventoryName());
+                        droptiletag.setString(TileEntityCampfire.KEY_CustomName, ctile.getInventoryName());
+                    }
+
+                    if (!droptiletag.hasNoTags() || !droptag.hasNoTags())
+                    {
+                        dropstack.setTagCompound(droptag);
+                        if (!droptiletag.hasNoTags())
+                            dropstack.getTagCompound().setTag(TileEntityCampfire.KEY_BlockEntityTag, droptiletag);
+                    }
+                }
+            }
+            drops.add(dropstack);
+        }
+        else
+            drops.add(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeToInt()]));
+
+        return drops;
     }
 
     @Override
@@ -407,21 +436,16 @@ public class BlockCampfire extends Block implements ITileEntityProvider
         return -1;
     }
 
-    // Getters and Setters
+    // Getters
 
     public boolean isLit()
     {
-        return this.lit;
+        return lit;
     }
 
     public String getType()
     {
-        return this.type;
-    }
-
-    public boolean checkType(String type)
-    {
-        return getType().equals(type);
+        return type;
     }
 
     public int getTypeToInt()

@@ -1,25 +1,20 @@
 package connor135246.campfirebackport.util;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.config.ConfigReference;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.oredict.OreDictionary;
@@ -27,7 +22,9 @@ import net.minecraftforge.oredict.OreDictionary;
 public class StringParsers
 {
     // Patterns
-    public static final String item = "\\w+:\\w+",
+
+    public static final String betweenZeroAndOne = "(0(\\.(\\d+))?)|(1(\\.0)?)",
+            item = "\\w+:\\w+",
             itemMeta = item + "(:\\d+)?",
             ore = "ore:\\w+",
             tool = "tool:\\w+",
@@ -48,51 +45,53 @@ public class StringParsers
                     + clazzAnyData + ")|(^" + anyDataTinkers + "))" + size,
             itemMetaOreToolClassAnyDataSizeSlash = "(((?!\\/ore:)(?!\\/tool:)(?!\\/class:)\\/" + itemMetaAnyData + ")|(\\/" + oreAnyData + ")|(\\/"
                     + toolAnyData + ")|(\\/" + clazzAnyData + ")|(\\/" + anyDataTinkers + "))" + size,
+            itemMetaOreToolClassAnyDataSizeAnd = "((((?!&ore:)(?!&tool:)(?!&class:)&" + itemMetaAnyData + ")|(&" + oreAnyData + ")|(&"
+                    + toolAnyData + ")|(&" + clazzAnyData + ")|(&" + anyDataTinkers + "))" + size + ")?",
             itemMetaAnyDataSize = itemMetaAnyData + size;
 
-    public static final Pattern recipePat = Pattern
-            .compile(itemMetaOreToolClassAnyDataSizeStart + "\\/" + itemMetaAnyDataSize + "(\\/\\d+)?(\\/((signal)|(notsignal)))?"),
+    public static final Pattern recipePat = Pattern.compile(itemMetaOreToolClassAnyDataSizeStart + itemMetaOreToolClassAnyDataSizeAnd
+            + itemMetaOreToolClassAnyDataSizeAnd + itemMetaOreToolClassAnyDataSizeAnd + "\\/" + itemMetaAnyDataSize
+            + "(\\/\\d+)?(\\/((signal)|(notsignal)|(any)))?" + "(\\/(" + itemMetaAnyDataSize + "))?(\\/" + betweenZeroAndOne + ")?"),
             itemMetaOrePat = Pattern.compile(itemMetaOreStart),
             itemPat = Pattern.compile(item),
             itemMetaAnySimpleDataSizeOREmptyPat = Pattern.compile("(" + itemMetaAnyDataSize + ")|()"),
             stateChangePat = Pattern.compile("((^right)|(^left))(\\+dispensable)?" + itemMetaOreToolClassAnyDataSizeSlash
                     + "\\/((none)|(damageable)|(stackable))(>" + itemMetaAnyDataSize + ")?"),
+            burnOutRulesPat = Pattern.compile(
+                    "((regular)|(soul)|(both))\\/((biome:\\d+)|(dimension:-?\\d+)|(biome:\\d+&dimension:-?\\d+)|(dimension:-?\\d+&biome:\\d+))\\/((-1)|(\\d+))"),
             enchPattern = Pattern.compile(ench),
             fluidPattern = Pattern.compile(fluid),
             tinkersPattern = Pattern.compile(tinkers);
 
     // NBT Keys
-    public static final String GCI_DATATYPE = "GCIDataType",
-            ENCH = "ench",
-            ID = "id",
-            LVL = "lvl",
-            FLUID_CAPS = "Fluid",
-            FLUID_LOWER = "fluid",
-            FLUIDNAME = "FluidName",
-            AMOUNT_CAPS = "Amount",
-            AMOUNT_LOWER = "amount",
-            TANK = "tank",
-            INFITOOL = "InfiTool",
-            INT_PREFIX = "I:",
-            BYTE_PREFIX = "B:",
-            FLOAT_PREFIX = "F:",
-            INTARRAY_PREFIX = "IA:",
-            KEYSET = "KeySet",
-            TYPESET = "TypeSet";
+
+    public static final String KEY_GCIDataType = "GCIDataType",
+            KEY_ench = "ench",
+            KEY_id = "id",
+            KEY_lvl = "lvl",
+            KEY_Fluid = "Fluid",
+            KEY_fluid = "fluid",
+            KEY_FluidName = "FluidName",
+            KEY_Amount = "Amount",
+            KEY_amount = "amount",
+            KEY_tank = "tank",
+            KEY_InfiTool = "InfiTool",
+            KEY_INT_PREFIX = "I:",
+            KEY_BYTE_PREFIX = "B:",
+            KEY_FLOAT_PREFIX = "F:",
+            KEY_INTARRAY_PREFIX = "IA:",
+            KEY_KeySet = "KeySet",
+            KEY_TypeSet = "TypeSet";
+
+    // Parsers
 
     /**
-     * Converts a string into an <code>Object[]</code>. The first element is either a <code>String</code> representing an ore dictionary name, an <code>Item</code>, a
-     * <code>Class</code>, or <code>null</code> if it wasn't given or wasn't found. The second element is the size (1 if none is given). The third element is the meta
-     * ({@link OreDictionary#WILDCARD_VALUE} or 0 if none was given). The fourth element is the exact NBT tag or extra data, such as an enchantment or a fluid. Whenever you call
-     * these methods, you should surround them with a <code>try</code>/<code>catch</code>.
+     * Converts a string into an Object[]. The first element is either an int representing an ore dict ID, a String representing a tool class, an Item, a Class, or null if it
+     * wasn't given or wasn't found. The second element is the size (1 if none is given). The third element is the meta ({@link OreDictionary#WILDCARD_VALUE} or 0 if none was
+     * given). The fourth element is the exact NBT tag or extra data, such as an enchantment or a fluid. Whenever you call these methods, you should surround them with a try/catch.
      * 
      * @param input
-     *            - a String in the format modid:name(:meta)({nbt}|[ench:id,minlvl]|[Fluid:"fluidname",Amount:minamount])(@size) or
-     *            ore:oreName({nbt}|[ench:id,minlvl]|[Fluid:"fluidname",MinAmount:minamount])(@size) or
-     *            tool:toolClass({nbt}|[ench:id,minlvl]|[Fluid:"fluidname",MinAmount:minamount])(@size)
-     *            class:package.class({nbt}|[ench:id,minlvl]|[Fluid:"fluidname",MinAmount:minamount])(@size) or
-     *            {nbt}|[ench:id,minlvl]|[Fluid:"fluidname",MinAmount:minamount]|[Tinkers:[I:{integer modifiers}B:{byte modifiers}F:{float modifiers}IA:{integer array
-     *            modifiers}](@size). the parts surrounded by regular brackets are optional. for output stacks, it must be the first format.
+     *            - look at the config explanation file.
      * @param returnWildcard
      *            - if true and meta isn't specified, meta will return as {@link OreDictionary#WILDCARD_VALUE}. if false and meta isn't specified, meta will return as 0.
      */
@@ -124,19 +123,18 @@ public class StringParsers
                 input = enchMatcher.replaceFirst("");
                 NBTTagList enchList = new NBTTagList();
                 NBTTagCompound theench = new NBTTagCompound();
-                theench.setInteger(LVL, Integer.valueOf(ench.substring(ench.lastIndexOf(",") + 1, ench.length() - 1)));
-                theench.setInteger(ID, id);
+                theench.setInteger(KEY_lvl, Integer.valueOf(ench.substring(ench.lastIndexOf(",") + 1, ench.length() - 1)));
+                theench.setInteger(KEY_id, id);
                 enchList.appendTag(theench);
-                data.setTag(ENCH, enchList);
+                data.setTag(KEY_ench, enchList);
 
-                data.setByte(GCI_DATATYPE, (byte) 1);
+                data.setByte(KEY_GCIDataType, (byte) 2);
 
                 return parseItemOrOreOrToolOrClass(input, size, data, returnWildcard);
             }
             else
             {
-                if (!CampfireBackportConfig.suppressInputErrors)
-                    CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_ench_id", input));
+                ConfigReference.logError("invalid_ench_id", input);
                 return new Object[] { null, null, null, null };
             }
         }
@@ -156,18 +154,17 @@ public class StringParsers
             if (FluidRegistry.isFluidRegistered(fluidName))
             {
                 NBTTagCompound fluidCom = new NBTTagCompound();
-                fluidCom.setString(FLUIDNAME, fluidName);
-                fluidCom.setInteger(AMOUNT_CAPS, Integer.valueOf(fluid.substring(fluid.lastIndexOf(":") + 1, fluid.length() - 1)));
-                data.setTag(FLUID_CAPS, fluidCom);
+                fluidCom.setString(KEY_FluidName, fluidName);
+                fluidCom.setInteger(KEY_Amount, Integer.valueOf(fluid.substring(fluid.lastIndexOf(":") + 1, fluid.length() - 1)));
+                data.setTag(KEY_Fluid, fluidCom);
 
-                data.setByte(GCI_DATATYPE, (byte) 2);
+                data.setByte(KEY_GCIDataType, (byte) 3);
 
                 return parseItemOrOreOrToolOrClass(input, size, data, returnWildcard);
             }
             else
             {
-                if (!CampfireBackportConfig.suppressInputErrors)
-                    CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_fluid", input));
+                ConfigReference.logError("invalid_fluid", input);
                 return new Object[] { null, null, null, null };
             }
         }
@@ -198,28 +195,20 @@ public class StringParsers
                     keyList.appendTag(new NBTTagString(values[0]));
                     typeList.appendTag(new NBTTagString(tags[counter]));
 
-                    if (tags[counter].equals(INT_PREFIX))
-                    {
+                    if (tags[counter].equals(KEY_INT_PREFIX))
                         data.setInteger(values[0], Integer.parseInt(values[1]));
-                    }
-                    else if (tags[counter].equals(BYTE_PREFIX))
-                    {
+                    else if (tags[counter].equals(KEY_BYTE_PREFIX))
                         data.setByte(values[0], Byte.parseByte(values[1]));
-                    }
-                    else if (tags[counter].equals(FLOAT_PREFIX))
-                    {
+                    else if (tags[counter].equals(KEY_FLOAT_PREFIX))
                         data.setFloat(values[0], Float.parseFloat(values[1]));
-                    }
-                    else if (tags[counter].equals(INTARRAY_PREFIX))
-                    {
+                    else if (tags[counter].equals(KEY_INTARRAY_PREFIX))
                         data.setIntArray(values[0], new int[] { Integer.parseInt(values[1]) });
-                    }
                 }
             }
 
-            data.setTag(KEYSET, keyList);
-            data.setTag(TYPESET, typeList);
-            data.setByte(GCI_DATATYPE, (byte) 3);
+            data.setTag(KEY_KeySet, keyList);
+            data.setTag(KEY_TypeSet, typeList);
+            data.setByte(KEY_GCIDataType, (byte) 4);
 
             return parseItemOrOreOrToolOrClass(input, size, data, returnWildcard);
         }
@@ -234,26 +223,24 @@ public class StringParsers
         if (nbtIndex == -1)
             return parseItemOrOreOrToolOrClass(input, size, new NBTTagCompound(), returnWildcard);
 
-        NBTBase nbt;
+        NBTTagCompound nbt;
         try
         {
-            nbt = JsonToNBT.func_150315_a(input.substring(nbtIndex));
+            nbt = (NBTTagCompound) JsonToNBT.func_150315_a(input.substring(nbtIndex));
+            nbt.setByte(KEY_GCIDataType, (byte) 1);
         }
-        catch (NBTException e)
+        catch (NBTException excep)
         {
-            if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_nbt", input));
+            ConfigReference.logError("invalid_nbt", input);
+            return new Object[] { null, null, null, null };
+        }
+        catch (ClassCastException excep)
+        {
+            ConfigReference.logError("invalid_nbt", input);
             return new Object[] { null, null, null, null };
         }
 
-        if (!(nbt instanceof NBTTagCompound))
-        {
-            if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_nbt", input));
-            return new Object[] { null, null, null, null };
-        }
-
-        return parseItemOrOreOrToolOrClass(input.substring(0, nbtIndex), size, (NBTTagCompound) nbt, returnWildcard);
+        return parseItemOrOreOrToolOrClass(input.substring(0, nbtIndex), size, nbt, returnWildcard);
     }
 
     public static Object[] parseItemOrOreOrToolOrClass(String input, int size, NBTTagCompound data, boolean returnWildcard)
@@ -274,7 +261,7 @@ public class StringParsers
     }
 
     /**
-     * The same as {@link #parseItemStackOrOreOrClass(String, int, NBTTagCompound)} but instead of an <code>Item</code>/ore name/<code>Class</code>, it's a <code>Block</code>.
+     * The same as {@link #parseItemStackOrOreOrClass(String, int, NBTTagCompound)} but instead of an Item/ore name/Class, it's a Block/ore name.
      */
     public static Object[] parseBlockOrOre(String input, boolean returnWildcard)
     {
@@ -291,10 +278,9 @@ public class StringParsers
             Class inputClass = Class.forName(input);
             return new Object[] { inputClass, size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
         }
-        catch (ClassNotFoundException e)
+        catch (ClassNotFoundException excep)
         {
-            if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_class", input));
+            ConfigReference.logError("invalid_class", input);
             return new Object[] { null, null, null, null };
         }
     }
@@ -305,8 +291,7 @@ public class StringParsers
             return new Object[] { OreDictionary.getOreID(input), size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
         else
         {
-            if (!CampfireBackportConfig.suppressInputErrors)
-                CampfireBackport.proxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".inputerror.invalid_ore", input));
+            ConfigReference.logError("invalid_ore", input);
             return new Object[] { null, null, null, null };
         }
     }
@@ -325,7 +310,10 @@ public class StringParsers
         if (stack != null)
             return new Object[] { stack.getItem(), size, meta, data };
         else
+        {
+            ConfigReference.logError("invalid_item", input);
             return new Object[] { null, null, null, null };
+        }
     }
 
     public static Object[] parseBlockAndMaybeMeta(String input, int size, NBTTagCompound data, boolean returnWildcard)
@@ -339,30 +327,252 @@ public class StringParsers
 
         Block block = GameRegistry.findBlock(segment[0], segment[1]);
 
-        if (block != null)
+        if (block != null && block != Blocks.air)
             return new Object[] { block, size, meta, data };
         else
+        {
+            ConfigReference.logError("invalid_block", input);
             return new Object[] { null, null, null, null };
+        }
     }
 
-    @Deprecated
-    public static ItemStack parseItemStack(String input)
+    // Translators
+
+    /**
+     * converts an nbt key and value that represents a tinkers modifier into a String that's closer to the tooltip on an actual tinkers tool
+     */
+    public static String convertTinkersNBTForDisplay(String key, Object value)
     {
-        String name;
-        int meta = 0;
-        int size = 1;
+        StringBuilder returned = new StringBuilder(10);
+        final String not = EnumChatFormatting.UNDERLINE + "NOT" + EnumChatFormatting.RESET + " ";
 
-        String[] segment1 = input.split("@");
+        if (key.equals("Shoddy"))
+        {
+            if ((Float) value > 0.0F)
+                returned.append(
+                        EnumChatFormatting.GRAY + "Stonebound Modifier: " + EnumChatFormatting.AQUA + (Float) value + EnumChatFormatting.GRAY + " or greater");
+            else if ((Float) value < 0.0F)
+                returned.append(EnumChatFormatting.GREEN + "Jagged Modifier: " + EnumChatFormatting.AQUA + Math.abs((Float) value) + EnumChatFormatting.GRAY
+                        + " or greater");
+            else
+                returned.append(not + EnumChatFormatting.GRAY + "Stonebound" + EnumChatFormatting.RESET + " or " + EnumChatFormatting.GREEN + "Jagged");
+        }
+        else if (key.equals("Knockback"))
+        {
+            returned.append(EnumChatFormatting.DARK_GRAY + "Knockback");
+            if ((Float) value > 0.0F)
+                returned.append(": " + EnumChatFormatting.GREEN + (Float) value + EnumChatFormatting.GRAY + " or greater");
+            else if ((Float) value < 0.0F)
+                returned.append(": " + EnumChatFormatting.GREEN + (Float) value + EnumChatFormatting.GRAY + " or smaller");
+            else
+                returned.insert(0, not);
+        }
+        else if (key.equals("HarvestLevel"))
+        {
+            if ((Integer) value > 0)
+                returned.append(
+                        EnumChatFormatting.GRAY + "Harvest Level: " + EnumChatFormatting.GREEN + (Integer) value + EnumChatFormatting.GRAY + " or greater");
+        }
+        else if (key.equals("MiningSpeed"))
+        {
+            if ((Integer) value > 0)
+                returned.append(
+                        EnumChatFormatting.GRAY + "Mining Speed: " + EnumChatFormatting.GREEN + (Integer) value + EnumChatFormatting.GRAY + " or greater");
+        }
+        else if (key.equals("Moss"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.GREEN + "Auto-Repair");
+        }
+        else if (key.equals("Unbreaking"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.GRAY + "Reinforced");
+            if ((Integer) value > 1)
+                returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
+        }
+        else if (key.equals("Necrotic"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.DARK_GRAY + "Life Steal");
+            if ((Integer) value > 1)
+                returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
+        }
+        else if (key.equals("Beheading"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.LIGHT_PURPLE + "Beheading");
+            if ((Integer) value > 1)
+                returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
+        }
+        else if (key.equals("SilkTouch"))
+        {
+            returned.append(EnumChatFormatting.YELLOW + "Silky");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Emerald"))
+        {
+            returned.append(EnumChatFormatting.GREEN + "Durability +50%");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Diamond"))
+        {
+            returned.append(EnumChatFormatting.AQUA + "Durability +500");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Lava"))
+        {
+            returned.append(EnumChatFormatting.DARK_RED + "Auto-Smelt");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Broken"))
+        {
+            returned.append(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + "Broken");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Flux"))
+        {
+            returned.append(EnumChatFormatting.GRAY + "Uses RF");
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (key.equals("Fiery"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.GOLD + "Fiery");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 25) + 1) * 25 + ")");
+        }
+        else if (key.equals("ModAntiSpider"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.GREEN + "Bane of Arthropods");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 4) + 1) * 4 + ")");
+        }
+        else if (key.equals("Redstone"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.RED + "Haste");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 50) + 1) * 50 + ")");
+        }
+        else if (key.equals("ModSmite"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.YELLOW + "Smite");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 36) + 1) * 36 + ")");
+        }
+        else if (key.equals("ModAttack"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.WHITE + "Sharpness");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 72) + 1) * 72 + ")");
+        }
+        else if (key.equals("Lapis"))
+        {
+            if ((Integer) value > 0)
+                returned.append(EnumChatFormatting.BLUE + "Luck");
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater / 450)");
+        }
+        else if (value instanceof Integer)
+        {
+            if ((Integer) value > 0)
+                returned.append(key);
+            if ((Integer) value > 1)
+                returned.append(" (" + (Integer) value + " or greater)");
+        }
+        else if (value instanceof Byte)
+        {
+            returned.append(key);
+            if ((Byte) value == 0)
+                returned.insert(0, not);
+        }
+        else if (value instanceof Float)
+        {
+            if ((Float) value > 0.0F)
+                returned.append(key + ": " + (Float) value + " or greater");
+            else if ((Float) value < 0.0F)
+                returned.append(key + ": " + (Float) value + " or smaller");
+            else
+                returned.append(not + key);
+        }
+        else
+            returned.append(key);
 
-        if (segment1.length != 1)
-            size = MathHelper.clamp_int(Integer.parseInt(segment1[1]), 1, 64);
+        return returned.toString();
+    }
 
-        String[] segment2 = segment1[0].split(":");
+    /**
+     * @return the key translated using the "config.comment" prefix
+     */
+    public static String translateComment(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".config.comment." + key);
+    }
 
-        if (segment2.length > 2)
-            meta = Integer.parseInt(segment2[2]);
+    /**
+     * @return the key/args translated using the "config.comment" prefix
+     */
+    public static String translateComment(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".config.comment." + key, args);
+    }
 
-        return GameRegistry.findItemStack(segment2[0], segment2[1], size);
+    /**
+     * @return the key translated using the "config.packets" prefix
+     */
+    public static String translatePacket(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".config.packets." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "config.packets" prefix
+     */
+    public static String translatePacket(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".config.packets." + key, args);
+    }
+
+    /**
+     * @return the key translated using the "nei" prefix
+     */
+    public static String translateNEI(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".nei." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "nei" prefix
+     */
+    public static String translateNEI(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".nei." + key, args);
+    }
+
+    /**
+     * @return the key translated using the "crafttweaker" prefix
+     */
+    public static String translateCT(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".crafttweaker." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "crafttweaker" prefix
+     */
+    public static String translateCT(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".crafttweaker." + key, args);
     }
 
 }

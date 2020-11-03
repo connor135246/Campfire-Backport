@@ -3,6 +3,7 @@ package connor135246.campfirebackport.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.init.Blocks;
@@ -13,6 +14,8 @@ import net.minecraft.util.StatCollector;
 public class ConfigReference
 {
 
+    public static final String README_FILENAME = Reference.MODID + ".readme.txt";
+
     // default settings
     public static final String NEITHER = EnumCampfireType.NEITHER.toString(),
             REG_ONLY = EnumCampfireType.REG_ONLY.toString(),
@@ -22,7 +25,8 @@ public class ConfigReference
             REG_GETS_SOUL = "regular inherits soul",
             NO_GETS = "no inheritance";
 
-    public static final String[] regOrSoulSettings = new String[] { NEITHER, REG_ONLY, SOUL_ONLY, BOTH },
+    public static final String[] empty = new String[0],
+            enumSettings = new String[] { NEITHER, REG_ONLY, SOUL_ONLY, BOTH },
             inheritanceSettings = new String[] { SOUL_GETS_REG, REG_GETS_SOUL, NO_GETS },
             defaultRecipeList = new String[] { "minecraft:porkchop/minecraft:cooked_porkchop", "minecraft:beef/minecraft:cooked_beef",
                     "minecraft:chicken/minecraft:cooked_chicken", "minecraft:potato/minecraft:baked_potato", "minecraft:fish:0/minecraft:cooked_fished:0",
@@ -39,17 +43,35 @@ public class ConfigReference
             defaultSoulRegen = new int[] { 1, 50, 10, 750 },
             defaultBurnOuts = new int[] { -1, -1 };
 
-    public static final double[] defaultBurnToNothingChances = new double[] { 0.0, 0.0 };
+    public static final double[] defaultBurnToNothingChances = new double[] { 0.0, 0.0 },
+            defaultVisCosts = new double[] { 0.5, 0.5, 0.5, 0.5 };
 
     public static final ItemStack defaultRegDrop = new ItemStack(Items.coal, 2, 1),
             defaultSoulDrop = new ItemStack(Blocks.soul_sand);
 
     // translating
-    public static final String TRANSLATE_PREFIX = Reference.MODID + ".config.explain.",
-            regular = StatCollector.translateToLocal(Reference.MODID + ".reg"),
+    public static final String regular = StatCollector.translateToLocal(Reference.MODID + ".reg"),
             soul = StatCollector.translateToLocal(Reference.MODID + ".soul"),
             extinguisher = StatCollector.translateToLocal(Reference.MODID + ".extinguisher"),
             ignitor = StatCollector.translateToLocal(Reference.MODID + ".ignitor");
+
+    /**
+     * if input error suppression is off, translates the key/args using the "config.inputerror" prefix and logs it
+     */
+    public static void logError(String key, Object... args)
+    {
+        if (!CampfireBackportConfig.suppressInputErrors)
+            CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".config.inputerror." + key, args));
+    }
+
+    /**
+     * if printing info is on, translates the key using the "config.info" prefix and logs it
+     */
+    public static void logInfo(String key)
+    {
+        if (CampfireBackportConfig.printCustomRecipes)
+            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".config.info." + key));
+    }
 
     // config option names
     public static final String charcoalOnly = "Charcoal Only",
@@ -67,9 +89,13 @@ public class ConfigReference
             rememberState = "Remember Lit/Unlit State",
             silkNeeded = "Silk Touch Needed",
             putOutByRain = "Put Out by Rain",
+            damaging = "Damage",
+            visCosts = "Vis Costs",
             burnOutTimer = "Burn Out Timers",
+            burnOutRules = "Burn Out Biome/Dimension Timers",
             signalFiresBurnOut = "Burn Out (Signal Fires)",
             burnToNothingChances = "Burn to Nothing Chances",
+            burnOutAsItem = "Burn Out As An Item",
             signalFireStrings = "Signal Fire Blocks",
             campfireDropsStrings = "Campfire Drops",
             colourfulSmoke = "Colorful Campfire Smoke",
@@ -88,8 +114,6 @@ public class ConfigReference
 
     static
     {
-        configOrder.add(printCustomRecipes);
-        configOrder.add(suppressInputErrors);
         configOrder.add(charcoalOnly);
         configOrder.add(soulSoilOnly);
         configOrder.add(automation);
@@ -97,15 +121,19 @@ public class ConfigReference
         configOrder.add(rememberState);
         configOrder.add(silkNeeded);
         configOrder.add(putOutByRain);
+        configOrder.add(damaging);
+        configOrder.add(visCosts);
         configOrder.add(signalFireStrings);
-        configOrder.add(burnOutTimer);
         configOrder.add(signalFiresBurnOut);
-        configOrder.add(burnToNothingChances);
         configOrder.add(colourfulSmoke);
         configOrder.add(campfireDropsStrings);
         configOrder.add(regenCampfires);
         configOrder.add(regularRegen);
         configOrder.add(soulRegen);
+        configOrder.add(burnOutTimer);
+        configOrder.add(burnOutRules);
+        configOrder.add(burnToNothingChances);
+        configOrder.add(burnOutAsItem);
         configOrder.add(autoRecipe);
         configOrder.add(autoBlacklistStrings);
         configOrder.add(regularRecipeList);
@@ -118,5 +146,7 @@ public class ConfigReference
         configOrder.add(soulIgnitorsList);
         configOrder.add(ignitorsListInheritance);
         configOrder.add(dispenserBlacklistStrings);
+        configOrder.add(printCustomRecipes);
+        configOrder.add(suppressInputErrors);
     }
 }

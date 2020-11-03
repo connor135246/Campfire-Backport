@@ -1,0 +1,159 @@
+package connor135246.campfirebackport.config;
+
+import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import io.netty.buffer.ByteBuf;
+
+public class ConfigNetworkManager
+{
+
+    /** config settings that must be synced */
+    private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "signalFiresBurnOut",
+            "burnOutAsItem", "colourfulSmoke" },
+            INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
+            LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "campfireDropsStrings",
+                    "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
+            INTLISTS = new String[] { "burnOutTimer" }, DOUBLELISTS = new String[] { "visCosts" };
+
+    /**
+     * packet that contains config settings to sync
+     */
+    public static class SendConfigMessage implements IMessage
+    {
+
+        public EnumCampfireType autoRecipe, startUnlit, rememberState, silkNeeded, putOutByRain, signalFiresBurnOut, burnOutAsItem, colourfulSmoke;
+        public String recipeListInheritance, extinguishersListInheritance, ignitorsListInheritance;
+        public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, campfireDropsStrings, dispenserBlacklistStrings,
+                regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
+        public int[] burnOutTimer;
+        public double[] visCosts;
+
+        @Override
+        public void toBytes(ByteBuf buf)
+        {
+            try
+            {
+                for (String name : ENUMS)
+                    ByteBufUtils.writeUTF8String(buf, ((EnumCampfireType) CampfireBackportConfig.class.getDeclaredField(name).get(null)).toString());
+
+                for (String name : INHERITS)
+                    ByteBufUtils.writeUTF8String(buf, (String) CampfireBackportConfig.class.getDeclaredField(name).get(null));
+
+                for (String name : LISTS)
+                {
+                    String[] list = (String[]) CampfireBackportConfig.class.getDeclaredField(name).get(null);
+                    buf.writeInt(list.length);
+                    for (String element : list)
+                        ByteBufUtils.writeUTF8String(buf, element);
+                }
+
+                for (String name : INTLISTS)
+                {
+                    int[] list = (int[]) CampfireBackportConfig.class.getDeclaredField(name).get(null);
+                    buf.writeInt(list.length);
+                    for (int element : list)
+                        buf.writeInt(element);
+                }
+
+                for (String name : DOUBLELISTS)
+                {
+                    double[] list = (double[]) CampfireBackportConfig.class.getDeclaredField(name).get(null);
+                    buf.writeInt(list.length);
+                    for (double element : list)
+                        buf.writeDouble(element);
+                }
+            }
+            catch (Exception excep)
+            {
+                CommonProxy.modlog.error(StringParsers.translatePacket("encode_error"));
+                CommonProxy.modlog.catching(excep);
+            }
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf)
+        {
+            try
+            {
+                for (String name : ENUMS)
+                    SendConfigMessage.class.getDeclaredField(name).set(this, EnumCampfireType.FROM_NAME.get(ByteBufUtils.readUTF8String(buf)));
+
+                for (String name : INHERITS)
+                    SendConfigMessage.class.getDeclaredField(name).set(this, ByteBufUtils.readUTF8String(buf));
+
+                for (String name : LISTS)
+                {
+                    int length = buf.readInt();
+                    String[] list = new String[length];
+                    for (int i = 0; i < length; ++i)
+                        list[i] = ByteBufUtils.readUTF8String(buf);
+                    SendConfigMessage.class.getDeclaredField(name).set(this, list);
+                }
+
+                for (String name : INTLISTS)
+                {
+                    int length = buf.readInt();
+                    int[] list = new int[length];
+                    for (int i = 0; i < length; ++i)
+                        list[i] = buf.readInt();
+                    SendConfigMessage.class.getDeclaredField(name).set(this, list);
+                }
+
+                for (String name : DOUBLELISTS)
+                {
+                    int length = buf.readInt();
+                    double[] list = new double[length];
+                    for (int i = 0; i < length; ++i)
+                        list[i] = buf.readDouble();
+                    SendConfigMessage.class.getDeclaredField(name).set(this, list);
+                }
+            }
+            catch (Exception excep)
+            {
+                CommonProxy.modlog.error(StringParsers.translatePacket("decode_error"));
+                CommonProxy.modlog.catching(excep);
+            }
+        }
+
+        public static class Handler implements IMessageHandler<SendConfigMessage, IMessage>
+        {
+
+            @Override
+            public IMessage onMessage(SendConfigMessage message, MessageContext ctx)
+            {
+                CommonProxy.modlog.info(StringParsers.translatePacket("receive_config"));
+
+                try
+                {
+                    for (String name : ENUMS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+                    for (String name : INHERITS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+                    for (String name : LISTS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+                    for (String name : INTLISTS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+                    for (String name : DOUBLELISTS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+
+                    CampfireBackportConfig.doConfig(2, true);
+                }
+                catch (Exception excep)
+                {
+                    CommonProxy.modlog.error(StringParsers.translatePacket("apply_error"));
+                    CommonProxy.modlog.catching(excep);
+                }
+
+                return null;
+            }
+
+        }
+
+    }
+
+}

@@ -1,4 +1,4 @@
-package connor135246.campfirebackport.client.compat;
+package connor135246.campfirebackport.client.compat.waila;
 
 import java.util.List;
 
@@ -34,29 +34,28 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
     @Override
     public List<String> getWailaBody(ItemStack stack, List<String> tooltip, IWailaDataAccessor accessor, IWailaConfigHandler arg3)
     {
-        TileEntity tileent = accessor.getTileEntity();
-        if (tileent instanceof TileEntityCampfire)
+        if (accessor.getTileEntity() instanceof TileEntityCampfire)
         {
             NBTTagCompound data = accessor.getNBTData();
-            NBTTagList items = data.getTagList(TileEntityCampfire.items, 10);
+            NBTTagList itemList = data.getTagList(TileEntityCampfire.KEY_Items, 10);
 
-            if (items.tagCount() == 0)
+            if (itemList.tagCount() == 0)
             {
                 tooltip.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".waila.empty"));
             }
             else
             {
-                int[] cookTimes = data.getIntArray(TileEntityCampfire.cookTimes);
-                int[] cookTotalTimes = data.getIntArray(TileEntityCampfire.totalTimes);
+                int[] cookTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
+                int[] cookTotalTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTotalTimes);
 
-                for (int i = 0; i < items.tagCount(); ++i)
+                for (int i = 0; i < itemList.tagCount(); ++i)
                 {
-                    NBTTagCompound compound = items.getCompoundTagAt(i);
-                    byte slot = compound.getByte(TileEntityCampfire.slot);
+                    NBTTagCompound itemCompound = itemList.getCompoundTagAt(i);
+                    byte slot = itemCompound.getByte(TileEntityCampfire.KEY_Slot);
                     if (slot >= 0 && slot < 4)
                     {
-                        ItemStack invStack = ItemStack.loadItemStackFromNBT(compound);
-                        int percentCooked = Math.min(Math.round((((float)cookTimes[slot]) / ((float)cookTotalTimes[slot])) * 100F), 100);
+                        ItemStack invStack = ItemStack.loadItemStackFromNBT(itemCompound);
+                        int percentCooked = Math.min(Math.round((((float) cookTimes[slot]) / ((float) cookTotalTimes[slot])) * 100F), 100);
                         tooltip.add(EnumChatFormatting.GRAY + invStack.getDisplayName() + " (" + percentCooked + "%)");
                     }
                 }

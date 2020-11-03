@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.items.ItemBlockCampfire;
+import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 
 /**
  * Makes it easy to check if a campfire block matches variable config settings.
@@ -14,47 +16,109 @@ public enum EnumCampfireType
     NEITHER(false, false, "neither"), REG_ONLY(true, false, "regular only"), SOUL_ONLY(false, true, "soul only"), BOTH(true, true, "both");
 
     // don't want to make a spelling mistake!
-    public static final String REGULAR = "regular", SOUL = "soul";
+    public static final String regular = "regular", soul = "soul";
 
-    private final boolean regular;
-    private final boolean soul;
+    private final boolean acceptsRegular;
+    private final boolean acceptsSoul;
     private final String stringForm;
 
-    public static final Map<String, EnumCampfireType> campfireCheck = new HashMap<String, EnumCampfireType>(8);
+    public static final Map<String, EnumCampfireType> FROM_NAME = new HashMap<String, EnumCampfireType>(10);
 
-    EnumCampfireType(boolean regular, boolean soul, String stringForm)
+    static
     {
-        this.regular = regular;
-        this.soul = soul;
+        FROM_NAME.put(NEITHER.stringForm, NEITHER);
+        FROM_NAME.put(REG_ONLY.stringForm, REG_ONLY);
+        FROM_NAME.put(SOUL_ONLY.stringForm, SOUL_ONLY);
+        FROM_NAME.put(BOTH.stringForm, BOTH);
+        // alternate names
+        FROM_NAME.put(regular, REG_ONLY);
+        FROM_NAME.put(soul, SOUL_ONLY);
+    }
+
+    EnumCampfireType(boolean acceptsRegular, boolean acceptsSoul, String stringForm)
+    {
+        this.acceptsRegular = acceptsRegular;
+        this.acceptsSoul = acceptsSoul;
         this.stringForm = stringForm;
     }
 
+    @Override
     public String toString()
     {
         return stringForm;
     }
 
-    public static int toInt(String type)
+    public boolean acceptsRegular()
     {
-        return type.equals(SOUL) ? 1 : 0;
+        return acceptsRegular;
     }
 
-    public boolean matches(BlockCampfire block)
+    public boolean acceptsSoul()
     {
-        return matches(block.getType());
+        return acceptsSoul;
+    }
+
+    public boolean matches(BlockCampfire cblock)
+    {
+        return matches(cblock.getType());
+    }
+
+    public boolean matches(ItemBlockCampfire citem)
+    {
+        return matches(citem.getType());
+    }
+
+    public boolean matches(TileEntityCampfire ctile)
+    {
+        return matches(ctile.getType());
     }
 
     public boolean matches(String type)
     {
-        return type.equals(REGULAR) ? this.regular : (type.equals(SOUL) ? this.soul : false);
+        return isRegular(type) ? acceptsRegular : (isSoul(type) ? acceptsSoul : false);
     }
 
-    static
+    /**
+     * @return an array containing the names of the types of campfires this enum accepts
+     */
+    public String[] asArray()
     {
-        campfireCheck.put(NEITHER.stringForm, NEITHER);
-        campfireCheck.put(REG_ONLY.stringForm, REG_ONLY);
-        campfireCheck.put(SOUL_ONLY.stringForm, SOUL_ONLY);
-        campfireCheck.put(BOTH.stringForm, BOTH);
+        if (acceptsRegular && acceptsSoul)
+            return new String[] { regular, soul };
+        else if (acceptsRegular)
+            return new String[] { regular };
+        else if (acceptsSoul)
+            return new String[] { soul };
+        else
+            return new String[] {};
+    }
+
+    // Static Methods
+
+    public static boolean isRegular(String type)
+    {
+        return type.equals(regular);
+    }
+
+    public static boolean isSoul(String type)
+    {
+        return type.equals(soul);
+    }
+
+    /**
+     * sometimes we use arrays where the first element is for regular campfires and the second is for soul campfires.
+     */
+    public static int toInt(String type)
+    {
+        return option(type, 0, 1);
+    }
+
+    /**
+     * @return regularOption if type is "regular", soulOption if type is "soul". if type is neither, regularOption.
+     */
+    public static <E> E option(String type, E regularOption, E soulOption)
+    {
+        return isSoul(type) ? soulOption : regularOption;
     }
 
 }

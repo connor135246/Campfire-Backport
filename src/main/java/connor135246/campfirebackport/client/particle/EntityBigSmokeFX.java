@@ -1,21 +1,15 @@
 package connor135246.campfirebackport.client.particle;
 
-import java.awt.Color;
 import java.util.ArrayDeque;
 
-import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
-import connor135246.campfirebackport.util.CampfireBackportEventHandler;
 import connor135246.campfirebackport.util.Reference;
-import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import net.minecraft.block.Block;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 
@@ -25,56 +19,43 @@ public class EntityBigSmokeFX extends EntityFX
     // botania license attribution clause, etc etc
     // damn you vazkii!!!!! but thanks
 
-    private int texIndex = rand.nextInt(12);
-
+    public static int bigSmokeCount = 0;
     public static ArrayDeque<EntityBigSmokeFX>[] queuedRenders = new ArrayDeque[] {
             new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(),
             new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(),
             new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(),
             new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>(), new ArrayDeque<EntityBigSmokeFX>() };
 
-    float fScale;
-    float f2;
-    float f3;
-    float f4;
-    float f5;
-    float f6;
+    private int texIndex = rand.nextInt(12);
+    private float fScale, f2, f3, f4, f5, f6;
 
-    public EntityBigSmokeFX(World world, double x, double y, double z, boolean signalFire, Block colourer)
+    public EntityBigSmokeFX(World world, double x, double y, double z, boolean signalFire, float[] colours)
     {
         super(world, x, y, z);
 
-        setPosition((double) x + 0.5D + rand.nextDouble() / 3.0D * (double) (rand.nextBoolean() ? 1 : -1),
+        this.setPosition((double) x + 0.5D + rand.nextDouble() / 3.0D * (double) (rand.nextBoolean() ? 1 : -1),
                 (double) y + rand.nextDouble() + rand.nextDouble(),
                 (double) z + 0.5D + rand.nextDouble() / 3.0D * (double) (rand.nextBoolean() ? 1 : -1));
 
-        this.particleScale = 3.0F * (rand.nextFloat() * 0.5F + 0.5F) * 2.0F;
-        setSize(0.25F, 0.25F);
-        motionY = 0.07 + (double) (this.rand.nextFloat() / 500.0F);
+        this.particleScale = 6.0F * (rand.nextFloat() * 0.5F + 0.5F);
+        this.setSize(0.25F, 0.25F);
+        this.particleGravity = 0.000003F;
+        this.motionY = 0.07 + (double) (this.rand.nextFloat() / 500.0F);
         this.noClip = false;
 
         if (signalFire)
         {
             this.particleMaxAge = rand.nextInt(50) + 280;
-            setAlphaF(0.95F);
+            this.setAlphaF(0.95F);
         }
         else
         {
             this.particleMaxAge = rand.nextInt(50) + 80;
-            setAlphaF(0.9F);
+            this.setAlphaF(0.9F);
         }
 
-        // colours aren't quite as good as modern versions, since there are less map colours.
-        if (colourer != Blocks.air)
-        {
-            int meta = worldObj.getBlockMetadata((int) x, (int) y - 1, (int) z);
-
-            Color mapColourOfBlockBelow = Color.decode(((Integer) colourer.getMapColor(meta).func_151643_b(2)).toString());
-
-            float[] colours = mapColourOfBlockBelow.getRGBColorComponents(null);
-
-            setRBGColorF(colours[0], colours[1], colours[2]);
-        }
+        if (colours.length == 3)
+            this.setRBGColorF(colours[0], colours[1], colours[2]);
 
         EntityBigSmokeFXConstructingEvent constructing = new EntityBigSmokeFXConstructingEvent(this, (int) x, (int) y, (int) z);
 
@@ -89,8 +70,8 @@ public class EntityBigSmokeFX extends EntityFX
         if (constructing.doChange)
         {
             this.particleRed = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[0] : this.particleRed;
-            this.particleGreen = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[1] : this.particleGreen;
-            this.particleBlue = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[2] : this.particleBlue;
+            this.particleGreen = constructing.coloursToChangeTo[1] != -1 ? constructing.coloursToChangeTo[1] : this.particleGreen;
+            this.particleBlue = constructing.coloursToChangeTo[2] != -1 ? constructing.coloursToChangeTo[2] : this.particleBlue;
             this.motionX *= constructing.motionMultipliers[0];
             this.motionY *= constructing.motionMultipliers[1];
             this.motionZ *= constructing.motionMultipliers[2];
@@ -99,25 +80,24 @@ public class EntityBigSmokeFX extends EntityFX
 
     public static void dispatchQueuedRenders(Tessellator tess)
     {
-        CampfireBackportEventHandler.bigSmokeCount = 0;
+        bigSmokeCount = 0;
 
         for (int i = 0; i < queuedRenders.length; ++i)
         {
-            if (!queuedRenders[i].isEmpty())
-            {
-                Minecraft.getMinecraft().renderEngine.bindTexture(getThisTexture(i));
-                tess.startDrawingQuads();
-                for (EntityBigSmokeFX smokes : queuedRenders[i])
-                    smokes.renderQueued(tess);
-                tess.draw();
-            }
-            queuedRenders[i].clear();
+            Minecraft.getMinecraft().renderEngine.bindTexture(getThisTexture(i));
+            tess.startDrawingQuads();
+
+            EntityBigSmokeFX smoke;
+            while ((smoke = queuedRenders[i].poll()) != null)
+                smoke.renderQueued(tess);
+
+            tess.draw();
         }
     }
 
     public void renderQueued(Tessellator tess)
     {
-        ++CampfireBackportEventHandler.bigSmokeCount;
+        ++bigSmokeCount;
 
         float f10 = 0.1F * particleScale;
         float f11 = (float) (prevPosX + (posX - prevPosX) * fScale - interpPosX);
@@ -152,16 +132,15 @@ public class EntityBigSmokeFX extends EntityFX
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
-        if (this.particleAge++ < this.particleMaxAge && !(this.particleAlpha <= 0.0F))
+        if (this.particleAge++ < this.particleMaxAge && this.particleAlpha > 0.0F)
         {
             this.motionX += (double) (this.rand.nextFloat() / 5000.0F * (float) (this.rand.nextBoolean() ? 1 : -1));
             this.motionZ += (double) (this.rand.nextFloat() / 5000.0F * (float) (this.rand.nextBoolean() ? 1 : -1));
             this.motionY -= (double) this.particleGravity;
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-            if (this.particleAge >= this.particleMaxAge - 60 && this.particleAlpha > 0.01F)
-                this.particleAlpha -= 0.015F;
-
+            if (this.particleAge >= this.particleMaxAge - 60)
+                this.particleAlpha = Math.max(0.0F, this.particleAlpha - 0.015F);
         }
         else
             this.setDead();
