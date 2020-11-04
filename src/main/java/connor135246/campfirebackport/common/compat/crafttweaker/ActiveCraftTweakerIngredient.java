@@ -1,5 +1,6 @@
 package connor135246.campfirebackport.common.compat.crafttweaker;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -9,7 +10,6 @@ import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.mc1710.item.MCItemStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
-import scala.actors.threadpool.Arrays;
 
 /**
  * For when CraftTweaker is loaded.
