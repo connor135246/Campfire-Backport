@@ -195,10 +195,10 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     private void drop(CampfireRecipe crecipe, List<Integer> slotsToEmpty)
     {
-        popStackedItem(crecipe.getOutput(), getWorldObj(), xCoord, yCoord, zCoord);
+        popStackedItem(ItemStack.copyItemStack(crecipe.getOutput()), getWorldObj(), xCoord, yCoord, zCoord);
 
         if (crecipe.hasByproduct() && RAND.nextDouble() < crecipe.getByproductChance())
-            popStackedItem(crecipe.getByproduct(), getWorldObj(), xCoord, yCoord, zCoord);
+            popStackedItem(ItemStack.copyItemStack(crecipe.getByproduct()), getWorldObj(), xCoord, yCoord, zCoord);
 
         for (int slot : slotsToEmpty)
             setInventorySlotContents(slot, null);
@@ -811,10 +811,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public void popItems()
     {
-        ItemStack stack;
         for (int slot = 0; slot < getSizeInventory(); ++slot)
         {
-            stack = getStackInSlotOnClosing(slot);
+            ItemStack stack = getStackInSlotOnClosing(slot);
             if (stack != null)
                 popItem(stack, getWorldObj(), xCoord, yCoord, zCoord);
         }
