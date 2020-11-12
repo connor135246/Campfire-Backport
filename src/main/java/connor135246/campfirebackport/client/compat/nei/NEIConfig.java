@@ -30,6 +30,6 @@ public class NEIConfig implements IConfigureNEI
     @Override
     public String getVersion()
     {
-        return "1.7.10-1.7.2";
+        return "1.7.10-1.7.3";
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 
 public class RenderCampfire extends TileEntitySpecialRenderer
@@ -174,7 +175,17 @@ public class RenderCampfire extends TileEntitySpecialRenderer
      */
     public static int[] getRenderSlotMappingFromMeta(int meta)
     {
-        return RENDER_SLOT_MAPPING[Math.max(0, meta - 2)];
+        switch (meta)
+        {
+        default:
+            return RENDER_SLOT_MAPPING[0];
+        case 5:
+            return RENDER_SLOT_MAPPING[3];
+        case 3:
+            return RENDER_SLOT_MAPPING[1];
+        case 4:
+            return RENDER_SLOT_MAPPING[2];
+        }
     }
 
     /**
@@ -189,7 +200,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
      */
     public static double[] getRenderPositionFromRenderSlot(int renderslot, boolean smoke)
     {
-        return smoke ? RENDER_POSITION_SMOKE[renderslot] : RENDER_POSITION_ITEM[renderslot];
+        return (smoke ? RENDER_POSITION_SMOKE : RENDER_POSITION_ITEM)[MathHelper.clamp_int(renderslot, 0, 3)];
     }
 
 }
