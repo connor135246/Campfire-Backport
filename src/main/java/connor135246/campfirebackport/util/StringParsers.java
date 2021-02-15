@@ -261,7 +261,7 @@ public class StringParsers
     }
 
     /**
-     * The same as {@link #parseItemStackOrOreOrClass(String, int, NBTTagCompound)} but instead of an Item/ore name/Class, it's a Block/ore name.
+     * The same as {@link #parseItemOrOreOrToolOrClass} but instead of an Item/ore/tool/Class, it's a Block/ore.
      */
     public static Object[] parseBlockOrOre(String input, boolean returnWildcard)
     {
@@ -343,17 +343,17 @@ public class StringParsers
      */
     public static String convertTinkersNBTForDisplay(String key, Object value)
     {
-        StringBuilder returned = new StringBuilder(10);
+        StringBuilder returned = new StringBuilder();
         final String not = EnumChatFormatting.UNDERLINE + "NOT" + EnumChatFormatting.RESET + " ";
 
         if (key.equals("Shoddy"))
         {
             if ((Float) value > 0.0F)
-                returned.append(
-                        EnumChatFormatting.GRAY + "Stonebound Modifier: " + EnumChatFormatting.AQUA + (Float) value + EnumChatFormatting.GRAY + " or greater");
+                returned.append(EnumChatFormatting.GRAY + "Stonebound Modifier: " + EnumChatFormatting.AQUA
+                        + (Float) value + EnumChatFormatting.GRAY + " or greater");
             else if ((Float) value < 0.0F)
-                returned.append(EnumChatFormatting.GREEN + "Jagged Modifier: " + EnumChatFormatting.AQUA + Math.abs((Float) value) + EnumChatFormatting.GRAY
-                        + " or greater");
+                returned.append(EnumChatFormatting.GREEN + "Jagged Modifier: " + EnumChatFormatting.AQUA
+                        + Math.abs((Float) value) + EnumChatFormatting.GRAY + " or greater");
             else
                 returned.append(not + EnumChatFormatting.GRAY + "Stonebound" + EnumChatFormatting.RESET + " or " + EnumChatFormatting.GREEN + "Jagged");
         }
@@ -370,14 +370,14 @@ public class StringParsers
         else if (key.equals("HarvestLevel"))
         {
             if ((Integer) value > 0)
-                returned.append(
-                        EnumChatFormatting.GRAY + "Harvest Level: " + EnumChatFormatting.GREEN + (Integer) value + EnumChatFormatting.GRAY + " or greater");
+                returned.append(EnumChatFormatting.GRAY + "Harvest Level: " + EnumChatFormatting.GREEN
+                        + (Integer) value + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("MiningSpeed"))
         {
             if ((Integer) value > 0)
-                returned.append(
-                        EnumChatFormatting.GRAY + "Mining Speed: " + EnumChatFormatting.GREEN + (Integer) value + EnumChatFormatting.GRAY + " or greater");
+                returned.append(EnumChatFormatting.GRAY + "Mining Speed: " + EnumChatFormatting.GREEN
+                        + (Integer) value + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("Moss"))
         {
@@ -509,6 +509,38 @@ public class StringParsers
             returned.append(key);
 
         return returned.toString();
+    }
+
+    /**
+     * @return the key translated using the "config.inputerror" prefix
+     */
+    public static String translateInputError(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".config.inputerror." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "config.inputerror" prefix
+     */
+    public static String translateInputError(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".config.inputerror." + key, args);
+    }
+
+    /**
+     * @return the key translated using the "config.info" prefix
+     */
+    public static String translateInfo(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".config.info." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "config.info" prefix
+     */
+    public static String translateInfo(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".config.info." + key, args);
     }
 
     /**

@@ -1,5 +1,9 @@
 package connor135246.campfirebackport.common.blocks;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
@@ -9,27 +13,30 @@ import net.minecraft.block.Block;
 public class CampfireBackportBlocks
 {
 
-    public static final Block campfire = new BlockCampfire(true, EnumCampfireType.regular).setLightLevel(1.0F).setBlockName("campfire")
-            .setBlockTextureName(Reference.MODID + ":" + "campfire");
-    public static final Block campfire_base = new BlockCampfire(false, EnumCampfireType.regular).setLightLevel(0.0F).setBlockName("campfire_base")
-            .setBlockTextureName(Reference.MODID + ":" + "campfire_base");
-    public static final Block soul_campfire = new BlockCampfire(true, EnumCampfireType.soul).setLightLevel(0.67F).setBlockName("soul_campfire")
-            .setBlockTextureName(Reference.MODID + ":" + "soul_campfire");
-    public static final Block soul_campfire_base = new BlockCampfire(false, EnumCampfireType.soul).setLightLevel(0.0F).setBlockName("soul_campfire_base")
-            .setBlockTextureName(Reference.MODID + ":" + "soul_campfire_base");
+    public static final Block campfire = createCampfireBlock(true, EnumCampfireType.regular, "campfire", 1.0F);
+    public static final Block campfire_base = createCampfireBlock(false, EnumCampfireType.regular, "campfire_base", 0.0F);
+    public static final Block soul_campfire = createCampfireBlock(true, EnumCampfireType.soul, "soul_campfire", 0.67F);
+    public static final Block soul_campfire_base = createCampfireBlock(false, EnumCampfireType.soul, "soul_campfire_base", 0.0F);
 
+    /** a list containing the 4 campfires */
+    public static final List<Block> LIST_OF_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, campfire_base, soul_campfire_base);
+
+    /**
+     * registers campfire blocks
+     */
     public static void preInit()
     {
-        GameRegistry.registerBlock(CampfireBackportBlocks.campfire, ItemBlockCampfire.class, "campfire");
-        GameRegistry.registerBlock(CampfireBackportBlocks.campfire_base, ItemBlockCampfire.class, "campfire_base");
-        GameRegistry.registerBlock(CampfireBackportBlocks.soul_campfire, ItemBlockCampfire.class, "soul_campfire");
-        GameRegistry.registerBlock(CampfireBackportBlocks.soul_campfire_base, ItemBlockCampfire.class, "soul_campfire_base");
+        LIST_OF_CAMPFIRES.forEach(cblock -> {
+            GameRegistry.registerBlock(cblock, ItemBlockCampfire.class, cblock.getUnlocalizedName().substring(5));
+        });
+    }
+
+    private static Block createCampfireBlock(boolean lit, String type, String name, float lightLevel)
+    {
+        return new BlockCampfire(lit, type).setLightLevel(lightLevel).setBlockName(name).setBlockTextureName(Reference.MODID + ":" + name);
     }
 
     //
-
-    /** a double array where the first index refers to the lit state (0 = lit, 1 = unlit) and the second index refers to the campfire type (0 = regular, 1 = soul) */
-    private static final Block[][] CAMPFIRE_REF_TABLE = new Block[][] { { campfire, soul_campfire }, { campfire_base, soul_campfire_base } };
 
     /**
      * @param lit
@@ -40,7 +47,7 @@ public class CampfireBackportBlocks
      */
     public static Block getBlockFromLitAndType(boolean lit, String type)
     {
-        return CAMPFIRE_REF_TABLE[lit ? 0 : 1][EnumCampfireType.toInt(type)];
+        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
     }
 
 }

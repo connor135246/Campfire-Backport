@@ -139,7 +139,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         {
             CachedCampfireRecipe cachedCrecipe = new CachedCampfireRecipe(crecipe);
 
-            if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
+            if (cachedCrecipe != null && cachedCrecipe.types.size() != 0)
             {
                 for (int i = 0; i < cachedCrecipe.numInputs; ++i)
                 {
@@ -172,7 +172,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         else if (!tooltip.isEmpty() && cachedCrecipe.byproduct != null && byproductRect.contains(relMouse) && cachedCrecipe.byproductChance < 100)
         {
             tooltip.add("");
-            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + cachedCrecipe.byproductChance + "%");
+            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + Math.round(cachedCrecipe.byproductChance * 100) / 100.0D + "%");
         }
         else
             return true;
@@ -188,7 +188,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
         CachedCampfireRecipe cachedCrecipe = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
+        if (cachedCrecipe != null && cachedCrecipe.types.size() != 0)
         {
             GuiDraw.changeTexture(neiBackground);
             GuiDraw.drawTexturedModalRect(54, 7, 118, 2, 63, 41);

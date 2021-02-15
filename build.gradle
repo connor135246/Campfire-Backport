@@ -18,7 +18,7 @@ buildscript {
 repositories {
     maven { // this has to be here and not in buildscript.repositories, otherwise Gradle won't find mixin <0.8 for some reason
         name = 'sponge'
-        url = 'http://repo.spongepowered.org/maven/'
+        url = 'https://repo.spongepowered.org/maven/'
     }
 }
 
@@ -30,7 +30,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.7.3"
+version = "1.7.10-1.8"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 

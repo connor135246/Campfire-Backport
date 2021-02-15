@@ -34,10 +34,8 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
         {
             BlockCampfire cblock = (BlockCampfire) block;
 
-            if (cstate.matches(stack, cblock.getType(), cblock.isLit()))
+            if (cstate.matches(stack, cblock.getType(), cblock.isLit()) && cblock.toggleCampfireBlockState(world, i, j, k) == 1)
             {
-                cblock.toggleCampfireBlockState(world, i, j, k);
-
                 if (cstate.getInput().getDataType() == 3)
                     cstate.getInput().doFluidEmptying(stack);
 

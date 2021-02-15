@@ -172,7 +172,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
 
     /**
      * Tries to make a CampfireRecipe based on user input for the given campfire types and add it to the recipe lists.<br>
-     * See {@link #createCustomRecipe(String, EnumCampfireType)}.
+     * See {@link #createCustomRecipe}.
      * 
      * @param recipe
      *            - the user-input string that represents a recipe
@@ -300,7 +300,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      */
     public boolean matches(ItemStack stack, boolean signalFire)
     {
-        if ((doesSignalFireMatter() ? (requiresSignalFire() == signalFire) : true))
+        if (stack != null && (doesSignalFireMatter() ? (requiresSignalFire() == signalFire) : true))
         {
             for (CustomInput cinput : getInputs())
             {
@@ -312,8 +312,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     /**
-     * Meant for comparing two CampfireRecipes, the first of which was created from {@link #createAutoDiscoveryRecipe(ItemStack, ItemStack, EnumCampfireType)}. The order they're
-     * given matters!
+     * Meant for comparing two CampfireRecipes, the first of which was created from {@link #createAutoDiscoveryRecipe}. The order they're given matters!
      * 
      * @return true if the CampfireRecipes are the same, false if they aren't
      */
@@ -324,8 +323,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
             CustomInput cinputCustom = crecipeCustom.getInputs()[0];
             CustomInput cinputAuto = crecipeAuto.getInputs()[0];
 
-            return cinputCustom.isItemInput() && !cinputCustom.hasExtraData() && (cinputCustom.metaWasSpecified() == cinputAuto.metaWasSpecified())
-                    && CustomInput.matchesTheStack(cinputCustom, (ItemStack) cinputAuto.getInput());
+            return cinputCustom.isItemInput() && !cinputCustom.hasExtraData() && CustomInput.matchesTheStack(cinputCustom, (ItemStack) cinputAuto.getInput());
         }
         return false;
     }
@@ -343,8 +341,9 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
             recipeToString.append(cinput.toString() + ", ");
 
         return recipeToString.substring(0, recipeToString.length() - 2) + " -> " + stackToString(getOutput())
-                + (hasByproduct() ? " with a " + getByproductChance() * 100 + "% chance of " + stackToString(getByproduct()) + "," : ",") + " after "
-                + getCookingTime() + " Ticks on "
+                + (hasByproduct() ? ((getByproductChance() < 100 ? " with a " + getByproductChance() * 100 + "% chance of " : " and ")
+                        + stackToString(getByproduct())) : "")
+                + ", after " + getCookingTime() + " Ticks on "
                 + (getTypes() == EnumCampfireType.BOTH ? "all" : (getTypes().acceptsRegular() ? "Regular" : "Soul")) + " campfires"
                 + (doesSignalFireMatter() ? " (" + (requiresSignalFire() ? "must" : "must not") + " be a signal fire)" : "");
     }

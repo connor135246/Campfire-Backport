@@ -155,7 +155,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
     /**
      * Tries to make a CampfireStateChanger based on user input for the given campfire types and use and add it the state changer lists.<br>
-     * See {@link #createCustomStateChanger(String, EnumCampfireType, boolean)}.
+     * See {@link #createCustomStateChanger}.
      * 
      * @param recipe
      *            - the user-input string that represents a state changer
@@ -254,11 +254,11 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
      * 
      * @return a matching CampfireStateChanger, or null if none was found
      */
-    public static CampfireStateChanger findStateChanger(ItemStack stack, boolean leftClick, String types, boolean lit)
+    public static CampfireStateChanger findStateChanger(ItemStack stack, boolean leftClick, String type, boolean lit)
     {
         for (CampfireStateChanger cstate : getStateChangerList(leftClick))
         {
-            if (cstate.matches(stack, types, lit))
+            if (cstate.matches(stack, type, lit))
                 return cstate;
         }
         return null;
@@ -267,9 +267,9 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     /**
      * Checks if the given ItemStack and campfire match this CampfireStateChanger.
      */
-    public boolean matches(ItemStack stack, String types, boolean lit)
+    public boolean matches(ItemStack stack, String type, boolean lit)
     {
-        return isExtinguisher() == lit && getTypes().matches(types) && getInput().matches(stack);
+        return stack != null && isExtinguisher() == lit && getTypes().matches(type) && getInput().matches(stack);
     }
 
     // toString

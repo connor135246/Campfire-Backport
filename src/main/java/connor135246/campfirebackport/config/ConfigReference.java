@@ -6,6 +6,7 @@ import java.util.List;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
+import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -61,7 +62,7 @@ public class ConfigReference
     public static void logError(String key, Object... args)
     {
         if (!CampfireBackportConfig.suppressInputErrors)
-            CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".config.inputerror." + key, args));
+            CommonProxy.modlog.warn(StringParsers.translateInputError(key, args));
     }
 
     /**
@@ -70,7 +71,7 @@ public class ConfigReference
     public static void logInfo(String key)
     {
         if (CampfireBackportConfig.printCustomRecipes)
-            CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".config.info." + key));
+            CommonProxy.modlog.info(StringParsers.translateInfo(key));
     }
 
     // config option names
@@ -84,6 +85,8 @@ public class ConfigReference
             regularRecipeList = "Custom Recipes (Regular)",
             soulRecipeList = "Custom Recipes (Soul)",
             recipeListInheritance = "Custom Recipe Inheritance",
+            spawnpointable = "Set Respawn Point",
+            burnOutOnRespawn = "Burn Out on Respawn",
             automation = "Automation",
             startUnlit = "Unlit by Default",
             rememberState = "Remember Lit/Unlit State",
@@ -122,6 +125,8 @@ public class ConfigReference
         configOrder.add(silkNeeded);
         configOrder.add(putOutByRain);
         configOrder.add(damaging);
+        configOrder.add(spawnpointable);
+        configOrder.add(burnOutOnRespawn);
         configOrder.add(visCosts);
         configOrder.add(signalFireStrings);
         configOrder.add(signalFiresBurnOut);

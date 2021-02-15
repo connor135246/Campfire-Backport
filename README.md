@@ -5,6 +5,5 @@ The "no mixins" version uses nm.build.gradle, nm.mcmod.info, and doesn't have Mi
 
 ***
 
-Looking for detailed information about complicated config settings and CraftTweaker support? [Click here.](https://github.com/connor135246/Campfire-Backport/wiki) <br> <br>
-
+Looking for detailed information about complicated config settings and CraftTweaker support? [Click here.](https://github.com/connor135246/Campfire-Backport/wiki) <br> 
 You can also use the command "/campfirebackport dumpinfo" to create a text file in your config folder that has this information.

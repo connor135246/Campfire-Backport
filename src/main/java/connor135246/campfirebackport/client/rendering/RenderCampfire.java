@@ -21,12 +21,21 @@ public class RenderCampfire extends TileEntitySpecialRenderer
 
     public static final RenderCampfire INSTANCE = new RenderCampfire();
 
-    private static final String TEXTURES_LOCATION = Reference.MODID + ":" + "textures/blocks/";
-    private static final ResourceLocation BASE_TEXTURE = new ResourceLocation(TEXTURES_LOCATION + "campfire_base_tile.png");
+    public static final int TEXTURE_COUNT = 16;
+    public static final ResourceLocation BASE_TEXTURE = new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_base_tile.png");
+    public static final ResourceLocation[] REGULAR_TEXTURES = new ResourceLocation[TEXTURE_COUNT];
+    public static final ResourceLocation[] SOUL_TEXTURES = new ResourceLocation[TEXTURE_COUNT];
+    static
+    {
+        for (int i = 0; i < TEXTURE_COUNT; ++i)
+        {
+            REGULAR_TEXTURES[i] = new ResourceLocation(Reference.MODID + ":" + "textures/blocks/campfire_tile" + i + ".png");
+            SOUL_TEXTURES[i] = new ResourceLocation(Reference.MODID + ":" + "textures/blocks/soul_campfire_tile" + i + ".png");
+        }
+    }
 
-    private ModelCampfire model;
-
-    private EntityItem invRender[] = new EntityItem[4];
+    protected ModelCampfire model;
+    protected EntityItem invRender[] = new EntityItem[4];
 
     // https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571543-forge-rendering-an-item-on-your-block
     // thanks
@@ -41,9 +50,9 @@ public class RenderCampfire extends TileEntitySpecialRenderer
     {
         TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-        boolean lit = true;
+        boolean lit = false;
         String type = EnumCampfireType.regular;
-        int dir = 2;
+        int meta = 2;
         int animTimer = 0;
         boolean renderItems = false;
 
@@ -51,26 +60,9 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         {
             lit = ctile.isLit();
             type = ctile.getType();
-            dir = ctile.getBlockMetadata();
+            meta = ctile.getBlockMetadata();
             animTimer = ctile.getAnimTimer();
             renderItems = true;
-        }
-
-        float angle;
-        switch (dir)
-        {
-        default:
-            angle = 0F;
-            break;
-        case 5:
-            angle = 90F;
-            break;
-        case 3:
-            angle = 180F;
-            break;
-        case 4:
-            angle = 270F;
-            break;
         }
 
         GL11.glPushMatrix();
@@ -78,10 +70,21 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
         GL11.glRotatef(180, 0, 0, 1);
 
-        GL11.glRotatef(angle, 0.0F, 1.0F, 0.0F);
+        switch (meta)
+        {
+        case 5:
+            GL11.glRotatef(90F, 0.0F, 1.0F, 0.0F);
+            break;
+        case 3:
+            GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
+            break;
+        case 4:
+            GL11.glRotatef(270F, 0.0F, 1.0F, 0.0F);
+            break;
+        }
 
         if (lit)
-            bindTexture(getLitTexture((animTimer % 31) / 2, type));
+            bindTexture(getLitTexture(animTimer, type));
         else
             bindTexture(BASE_TEXTURE);
 
@@ -91,7 +94,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
 
         if (renderItems)
         {
-            int[] iro = getRenderSlotMappingFromMeta(dir);
+            int[] iro = getRenderSlotMappingFromMeta(meta);
 
             for (int invSlot = 0; invSlot < ctile.getSizeInventory(); ++invSlot)
             {
@@ -101,7 +104,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                 {
                     int renderSlot = iro[invSlot];
 
-                    if (invRender[invSlot] == null || invRender[invSlot].getEntityItem().toString() != stack.toString())
+                    if (invRender[invSlot] == null || !invRender[invSlot].getEntityItem().toString().equals(stack.toString()))
                         invRender[invSlot] = new EntityItem(ctile.getWorldObj(), x, y, z, stack);
 
                     GL11.glPushMatrix();
@@ -133,17 +136,16 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         GL11.glRotatef(180, 0, 0, 1);
 
         if (lit)
-            bindTexture(getLitTexture((animTimer % 31) / 2, type));
+            bindTexture(getLitTexture(animTimer, type));
         else
             bindTexture(BASE_TEXTURE);
 
         model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
     }
 
-    public static ResourceLocation getLitTexture(int index, String type)
+    public static ResourceLocation getLitTexture(int animTimer, String type)
     {
-        return new ResourceLocation(EnumCampfireType.option(type, TEXTURES_LOCATION + "campfire_tile" + index + ".png",
-                TEXTURES_LOCATION + "soul_campfire_tile" + index + ".png"));
+        return EnumCampfireType.option(type, REGULAR_TEXTURES, SOUL_TEXTURES)[Math.abs(animTimer % (TEXTURE_COUNT * 2 - 1)) / 2];
     }
 
     // Rendering Positions
@@ -166,8 +168,8 @@ public class RenderCampfire extends TileEntitySpecialRenderer
 
     /**
      * Returns the mapping of inventory slots to render slots based on block metadata. This is so that inventory slots are always rendered counterclockwise starting with the front
-     * right, no matter which direction the block is facing. See {@link #getRenderPositionFromRenderSlot(int, boolean) getRenderPositionFromRenderSlot} for an explanation of the
-     * render slot. Block metadata is just the direction the player was facing when placing the block. South = 2, North = 3, East = 4, West = 5.
+     * right, no matter which direction the block is facing. See {@link #getRenderPositionFromRenderSlot} for an explanation of the render slot. Block metadata is just the
+     * direction the player was facing when placing the block. South = 2, North = 3, East = 4, West = 5.
      * 
      * @param meta
      *            - the metadata of the block

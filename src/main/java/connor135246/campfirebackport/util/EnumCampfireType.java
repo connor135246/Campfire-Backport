@@ -1,7 +1,10 @@
 package connor135246.campfirebackport.util;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.ImmutableList;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
@@ -21,6 +24,7 @@ public enum EnumCampfireType
     private final boolean acceptsRegular;
     private final boolean acceptsSoul;
     private final String stringForm;
+    private final List<String> asList;
 
     public static final Map<String, EnumCampfireType> FROM_NAME = new HashMap<String, EnumCampfireType>(10);
 
@@ -40,6 +44,15 @@ public enum EnumCampfireType
         this.acceptsRegular = acceptsRegular;
         this.acceptsSoul = acceptsSoul;
         this.stringForm = stringForm;
+
+        if (acceptsRegular && acceptsSoul)
+            asList = ImmutableList.of(regular, soul);
+        else if (acceptsRegular)
+            asList = ImmutableList.of(regular);
+        else if (acceptsSoul)
+            asList = ImmutableList.of(soul);
+        else
+            asList = ImmutableList.of();
     }
 
     @Override
@@ -58,19 +71,35 @@ public enum EnumCampfireType
         return acceptsSoul;
     }
 
+    /**
+     * @return a list containing the names of the types of campfires this enum accepts.
+     */
+    public List<String> asList()
+    {
+        return asList;
+    }
+
+    /**
+     * @return an array containing the names of the types of campfires this enum accepts.
+     */
+    public String[] asArray()
+    {
+        return (String[]) asList.toArray();
+    }
+
     public boolean matches(BlockCampfire cblock)
     {
-        return matches(cblock.getType());
+        return cblock != null && matches(cblock.getType());
     }
 
     public boolean matches(ItemBlockCampfire citem)
     {
-        return matches(citem.getType());
+        return citem != null && matches(citem.getType());
     }
 
     public boolean matches(TileEntityCampfire ctile)
     {
-        return matches(ctile.getType());
+        return ctile != null && matches(ctile.getType());
     }
 
     public boolean matches(String type)
@@ -78,39 +107,24 @@ public enum EnumCampfireType
         return isRegular(type) ? acceptsRegular : (isSoul(type) ? acceptsSoul : false);
     }
 
-    /**
-     * @return an array containing the names of the types of campfires this enum accepts
-     */
-    public String[] asArray()
-    {
-        if (acceptsRegular && acceptsSoul)
-            return new String[] { regular, soul };
-        else if (acceptsRegular)
-            return new String[] { regular };
-        else if (acceptsSoul)
-            return new String[] { soul };
-        else
-            return new String[] {};
-    }
-
     // Static Methods
 
     public static boolean isRegular(String type)
     {
-        return type.equals(regular);
+        return type != null && type.equals(regular);
     }
 
     public static boolean isSoul(String type)
     {
-        return type.equals(soul);
+        return type != null && type.equals(soul);
     }
 
     /**
      * sometimes we use arrays where the first element is for regular campfires and the second is for soul campfires.
      */
-    public static int toInt(String type)
+    public static int index(String type)
     {
-        return option(type, 0, 1);
+        return isSoul(type) ? 1 : 0;
     }
 
     /**

@@ -2,12 +2,9 @@ package connor135246.campfirebackport.config;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -66,6 +63,9 @@ public class CampfireBackportConfig
     public static String[] regularRecipeList;
     public static String[] soulRecipeList;
     public static String recipeListInheritance;
+
+    public static EnumCampfireType spawnpointable;
+    public static EnumCampfireType burnOutOnRespawn;
 
     public static EnumCampfireType automation;
 
@@ -237,6 +237,10 @@ public class CampfireBackportConfig
 
         recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
 
+        spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
+
+        burnOutOnRespawn = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
+
         automation = enumFromConfig(ConfigReference.automation, ConfigReference.BOTH, "automation");
 
         startUnlit = enumFromConfig(ConfigReference.startUnlit, ConfigReference.NEITHER, "default_unlit");
@@ -324,7 +328,7 @@ public class CampfireBackportConfig
      */
     private static void setConfig()
     {
-        CommonProxy.modlog.info(StatCollector.translateToLocal(Reference.MODID + ".config.info.setting_config"));
+        ConfigReference.logInfo("setting_config");
 
         // startUnlit & charcoalOnly & soulSoilOnly
         if (initialLoad)
@@ -400,8 +404,8 @@ public class CampfireBackportConfig
 
             ConfigReference.logInfo("discovering_autos");
 
-            Iterator inputsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().keySet()).iterator();
-            Iterator resultsit = ((Collection) FurnaceRecipes.smelting().getSmeltingList().values()).iterator();
+            Iterator inputsit = FurnaceRecipes.smelting().getSmeltingList().keySet().iterator();
+            Iterator resultsit = FurnaceRecipes.smelting().getSmeltingList().values().iterator();
 
             iteratorLoop: while (resultsit.hasNext())
             {
@@ -410,13 +414,13 @@ public class CampfireBackportConfig
 
                 if (resultstack.getItem() instanceof ItemFood)
                 {
-                    if (autoBlacklistStacks.get(inputstack.getItem()) != null)
+                    if (!autoBlacklistStacks.isEmpty() && autoBlacklistStacks.get(inputstack.getItem()) != null)
                     {
                         if (autoBlacklistStacks.get(inputstack.getItem()) == OreDictionary.WILDCARD_VALUE
                                 || autoBlacklistStacks.get(inputstack.getItem()) == inputstack.getItemDamage())
                             continue iteratorLoop;
                     }
-                    else
+                    else if (!autoBlacklistOres.isEmpty())
                     {
                         for (int id : OreDictionary.getOreIDs(inputstack))
                         {
@@ -426,7 +430,7 @@ public class CampfireBackportConfig
                     }
 
                     CampfireRecipe furnaceRecipe = CampfireRecipe.createAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
-                    if (furnaceRecipe != null && furnaceRecipe.getInputs().length > 0 && furnaceRecipe.getInputs()[0] != null)
+                    if (furnaceRecipe != null && furnaceRecipe.getInputs().length > 0 && furnaceRecipe.getInputs()[0] != null && furnaceRecipe.hasOutputs())
                     {
                         boolean addIt = true;
                         for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
@@ -469,7 +473,7 @@ public class CampfireBackportConfig
             }
         }
 
-        // regularIgnitors & soulIgnitors & ignitorsInheritance & regularExtinguishers & soulExtinguishers & extinguishersInheritance
+        // regularExtinguishers & soulExtinguishers & extinguishersInheritance & regularIgnitors & soulIgnitors & ignitorsInheritance
         CampfireStateChanger.clearStateChangerLists();
 
         if (regularExtinguishersList.length != 0 || regularIgnitorsList.length != 0 || soulExtinguishersList.length != 0 || soulIgnitorsList.length != 0)
@@ -563,7 +567,7 @@ public class CampfireBackportConfig
 
         ConfigReference.logInfo("done");
 
-        // printCampfireRecipes
+        // printCustomRecipes
         if (printCustomRecipes)
         {
             if (!CampfireRecipe.getMasterList().isEmpty())

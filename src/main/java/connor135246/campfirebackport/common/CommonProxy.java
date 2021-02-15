@@ -4,6 +4,7 @@ import org.apache.logging.log4j.Logger;
 
 import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager.SendConfigMessage;
@@ -11,7 +12,6 @@ import connor135246.campfirebackport.util.CampfireBackportEventHandler;
 import connor135246.campfirebackport.util.CommandCampfireBackport;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -30,9 +30,6 @@ public class CommonProxy
 
     public static Logger modlog;
 
-    public static boolean isThaumcraftLoaded = false;
-    public static boolean isMineTweaker3Loaded = false;
-
     public static CampfireBackportEventHandler handler = new CampfireBackportEventHandler();
 
     public static SimpleNetworkWrapper simpleNetwork;
@@ -49,7 +46,9 @@ public class CommonProxy
         simpleNetwork.registerMessage(SendConfigMessage.Handler.class, SendConfigMessage.class, 1, Side.CLIENT);
 
         CampfireBackportConfig.prepareConfig(event);
+        
         CampfireBackportBlocks.preInit();
+
         GameRegistry.registerTileEntity(TileEntityCampfire.class, Reference.MODID + ":" + "campfire");
     }
 
@@ -60,7 +59,8 @@ public class CommonProxy
 
     public void postInit(FMLPostInitializationEvent event)
     {
-        modCompat();
+        CampfireBackportCompat.postInit();
+        
         CampfireBackportConfig.doConfig(0, true);
     }
 
@@ -70,39 +70,6 @@ public class CommonProxy
     }
 
     //
-
-    /**
-     * checks for specific mod compatibility
-     */
-    public static void modCompat()
-    {
-        if (Loader.isModLoaded("MineTweaker3"))
-        {
-            try
-            {
-                Class.forName(Reference.MOD_PACKAGE + ".common.compat.crafttweaker.CampfireBackportCraftTweaking").getDeclaredMethod("postInit").invoke(null);
-                isMineTweaker3Loaded = true;
-            }
-            catch (Exception excep)
-            {
-                modlog.error("Error while initializing MineTweaker3 (CraftTweaker) compat! Please report this bug!");
-            }
-        }
-
-        if (Loader.isModLoaded("Thaumcraft"))
-        {
-            try
-            {
-                Class.forName(Reference.MOD_PACKAGE + ".common.compat.thaumcraft.CampfireBackportWandTriggerManager").getDeclaredMethod("postInit")
-                        .invoke(null);
-                isThaumcraftLoaded = true;
-            }
-            catch (Exception excep)
-            {
-                modlog.error("Error while initializing Thaumcraft compat! Please report this bug!");
-            }
-        }
-    }
 
     /**
      * Makes campfire smoke particles client side.

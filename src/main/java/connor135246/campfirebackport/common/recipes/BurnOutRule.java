@@ -9,8 +9,6 @@ import javax.annotation.Nullable;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
-import connor135246.campfirebackport.util.StringParsers;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
@@ -74,22 +72,18 @@ public class BurnOutRule
                 if (segment3[0].equals("biome"))
                 {
                     biomeId = Integer.parseInt(segment3[1]);
-                    if (!checkBiomeID(biomeId))
+                    if (biomeId > 255 || 0 > biomeId)
                     {
                         ConfigReference.logError("invalid_biome_id", biomeId);
                         throw new Exception();
                     }
                 }
                 else if (segment3[0].equals("dimension"))
-                {
                     dimensionId = Integer.parseInt(segment3[1]);
-                    if (!checkDimensionID(dimensionId))
-                    {
-                        ConfigReference.logError("invalid_dim_id", dimensionId);
-                        throw new Exception();
-                    }
-                }
             }
+
+            if (biomeId == null && dimensionId == null)
+                throw new Exception();
 
             // timer
 
@@ -112,18 +106,11 @@ public class BurnOutRule
         this.dimensionId = dimensionId == null ? Integer.MAX_VALUE : dimensionId;
         this.timer = Math.max(timer, -1);
         this.defaultRule = defaultRule;
-
-        if (hasBiomeId())
-            this.neiTooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + BiomeGenBase.getBiome(this.biomeId).biomeName);
-
-        if (hasDimensionId())
-            this.neiTooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " "
-                    + WorldProvider.getProviderForDimension(this.dimensionId).getDimensionName());
     }
 
     /**
      * Tries to make a BurnOutRule based on user input and add it to the rules list.<br>
-     * See {@link #createBurnOutRule(String)}.
+     * See {@link #createBurnOutRule}.
      * 
      * @param recipe
      *            - the user-input string that represents a rule
@@ -201,7 +188,7 @@ public class BurnOutRule
      */
     public static BurnOutRule findBurnOutRule(World world, int x, int y, int z, String type)
     {
-        if (!rules.isEmpty())
+        if (!rules.isEmpty() && world != null)
         {
             int biomeId = world.getBiomeGenForCoords(x, z).biomeID;
             int dimensionId = world.provider.dimensionId;
@@ -212,7 +199,7 @@ public class BurnOutRule
                     return brule;
             }
         }
-        return defaultRules[EnumCampfireType.toInt(type)];
+        return defaultRules[EnumCampfireType.index(type)];
     }
 
     /**
@@ -226,9 +213,9 @@ public class BurnOutRule
     /**
      * @return whether the biome id is a valid biome id
      */
-    public static boolean checkBiomeID(int biomeId)
+    public static boolean checkBiomeId(int biomeId)
     {
-        if (biomeId > 255 || biomeId < 0 || BiomeGenBase.getBiomeGenArray()[biomeId] == null)
+        if (biomeId > 255 || 0 > biomeId || BiomeGenBase.getBiomeGenArray()[biomeId] == null)
             return false;
         else
             return true;
@@ -237,7 +224,7 @@ public class BurnOutRule
     /**
      * @return whether the dimension id is a valid dimension id
      */
-    public static boolean checkDimensionID(int dimensionId)
+    public static boolean checkDimensionId(int dimensionId)
     {
         return DimensionManager.isDimensionRegistered(dimensionId);
     }
@@ -252,7 +239,23 @@ public class BurnOutRule
         return (isDefaultRule() ? "Default: " : "")
                 + (getTypes() == EnumCampfireType.BOTH ? "All" : (getTypes() == EnumCampfireType.REG_ONLY ? "Regular" : "Soul")) + " campfires "
                 + (getTimer() == -1 ? "don't burn out" : "burn out after around " + getTimer() + " ticks")
-                + (hasBiomeId() ? " in biome id: " + getBiomeId() : "") + (hasDimensionId() ? " in dimension id: " + getDimensionId() : "");
+                + (hasBiomeId() ? " in biome " + getBiomeName() : "") + (hasDimensionId() ? " in dimension " + getDimensionName() : "");
+    }
+
+    /**
+     * @return if registered, the biome's name. otherwise, "ID = " followed by its id.
+     */
+    public String getBiomeName()
+    {
+        return checkBiomeId(getBiomeId()) ? BiomeGenBase.getBiome(getBiomeId()).biomeName : "ID = " + getBiomeId();
+    }
+
+    /**
+     * @return if registered, the dimension's name. otherwise, "ID = " followed by its id.
+     */
+    public String getDimensionName()
+    {
+        return checkDimensionId(getDimensionId()) ? WorldProvider.getProviderForDimension(getDimensionId()).getDimensionName() : "ID = " + getDimensionId();
     }
 
     // Getters

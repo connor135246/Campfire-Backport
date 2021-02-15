@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import minetweaker.api.item.IIngredient;
 import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.mc1710.item.MCItemStack;

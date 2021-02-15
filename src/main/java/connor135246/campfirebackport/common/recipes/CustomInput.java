@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import connor135246.campfirebackport.common.compat.crafttweaker.ICraftTweakerIngredient;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.registry.GameData;
@@ -36,9 +36,9 @@ public class CustomInput implements Comparable<CustomInput>
      * {@link connor135246.campfirebackport.common.compat.crafttweaker.ActiveCraftTweakerIngredient ActiveCraftTweakerIngredient}
      */
     protected final byte inputType;
-    /** the size of the input. (always 1 for {@link CampfireRecipe CampfireRecipes}) */
+    /** the size of the input. (always 1 for a {@link CampfireRecipe}) */
     protected final int inputSize;
-    /** whether {@link #inputSize} should be checked when matching. (only true for {@link CampfireStateChanger CampfireStateChangers} that are not damageable) */
+    /** whether {@link #inputSize} should be checked when matching. (only true for a {@link CampfireStateChanger} that is not damageable) */
     protected final boolean inputSizeMatters;
     /** extra data associated with this input. if input is NBT, this is a copy of input. */
     protected final NBTTagCompound extraData;
@@ -46,7 +46,7 @@ public class CustomInput implements Comparable<CustomInput>
     protected final byte dataType;
     /** whether or not meta was specified. only applies to ItemStack inputs. */
     protected final boolean metaSpecified;
-    /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for {@link CampfireStateChanger CampfireStateChangers}). */
+    /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for a {@link CampfireStateChanger}). */
     protected List<ItemStack> inputList = new ArrayList<ItemStack>();
     /** lines of text to use for displaying extra info in NEI. */
     protected LinkedList<String> neiTooltip = new LinkedList<String>();
@@ -154,8 +154,9 @@ public class CustomInput implements Comparable<CustomInput>
             {
                 for (Item item : GameData.getItemRegistry().typeSafeIterable())
                 {
-                    if (item.getToolClasses(new ItemStack(item)).contains((String) input))
-                        inputList.add(new ItemStack(item, 1, 0));
+                    ItemStack stack = new ItemStack(item);
+                    if (item.getToolClasses(stack).contains((String) input))
+                        inputList.add(stack);
                 }
 
                 // tool inputs may have empty inputLists at this point, which is a problem, probably
@@ -178,7 +179,7 @@ public class CustomInput implements Comparable<CustomInput>
                 {
                     for (Block block : GameData.getBlockRegistry().typeSafeIterable())
                     {
-                        if (((Class) getInput()).isAssignableFrom(block.getClass()))
+                        if (((Class) input).isAssignableFrom(block.getClass()))
                             inputList.add(new ItemStack(block, 1, OreDictionary.WILDCARD_VALUE));
                     }
                 }
@@ -221,7 +222,7 @@ public class CustomInput implements Comparable<CustomInput>
                 this.input = (NBTTagCompound) this.extraData.copy();
                 this.inputType = 5;
 
-                listStack = new ItemStack(Items.written_book, (doesInputSizeMatter() && getDataType() != 4) ? getInputSize() : 1);
+                listStack = new ItemStack(Items.written_book, doesInputSizeMatter() ? getInputSize() : 1);
                 if (getDataType() != 4)
                     listStack.setTagCompound((NBTTagCompound) getExtraData().copy());
 
@@ -315,38 +316,41 @@ public class CustomInput implements Comparable<CustomInput>
 
     public static boolean matches(CustomInput cinput, ItemStack stack)
     {
-        boolean matches;
+        boolean matches = stack != null;
 
-        switch (cinput.getInputType())
+        if (matches)
         {
-        case 1:
-            matches = matchesTheStack(cinput, stack);
-            break;
-        case 2:
-            matches = matchesTheOre(cinput, stack);
-            break;
-        case 3:
-            matches = matchesTheTool(cinput, stack);
-            break;
-        case 4:
-            matches = matchesTheClass(cinput, stack);
-            break;
-        case 5:
-            matches = true;
-            break;
-        case 6:
-            matches = matchesTheIIngredient(cinput, stack);
-            break;
-        default:
-            matches = false;
-            break;
+            switch (cinput.getInputType())
+            {
+            case 1:
+                matches = matchesTheStack(cinput, stack);
+                break;
+            case 2:
+                matches = matchesTheOre(cinput, stack);
+                break;
+            case 3:
+                matches = matchesTheTool(cinput, stack);
+                break;
+            case 4:
+                matches = matchesTheClass(cinput, stack);
+                break;
+            case 5:
+                matches = true;
+                break;
+            case 6:
+                matches = matchesTheIIngredient(cinput, stack);
+                break;
+            default:
+                matches = false;
+                break;
+            }
+
+            if (cinput.hasExtraData())
+                matches = matches && matchesData(cinput, stack);
+
+            if (cinput.doesInputSizeMatter())
+                matches = matches && stack.stackSize >= cinput.getInputSize();
         }
-
-        if (cinput.hasExtraData())
-            matches = matches && matchesData(cinput, stack);
-
-        if (cinput.doesInputSizeMatter())
-            matches = matches && stack.stackSize >= cinput.getInputSize();
 
         return matches;
     }
@@ -372,7 +376,7 @@ public class CustomInput implements Comparable<CustomInput>
         return false;
     }
 
-    private static boolean matchesTheTool(CustomInput cinput, ItemStack stack)
+    public static boolean matchesTheTool(CustomInput cinput, ItemStack stack)
     {
         return stack.getItem().getToolClasses(stack).contains((String) cinput.getInput());
     }
@@ -421,7 +425,7 @@ public class CustomInput implements Comparable<CustomInput>
                 int cinputFluidAmount = cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount);
                 String[] stackFluidData = getFluidData(stack.getTagCompound());
 
-                if (!cinputFluid.isEmpty() && !((String) stackFluidData[2]).isEmpty())
+                if (!cinputFluid.isEmpty() && !stackFluidData[2].isEmpty())
                 {
                     if ((stackFluidData[2]).equals(cinputFluid)
                             && Integer.parseInt(stackFluidData[4]) >= cinputFluidAmount)

@@ -7,6 +7,7 @@ import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.FMLCommonHandler;
 import minetweaker.IUndoableAction;
 import minetweaker.MineTweakerAPI;
 import minetweaker.MineTweakerImplementationAPI;
@@ -28,8 +29,11 @@ public class CampfireBackportCraftTweaking
 
     // Registering & Reload
 
-    public static void postInit()
+    public static void load()
     {
+        if (FMLCommonHandler.instance().findContainerFor("MineTweaker3").getVersion().startsWith("3.0"))
+            MineTweakerAPI.logError(StringParsers.translateCT("version_warning"));
+        
         MineTweakerAPI.registerClass(CampfireBackportCraftTweaking.class);
         MineTweakerImplementationAPI.onReloadEvent(new ReloadEventHandler());
         MineTweakerImplementationAPI.onPostReload(new PostReloadEventHandler());
@@ -391,27 +395,17 @@ public class CampfireBackportCraftTweaking
      */
     private static boolean verifyIDs(Integer biomeId, Integer dimensionId)
     {
-        if (biomeId != null || dimensionId != null)
-        {
-            if (biomeId != null && !BurnOutRule.checkBiomeID(biomeId))
-            {
-                MineTweakerAPI.logError(StringParsers.translateCT("error.b_id", biomeId));
-                return false;
-            }
-
-            if (dimensionId != null && !BurnOutRule.checkDimensionID(dimensionId))
-            {
-                MineTweakerAPI.logError(StringParsers.translateCT("error.d_id", dimensionId));
-                return false;
-            }
-
-            return true;
-        }
-        else
+        if (biomeId == null && dimensionId == null)
         {
             MineTweakerAPI.logError(StringParsers.translateCT("error.null_ids"));
             return false;
         }
+        else if (biomeId != null && (biomeId > 255 || 0 > biomeId))
+        {
+            MineTweakerAPI.logError(StringParsers.translateCT("error.biome_id", biomeId));
+            return false;
+        }
+        return true;
     }
 
 }

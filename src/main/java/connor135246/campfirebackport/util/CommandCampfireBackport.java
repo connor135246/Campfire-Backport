@@ -17,6 +17,8 @@ import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -25,17 +27,19 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 
 /**
- * Reloads the config from file, or prints the NBT of a held item / NBT of a tile entity at x y z.
+ * Reloads the config from file, prints the NBT of a held item / NBT of a tile entity at x y z, prints the biome and dimension IDs at x z, or dumps config info.
  */
 public class CommandCampfireBackport implements ICommand
 {
 
-    private static final String NBT = "nbt", RELOAD = "reload", DUMPINFO = "dumpinfo", HELP = "help";
+    private static final String NBT = "nbt", LOCATIONINFO = "locationinfo", RELOAD = "reload", DUMPINFO = "dumpinfo", HELP = "help";
 
     @Override
     public int compareTo(Object o)
@@ -70,11 +74,16 @@ public class CommandCampfireBackport implements ICommand
             {
                 if (arguments.length == 1 || arguments.length == 2)
                 {
-                    ItemStack stack = (arguments.length == 1 ? CommandBase.getCommandSenderAsPlayer(sender) : CommandBase.getPlayer(sender, arguments[1]))
-                            .getCurrentEquippedItem();
+                    EntityPlayerMP player = arguments.length == 1 ? CommandBase.getCommandSenderAsPlayer(sender) : CommandBase.getPlayer(sender, arguments[1]);
+                    ItemStack stack = player.getCurrentEquippedItem();
 
                     if (stack != null)
-                        sender.addChatMessage(new ChatComponentText("NBT: " + stack.getTagCompound()));
+                    {
+                        sender.addChatMessage(new ChatComponentTranslation(Reference.MODID + ".command.nbt.item",
+                                player.getCommandSenderName(), stack.getDisplayName()).setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GREEN)));
+
+                        sender.addChatMessage(new ChatComponentText(" " + stack.getTagCompound()));
+                    }
                     else
                         throw new CommandException(Reference.MODID + ".command.nbt.no_held_item");
                 }
@@ -93,7 +102,11 @@ public class CommandCampfireBackport implements ICommand
                         {
                             NBTTagCompound nbt = new NBTTagCompound();
                             tile.writeToNBT(nbt);
-                            sender.addChatMessage(new ChatComponentText("NBT: " + nbt));
+
+                            sender.addChatMessage(new ChatComponentTranslation(Reference.MODID + ".command.nbt.tile")
+                                    .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GREEN)));
+
+                            sender.addChatMessage(new ChatComponentText(" " + nbt));
                         }
                         else
                             throw new CommandException(Reference.MODID + ".command.nbt.no_tile_entity");
@@ -103,6 +116,38 @@ public class CommandCampfireBackport implements ICommand
                 }
                 else
                     throw new WrongUsageException(Reference.MODID + ".command.help.2");
+            }
+            else if (arguments[0].equals(LOCATIONINFO))
+            {
+                World world;
+                int x, z;
+
+                if (arguments.length < 3)
+                {
+                    EntityPlayerMP player = arguments.length > 1 ? CommandBase.getPlayer(sender, arguments[1]) : CommandBase.getCommandSenderAsPlayer(sender);
+                    world = player.worldObj;
+                    x = MathHelper.floor_double(player.posX);
+                    z = MathHelper.floor_double(player.posZ);
+                }
+                else
+                {
+                    world = sender.getEntityWorld();
+                    x = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, arguments[1]));
+                    z = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, arguments[2]));
+                }
+
+                if (world.blockExists(x, 0, z))
+                {
+                    BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
+
+                    sender.addChatMessage(makeHoverAndClickTranslation(Reference.MODID + ".command.locationinfo.biome", "" + biome.biomeID,
+                            EnumChatFormatting.AQUA, biome.biomeName, biome.biomeID));
+
+                    sender.addChatMessage(makeHoverAndClickTranslation(Reference.MODID + ".command.locationinfo.dimension", "" + world.provider.dimensionId,
+                            EnumChatFormatting.BLUE, world.provider.getDimensionName(), world.provider.dimensionId));
+                }
+                else
+                    throw new CommandException(Reference.MODID + ".command.nbt.block_out_of_world");
             }
             else if (arguments[0].equals(RELOAD))
             {
@@ -132,7 +177,7 @@ public class CommandCampfireBackport implements ICommand
                     explanation.createNewFile();
 
                     PrintWriter explanationWriter = new PrintWriter(new FileWriter(explanation));
-                    for (int i = 0; i < 390; ++i)
+                    for (int i = 0; i <= 396; ++i)
                         explanationWriter.println(StatCollector.translateToLocal(Reference.MODID + ".config.explanation." + i));
                     explanationWriter.close();
                 }
@@ -146,7 +191,10 @@ public class CommandCampfireBackport implements ICommand
             }
             else if (arguments[0].equals(HELP))
             {
-                for (int i = 0; i < 6; ++i)
+                sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GOLD +
+                        "--- " + StatCollector.translateToLocal(getCommandUsage(sender)) + " ---"));
+
+                for (int i = 0; i < 8; ++i)
                     sender.addChatMessage(new ChatComponentTranslation(Reference.MODID + ".command.help." + i)
                             .setChatStyle(new ChatStyle().setColor(i % 2 == 1 ? EnumChatFormatting.GRAY : EnumChatFormatting.WHITE)));
             }
@@ -155,6 +203,14 @@ public class CommandCampfireBackport implements ICommand
         }
         else
             throw new WrongUsageException(getCommandUsage(sender));
+    }
+
+    private static final HoverEvent clickMe = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentTranslation(Reference.MODID + ".command.clickme"));
+
+    private IChatComponent makeHoverAndClickTranslation(String key, String toCopy, EnumChatFormatting colour, Object... args)
+    {
+        return new ChatComponentTranslation(key, args).setChatStyle(
+                new ChatStyle().setColor(colour).setChatHoverEvent(clickMe).setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, toCopy)));
     }
 
     @Override
@@ -172,8 +228,8 @@ public class CommandCampfireBackport implements ICommand
     public List addTabCompletionOptions(ICommandSender sender, String[] arguments)
     {
         if (arguments.length == 1)
-            return CommandBase.getListOfStringsMatchingLastWord(arguments, new String[] { NBT, RELOAD, DUMPINFO, HELP });
-        else if (arguments.length == 2 && arguments[0].equals(NBT))
+            return CommandBase.getListOfStringsMatchingLastWord(arguments, new String[] { NBT, LOCATIONINFO, RELOAD, DUMPINFO, HELP });
+        else if (arguments.length == 2 && (arguments[0].equals(NBT) || arguments[0].equals(LOCATIONINFO)))
             return CommandBase.getListOfStringsMatchingLastWord(arguments, MinecraftServer.getServer().getAllUsernames());
         else
             return null;
@@ -182,7 +238,7 @@ public class CommandCampfireBackport implements ICommand
     @Override
     public boolean isUsernameIndex(String[] arguments, int index)
     {
-        return arguments.length > 0 ? (index == 1 && arguments[0].equals(NBT)) : false;
+        return arguments.length > 0 ? (index == 1 && (arguments[0].equals(NBT) || arguments[0].equals(LOCATIONINFO))) : false;
     }
 
 }

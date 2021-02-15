@@ -20,6 +20,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemBlockWithMetadata;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.StatCollector;
@@ -30,8 +31,8 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
     @SideOnly(Side.CLIENT)
     protected IIcon overlay;
 
-    private String type;
-    private boolean lit;
+    protected String type;
+    protected boolean lit;
 
     public ItemBlockCampfire(Block block)
     {
@@ -72,7 +73,7 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
      *            - if we're updating from the player's inventory, this is the player. if we're updating from an item on the ground, this is that item entity.
      * @return true if the item burned out, false if it hasn't burned out yet
      */
-    private boolean burnOutAsAnItem(ItemStack stack, World world, Entity entity)
+    protected boolean burnOutAsAnItem(ItemStack stack, World world, Entity entity)
     {
         if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this))
         {
@@ -108,13 +109,36 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
                 {
                     int particles = 0;
 
+                    boolean copyTags = false;
+                    boolean hasItems = false;
+
+                    NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
+                    NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
+                    NBTTagList droptileitemstag = droptiletag.getTagList(TileEntityCampfire.KEY_Items, 10);
+
+                    droptiletag.removeTag(TileEntityCampfire.KEY_Life);
+                    droptiletag.removeTag(TileEntityCampfire.KEY_StartingLife);
+                    droptiletag.removeTag(TileEntityCampfire.KEY_PreviousTimestamp);
+
+                    if (droptileitemstag.tagCount() != 0)
+                    {
+                        droptiletag.removeTag(TileEntityCampfire.KEY_Items);
+                        hasItems = true;
+                    }
+
+                    if (droptiletag.hasNoTags())
+                        droptag.removeTag(TileEntityCampfire.KEY_BlockEntityTag);
+
+                    if (!droptag.hasNoTags())
+                        copyTags = true;
+
                     for (int i = 0; i < stack.stackSize; ++i)
                     {
                         ItemStack dropstack;
 
-                        if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeToInt()])
+                        if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
                         {
-                            dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeToInt()]);
+                            dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]);
 
                             particles = 65;
                         }
@@ -122,24 +146,21 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
                         {
                             dropstack = new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(false, getType()));
 
-                            NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
-                            NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
-
-                            droptiletag.removeTag(TileEntityCampfire.KEY_Life);
-                            droptiletag.removeTag(TileEntityCampfire.KEY_StartingLife);
-                            droptiletag.removeTag(TileEntityCampfire.KEY_PreviousTimestamp);
-
-                            if (droptiletag.hasNoTags())
-                                droptag.removeTag(TileEntityCampfire.KEY_BlockEntityTag);
-
-                            if (!droptag.hasNoTags())
-                                dropstack.setTagCompound(droptag);
+                            if (copyTags)
+                                dropstack.setTagCompound((NBTTagCompound) droptag.copy());
 
                             if (particles == 0)
                                 particles = 20;
                         }
 
                         entity.entityDropItem(dropstack, 0.1F);
+
+                        // lit campfires drop their items when they're extinguished as a block. so they should do the same when they're extinguished as an item!
+                        if (hasItems)
+                        {
+                            for (int j = 0; j < droptileitemstag.tagCount(); ++j)
+                                entity.entityDropItem(ItemStack.loadItemStackFromNBT(droptileitemstag.getCompoundTagAt(j)), 0.1F);
+                        }
                     }
 
                     TileEntityCampfire.playFizzAndAddSmokeServerSide(world, entity.posX, entity.posY, entity.posZ, particles, 0.25);
@@ -204,9 +225,9 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
         return this.type;
     }
 
-    public int getTypeToInt()
+    public int getTypeIndex()
     {
-        return EnumCampfireType.toInt(getType());
+        return EnumCampfireType.index(getType());
     }
 
 }

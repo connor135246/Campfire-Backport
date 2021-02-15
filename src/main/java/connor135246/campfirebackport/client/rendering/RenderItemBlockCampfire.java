@@ -42,10 +42,9 @@ public class RenderItemBlockCampfire implements IItemRenderer
         if (tilenbt.hasKey(TileEntityCampfire.KEY_Life) && tilenbt.hasKey(TileEntityCampfire.KEY_StartingLife)
                 && tilenbt.hasKey(TileEntityCampfire.KEY_PreviousTimestamp))
         {
-            float life = (float) tilenbt.getInteger(TileEntityCampfire.KEY_Life);
-            float timePassed = (float) (Minecraft.getMinecraft().thePlayer.worldObj.getTotalWorldTime()
-                    - tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp));
-            float starting = (float) tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
+            float life = tilenbt.getInteger(TileEntityCampfire.KEY_Life);
+            float timePassed = Minecraft.getMinecraft().thePlayer.worldObj.getTotalWorldTime() - tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp);
+            float starting = tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
 
             size = MathHelper.clamp_float((life - timePassed) / starting, 0.01F, 1.0F);
         }

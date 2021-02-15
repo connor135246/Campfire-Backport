@@ -10,7 +10,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
-import connor135246.campfirebackport.common.compat.crafttweaker.ICraftTweakerIngredient;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -33,15 +33,17 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     public static final FontRenderer fonty = Minecraft.getMinecraft().fontRenderer;
     public static final TextureManager rendy = Minecraft.getMinecraft().renderEngine;
 
-    public static final String neiBackground = Reference.MODID + ":" + "textures/gui/neiElements.png";
+    public static final String basicBackground = "minecraft:textures/gui/container/furnace.png",
+            neiBackground = Reference.MODID + ":" + "textures/gui/neiElements.png";
 
-    public static final ItemStack hayStack = new ItemStack(Blocks.hay_block), stoneStack = new ItemStack(Blocks.stone),
+    public static final ItemStack hayStack = new ItemStack(Blocks.hay_block),
+            stoneStack = new ItemStack(Blocks.stone),
             grassStack = new ItemStack(Blocks.grass);
 
     public abstract class CachedGenericRecipe extends CachedRecipe
     {
-        /** {@link GenericRecipe#types} */
-        public String[] types;
+        /** {@link GenericRecipe#types} as list */
+        public List<String> types;
         /** {@link GenericRecipe#inputs} */
         public List<PositionedStack> inputs;
         /** {@link GenericRecipe#outputs} */
@@ -67,7 +69,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         {
             if (grecipe != null)
             {
-                types = grecipe.getTypes().asArray();
+                types = grecipe.getTypes().asList();
 
                 numInputs = grecipe.getInputs().length;
 
@@ -126,10 +128,10 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
         public String getType()
         {
-            if (types.length == 0)
+            if (types.size() == 0)
                 return EnumCampfireType.regular;
             else
-                return types[(cycleticks % (20 * types.length)) / 20];
+                return types.get((cycleticks % (20 * types.size())) / 20);
         }
 
     }
@@ -143,7 +145,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     @Override
     public String getGuiTexture()
     {
-        return "minecraft:textures/gui/container/furnace.png";
+        return basicBackground;
     }
 
     @Override
@@ -170,7 +172,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     {
         CachedGenericRecipe cachedGrecipe = (CachedGenericRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedGrecipe != null && cachedGrecipe.types.length != 0)
+        if (cachedGrecipe != null && cachedGrecipe.types.size() != 0)
         {
             Point mouse = GuiDraw.getMousePosition();
             Point offset = gui.getRecipePosition(recipe);
@@ -188,7 +190,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
      * 
      * @param relMouse
      *            - the player's mouse position
-     * @return true to continue on to {@link #handleInputTooltipFromMousePosition(Point, CachedGenericRecipe, ItemStack, List)}, false to skip checking for recipe input tooltips
+     * @return true to continue on to {@link #handleInputTooltipFromMousePosition}, false to skip checking for recipe input tooltips
      */
     public boolean handleMiscTooltipFromMousePosition(Point relMouse, CachedGenericRecipe cachedGrecipe, ItemStack stack, List<String> tooltip)
     {

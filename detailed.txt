@@ -20,11 +20,13 @@ Table of Contents
 ---
 	
 # Command
-The command "/campfirebackport" has four subcommands:
+The command "/campfirebackport" has five subcommands:
 -/campfirebackport dumpinfo
 Dumps this text file to the config folder.
 -/campfirebackport nbt [player] OR /campfirebackport nbt <x> <y> <z>
 Prints out the NBT of the player's held item OR the NBT of the tile entity at the location.
+-/campfirebackport locationinfo [player] OR /campfirebackport locationinfo <x> <z>
+Prints out the IDs of the biome and the dimension at the location.
 -/campfirebackport reload
 Reloads the config from file. Sends the new config to all players on the server. Useful if you want to change a config setting on a server without having to restart it.
 -/campfirebackport help
@@ -34,6 +36,7 @@ Displays this list of commands.
 
 # Campfire Backport CraftTweaking
 Campfire cooking recipes, campfire extinguishers/ignitors, and burn out biome/dimension timers can be made with CraftTweaker.
+Note that you'll need at least CraftTweaker v3.1.0. Errors will occur with earlier versions.
 Tips:
 -Pressing the "uses" hotkey when hovering over a campfire in NEI will bring up all Recipes and Extinguishers / Ignitors.
 -When using a damageable item as an input, don't forget to set its damage as a wildcard. For example, <minecraft:iron_sword> only applies to undamaged iron swords, but <minecraft:iron_sword:*> applies to iron swords with any amount of damage.
@@ -136,17 +139,19 @@ Tips:
 -Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
 -If no timers apply, campfires will use the value from Burn Out Timers. 
 -You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
--If you don't know your biome IDs, there are mods such as Tell Me that will output a list for you. Dimension IDs can be found in your saves. Some mods allow you to change biome or dimension IDs in their config.
+-If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
+-If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
+Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
 
 Some example timers:
 -Soul campfires never burn out in the nether
-	mods.campfirebackport.addBurnOutRule("soul", null, -1, -1);
+	mods.campfirebackport.addBurnOutTimer("soul", null, -1, -1);
 -Regular campfires burn out after around a minute in swamp biomes
-	mods.campfirebackport.addBurnOutRule("regular", 6, null, 1200);
+	mods.campfirebackport.addBurnOutTimer("regular", 6, null, 1200);
 -All campfires burn out immediately in ocean biomes that are in the nether
-	mods.campfirebackport.addBurnOutRule("both", 0, -1, 0);
+	mods.campfirebackport.addBurnOutTimer("both", 0, -1, 0);
 -Regular campfires burn out after around an hour in mushroom island biomes that are in the end
-	mods.campfirebackport.addBurnOutRule("regular", 14, 1, 72000);
+	mods.campfirebackport.addBurnOutTimer("regular", 14, 1, 72000);
 
 ---
 
@@ -157,7 +162,7 @@ Tips:
 -Check the console for error messages if your input didn't parse! 
 -The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
 -Recipes and Extinguishers/Ignitors are sorted based on their input. 
-Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
+Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by tool class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
 Within each of these categories, inputs with NBT data have higher priority, and inputs that use more than one item have the most priority.
 When you try to use an item on a campfire, it will use whatever recipe matches first. (Also, Recipes are checked before Extinguishers/Ignitors.) 
 This allows you to have, for example, an Ore Dictionary recipe that applies to every logWood, but allows you to override it for specific logWood if you'd like.
@@ -224,7 +229,7 @@ Since right clicking a campfire checks for cooking recipes first, you might want
 Additionally, you can add "+dispensable" to make this extinguisher/ignitor work in a dispenser as well. More on this in a second.
 -The second section is # [Custom Input] (see below), but there are some differences.
 If you added "+dispensable" to the first section, # [Custom Input] shouldn't be an NBT-only input.
-If you do add "+dispensable" to an NBT-only input, it'll be treated as not having "+dispensable" and you'll get a warning in console.
+(If you do add "+dispensable" to an NBT-only input, it'll be treated as not having "+dispensable" and you'll get a warning in console.)
 USE CAUTION when assigning "+dispensable", if the item you specify already has a dispenser behaviour, that behaviour will be overwritten.
 For example, if you add "+dispensable" to a fire charge, dispensers will no longer fire them as projectiles.
 This is just because of the way dispenser behaviours work in minecraft.
@@ -264,9 +269,9 @@ Some example extinguishers/ignitors:
 -There are 3 sections to this one. Separate each section with a /.
 -The first section is the campfire types this timer applies to.
 Must be "regular", "soul", or "both".
--The second section is the biome and/or dimension id.
-Type "biome:id" or "dimension:id". For biomes, the id can't be negative.
-You can give both a biome and dimension id at the same time, by putting an & between.
+-The second section is the biome and/or dimension ID.
+Type "biome:id" or "dimension:id". 
+You can give both a biome and dimension ID at the same time, by putting an & between.
 For example, "biome:4&dimension:-1".
 -The third section is the number of ticks until the campfire will burn out.
 Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
@@ -274,7 +279,9 @@ Tips:
 -Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
 -If no timers apply, campfires will use the value from Burn Out Timers. 
 -You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
--If you don't know your biome IDs, there are mods such as Tell Me that will output a list for you. Dimension IDs can be found in your saves. Some mods allow you to change biome or dimension IDs in their config.
+-If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
+-If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
+Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
 
 Some example timers:
 -Soul campfires never burn out in the nether
@@ -294,7 +301,7 @@ These use the same format as # [Custom Output] (see below).
 	
 # General Formats
 # [Custom Input]
--It can be based on a namespaced Item, an Ore Dictionary entry, a tool class, a Class, or NBT.
+-It can be based on a namespaced Item, an Ore Dictionary entry, a tool class, a Java Class, or NBT.
 -Namespaced Items are in the format "modid:name:metadata".
 The ":metadata" part is optional. If it isn't there, any metadata of the item will work.
 For example, minecraft:sand refers to both Sand and Red Sand, but minecraft:sand:0 refers to only Sand.
@@ -303,7 +310,7 @@ For example, ore:logWood refers to anything registered in the logWood ore.
 -Tool classes are in the format "tool:toolClass".
 There are 3 vanilla tool classes: pickaxe, shovel, and axe. Simply type tool:pickaxe or tool:shovel or tool:axe.
 Modded tool classes work as well.
--Classes are more technical. They refer to the actual Java Class used by an item or block.
+-Java Classes are more technical. They refer to the actual Java Class used by an item or block.
 You may have to dip into the vanilla code or the github of other mods to get it. It has to be a full package and class name, prepended by "class:".
 For example, class:net.minecraft.item.ItemSword refers to any item that uses the ItemSword Class or extends it, which includes all vanilla swords.
 Another example, class:net.minecraft.block.BlockStairs, refers to any block that uses the BlockStairs Class or extends it, which includes all vanilla stairs.
@@ -318,7 +325,7 @@ So some specific NBT things have been given a special format you can type it in 
 For enchantments, that format is "[ench:id,minlevel]".
 For example, minecraft:golden_shovel[ench:34,1] refers to any Golden Shovel that has an Unbreaking enchantment of at least level 1, and may or may not have other NBT.
 Another special NBT format is the Fluid Container format, for items that hold fluids: "[Fluid:"fluidname",MinAmount:minamount]".
-For example, examplemod:fluidcontainer[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in the fluidcontainer from examplemod.
+For example, examplemod:fluidcontainer[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in the fluidcontainer item from the mod examplemod.
 The last NBT format is even more special than the others. This one can only exist on its own, without an Item/Ore/tool/Class.
 It's the Tinker's Construct Modifiers format. It allows you to check whether a Tinker's tool has specific modifiers on it.
 This one's rather complicated, so it gets its own section. See # [Tinker's Construct Modifiers Format].

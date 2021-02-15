@@ -14,7 +14,7 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
-import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
@@ -46,9 +46,9 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
     public static final Rectangle dispenserRect = new Rectangle(93, 40, 20, 20);
 
     /** recipe transfer rects */
-    public static final RecipeTransferRect transfer1 = new RecipeTransferRect(new Rectangle(13, 10, 40, 36), outputID);
-    public static final RecipeTransferRect transfer2 = new RecipeTransferRect(new Rectangle(111, 10, 40, 36), outputID);
-    public static final RecipeTransferRect transfer3 = new RecipeTransferRect(new Rectangle(70, 0, 24, 15), outputID);
+    public static final RecipeTransferRect transfer1 = new RecipeTransferRect(new Rectangle(13, 10, 40, 36), outputID),
+            transfer2 = new RecipeTransferRect(new Rectangle(111, 10, 40, 36), outputID),
+            transfer3 = new RecipeTransferRect(new Rectangle(70, 0, 24, 15), outputID);
 
     public class CachedCampfireStateChanger extends CachedGenericRecipe
     {
@@ -88,7 +88,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             super(null);
 
-            this.types = type.asArray();
+            this.types = type.asList();
 
             this.specialID = specialID;
             this.extinguisher = extinguisher;
@@ -101,7 +101,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             inputs.add(new PositionedStack(inputStacks, 74, 17, false));
             inputTypes = new byte[] { -1 };
             dataTypes = new byte[] { -1 };
-            inputRects = new Rectangle[] { new Rectangle(inputs.get(0).relx - 1, inputs.get(0).rely - 1, 20, 20) };
+            inputRects = new Rectangle[] { new Rectangle(73, 16, 20, 20) };
         }
 
         @Override
@@ -166,7 +166,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
         {
             CachedCampfireStateChanger cachedCstate = new CachedCampfireStateChanger(cstate);
-            if (cachedCstate != null && cachedCstate.types.length != 0 && cachedCstate.inputTypes[0] != 5 && cachedCstate.inputs.get(0).contains(ingredient))
+            if (cachedCstate != null && cachedCstate.types.size() != 0 && cachedCstate.inputTypes[0] != 5 && cachedCstate.inputs.get(0).contains(ingredient))
                 arecipes.add(cachedCstate);
         }
     }
@@ -178,11 +178,11 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             arecipes.add(new CachedCampfireStateChanger(cstate));
 
         // creating non-recipe state changers
-        final String[] typeArray = EnumCampfireType.BOTH.asArray();
+        final List<String> typeArray = EnumCampfireType.BOTH.asList();
         final boolean[] extinguisherArray = new boolean[] { true, false };
 
         // wand
-        if (CommonProxy.isThaumcraftLoaded)
+        if (CampfireBackportCompat.isThaumcraftLoaded)
         {
             Item wand = GameData.getItemRegistry().getObject("Thaumcraft:WandCasting");
             if (wand != null)
@@ -190,21 +190,25 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                 List<ItemStack> wandList = new ArrayList<ItemStack>();
                 wand.getSubItems(wand, CreativeTabs.tabAllSearch, wandList);
 
-                for (String type : typeArray)
-                    for (boolean extinguisher : extinguisherArray)
-                    {
-                        double cost = CampfireBackportConfig.visCosts[EnumCampfireType.toInt(type) + (extinguisher ? 0 : 2)];
-
-                        if (cost != 0.0)
+                if (!wandList.isEmpty())
+                {
+                    for (String type : typeArray)
+                        for (boolean extinguisher : extinguisherArray)
                         {
-                            LinkedList<String> tooltip = new LinkedList<String>();
-                            tooltip.add("");
-                            tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("vis_cost")
-                                    + (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua" : EnumChatFormatting.RED + " " + cost + " Ignis"));
+                            double cost = CampfireBackportConfig.visCosts[EnumCampfireType.index(type) + (extinguisher ? 0 : 2)];
 
-                            arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.FROM_NAME.get(type), extinguisher, tooltip, wandList));
+                            if (cost != 0.0)
+                            {
+                                LinkedList<String> tooltip = new LinkedList<String>();
+                                tooltip.add("");
+                                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("vis_cost")
+                                        + (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua"
+                                                : EnumChatFormatting.RED + " " + cost + " Ignis"));
+
+                                arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.FROM_NAME.get(type), extinguisher, tooltip, wandList));
+                            }
                         }
-                    }
+                }
             }
         }
 
@@ -213,21 +217,26 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         for (String type : typeArray)
         {
             BurnOutRule brule = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, type);
-            boolean bruleOut = brule.getTimer() != -1;
+            boolean bruledOut = brule.getTimer() != -1;
             boolean rainedOut = CampfireBackportConfig.putOutByRain.matches(type);
 
-            if (bruleOut || rainedOut)
+            if (bruledOut || rainedOut)
             {
                 LinkedList<String> tooltip = new LinkedList<String>();
 
-                if (bruleOut)
+                if (bruledOut)
                 {
                     if (brule.isDefaultRule())
                         tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out", brule.getTimer()));
                     else
                     {
                         tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in", brule.getTimer()));
-                        tooltip.addAll(brule.getNEITooltip());
+
+                        if (brule.hasBiomeId())
+                            tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + brule.getBiomeName());
+
+                        if (brule.hasDimensionId())
+                            tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " " + brule.getDimensionName());
                     }
                 }
 
@@ -271,7 +280,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         CachedCampfireStateChanger cachedCstate = (CachedCampfireStateChanger) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCstate != null && cachedCstate.types.length != 0)
+        if (cachedCstate != null && cachedCstate.types.size() != 0)
         {
             GL11.glTranslatef(12, 32, 100);
             GL11.glRotatef(-30, 1, 0, 0);
@@ -362,12 +371,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
             if (!drawSpecialBackground(cachedCstate))
             {
-                GuiDraw.drawTexturedModalRect(56, 0, cachedCstate.leftClick ? 0 : 60, cachedCstate.output != null ? 59 : 2, 52, 41);
-
-                GL11.glTranslatef(0, 0, 4);
+                GuiDraw.drawTexturedModalRect(56, 0, cachedCstate.leftClick ? 0 : 60, cachedCstate.hasOutputs ? 59 : 2, 52, 41);
 
                 if (cachedCstate.dispensable)
+                {
+                    GL11.glTranslatef(0, 0, 4);
                     drawSlot(dispenser.relx, dispenser.rely);
+                }
             }
         }
 

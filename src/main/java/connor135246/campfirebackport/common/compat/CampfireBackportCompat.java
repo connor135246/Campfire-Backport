@@ -1,0 +1,239 @@
+package connor135246.campfirebackport.common.compat;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.util.Reference;
+import cpw.mods.fml.common.Loader;
+import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
+
+public class CampfireBackportCompat
+{
+
+    public static boolean isThaumcraftLoaded = false,
+            isMineTweaker3Loaded = false,
+            isGalacticraftLoaded = false,
+            isAdvancedRocketryLoaded = false;
+
+    /**
+     * prepares specific mod compatibility
+     */
+    public static void postInit()
+    {
+        isGalacticraftLoaded = ifLoadedInvoke("GalacticraftCore", "galacticraft.ActiveGalacticraftHandler");
+
+        isAdvancedRocketryLoaded = ifLoadedInvoke("advancedRocketry", "advancedrocketry.ActiveAdvancedRocketryHandler");
+
+        isThaumcraftLoaded = ifLoadedInvoke("Thaumcraft", "thaumcraft.CampfireBackportWandTriggerManager");
+
+        isMineTweaker3Loaded = ifLoadedInvoke("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
+
+        // isOptiFineloaded = FMLCommonHandler.instance().getSide() == Side.CLIENT && FMLClientHandler.instance().hasOptifine();
+    }
+
+    private static boolean ifLoadedInvoke(String modid, String classnamepart)
+    {
+        if (Loader.isModLoaded(modid))
+        {
+            try
+            {
+                Class.forName(Reference.MOD_PACKAGE + ".common.compat." + classnamepart).getDeclaredMethod("load").invoke(null);
+                return true;
+            }
+            catch (Exception excep)
+            {
+                CommonProxy.modlog.error(StatCollector.translateToLocalFormatted(Reference.MODID + ".compat.error", modid));
+            }
+        }
+        return false;
+    }
+
+    // Handlers
+
+    public static ISpaceHandler galacticraftHandler = new DummySpaceHandler();
+    public static ISpaceHandler advancedRocketryHandler = new DummySpaceHandler();
+
+    /**
+     * A question for space handlers.
+     */
+    public static boolean hasOxygen(World world, Block block, int x, int y, int z)
+    {
+        boolean atmosphericCombustion;
+
+        if (galacticraftHandler.canGetDimensionProperties(world))
+            atmosphericCombustion = galacticraftHandler.atmosphericCombustion(world);
+        else if (advancedRocketryHandler.canGetDimensionProperties(world))
+            atmosphericCombustion = advancedRocketryHandler.atmosphericCombustion(world);
+        else
+            atmosphericCombustion = true;
+
+        return atmosphericCombustion || galacticraftHandler.localizedCombustion(world, block, x, y, z)
+                || advancedRocketryHandler.localizedCombustion(world, block, x, y, z);
+    }
+
+    /**
+     * A question for space handlers.
+     */
+    public static float getGravityMultiplier(World world)
+    {
+        return galacticraftHandler.canGetDimensionProperties(world) ? galacticraftHandler.getGravityMultiplier(world)
+                : advancedRocketryHandler.canGetDimensionProperties(world) ? advancedRocketryHandler.getGravityMultiplier(world) : 1.0F;
+    }
+
+    /**
+     * A question for space handlers.
+     */
+    public static float getAtmosphereDensity(World world, int x, int y, int z)
+    {
+        return advancedRocketryHandler.canGetDimensionProperties(world) ? advancedRocketryHandler.getAtmosphereDensity(world, x, y, z)
+                : galacticraftHandler.canGetDimensionProperties(world) ? galacticraftHandler.getAtmosphereDensity(world, x, y, z) : 1.0F;
+    }
+
+    // Compat Interfaces and their Dummy Implementations
+    // aka All the things that don't do anything should go in one place!
+
+    // MineTweaker3 / CraftTweaker
+
+    /**
+     * An interface for holding a CraftTweaker IIngredient.
+     */
+    public static interface ICraftTweakerIngredient
+    {
+
+        /**
+         * @return does the stack match this IIngredient?
+         */
+        public boolean matches(ItemStack stack, boolean inputSizeMatters);
+
+        /**
+         * @return list of example items for this IIngredient to display in NEI
+         */
+        public List<ItemStack> getItems();
+
+        /**
+         * @return extra lines of info to display when hovering over the IIngredient in NEI
+         */
+        public LinkedList<String> getNEITooltip();
+
+        /**
+         * @return true if the IIngredient is just a simple item. false if the IIngredient is more complicated, such as an oredict or an item with NBT
+         */
+        public boolean isSimple();
+
+    }
+
+    /**
+     * For when CraftTweaker isn't loaded.
+     */
+    public static class DummyCraftTweakerIngredient implements ICraftTweakerIngredient
+    {
+
+        public DummyCraftTweakerIngredient(Object unused)
+        {
+            ;
+        }
+
+        @Override
+        public boolean matches(ItemStack stack, boolean inputSizeMatters)
+        {
+            return false;
+        }
+
+        @Override
+        public List<ItemStack> getItems()
+        {
+            return new ArrayList<ItemStack>(0);
+        }
+
+        @Override
+        public LinkedList<String> getNEITooltip()
+        {
+            return new LinkedList<String>();
+        }
+
+        @Override
+        public boolean isSimple()
+        {
+            return true;
+        }
+
+    }
+
+    // Galacticraft / Advanced Rocketry
+
+    /**
+     * An interface for interacting with Galacticraft or Advanced Rocketry.
+     */
+    public static interface ISpaceHandler
+    {
+
+        /**
+         * @return does this mod using this handler have information about this dimension's properties?
+         */
+        public boolean canGetDimensionProperties(World world);
+
+        /**
+         * @return do torches, fire, etc work in this dimension in general?
+         */
+        public boolean atmosphericCombustion(World world);
+
+        /**
+         * @return do torches, fire, etc work at this location due to localized oxygen (such as a sealed and oxygenated chamber or an oxygen bubble)?
+         */
+        public boolean localizedCombustion(World world, Block block, int x, int y, int z);
+
+        /**
+         * @return multiplier for gravity in this dimension
+         */
+        public float getGravityMultiplier(World world);
+
+        /**
+         * @return something like atmosphere density in this dimension at this location
+         */
+        public float getAtmosphereDensity(World world, int x, int y, int z);
+
+    }
+
+    /**
+     * For when Galacticraft or Advanced Rocketry isn't loaded.
+     */
+    public static class DummySpaceHandler implements ISpaceHandler
+    {
+        @Override
+        public boolean canGetDimensionProperties(World world)
+        {
+            return false;
+        }
+
+        @Override
+        public boolean atmosphericCombustion(World world)
+        {
+            return false;
+        }
+
+        @Override
+        public boolean localizedCombustion(World world, Block block, int x, int y, int z)
+        {
+            return false;
+        }
+
+        @Override
+        public float getGravityMultiplier(World world)
+        {
+            return 1.0F;
+        }
+
+        @Override
+        public float getAtmosphereDensity(World world, int x, int y, int z)
+        {
+            return 1.0F;
+        }
+
+    }
+
+}

@@ -18,12 +18,11 @@ public class CampfireBackportWandTriggerManager implements IWandTriggerManager
 {
     public static final IWandTriggerManager INSTANCE = new CampfireBackportWandTriggerManager();
 
-    public static void postInit()
+    public static void load()
     {
-        WandTriggerRegistry.registerWandBlockTrigger(INSTANCE, 0, CampfireBackportBlocks.campfire, -1, Reference.MODID);
-        WandTriggerRegistry.registerWandBlockTrigger(INSTANCE, 0, CampfireBackportBlocks.campfire_base, -1, Reference.MODID);
-        WandTriggerRegistry.registerWandBlockTrigger(INSTANCE, 0, CampfireBackportBlocks.soul_campfire, -1, Reference.MODID);
-        WandTriggerRegistry.registerWandBlockTrigger(INSTANCE, 0, CampfireBackportBlocks.soul_campfire_base, -1, Reference.MODID);
+        CampfireBackportBlocks.LIST_OF_CAMPFIRES.forEach(cblock -> {
+            WandTriggerRegistry.registerWandBlockTrigger(INSTANCE, 0, cblock, -1, Reference.MODID);
+        });
     }
 
     @Override
@@ -36,22 +35,23 @@ public class CampfireBackportWandTriggerManager implements IWandTriggerManager
             {
                 BlockCampfire cblock = (BlockCampfire) block;
 
-                Aspect visType;
+                AspectList list;
                 double visCost;
                 if (cblock.isLit())
                 {
-                    visType = Aspect.WATER;
-                    visCost = CampfireBackportConfig.visCosts[cblock.getTypeToInt()];
+                    visCost = CampfireBackportConfig.visCosts[cblock.getTypeIndex()];
+                    list = new AspectList().add(Aspect.WATER, (int) (visCost * 100));
                 }
                 else
                 {
-                    visType = Aspect.FIRE;
-                    visCost = CampfireBackportConfig.visCosts[cblock.getTypeToInt() + 2];
+                    visCost = CampfireBackportConfig.visCosts[cblock.getTypeIndex() + 2];
+                    list = new AspectList().add(Aspect.FIRE, (int) (visCost * 100));
                 }
 
-                if (visCost > 0.0 && ThaumcraftApiHelper.consumeVisFromWand(wand, player, new AspectList().add(visType, (int) (visCost * 100)), true, false))
+                if (visCost > 0.0 && ThaumcraftApiHelper.consumeVisFromWand(wand, player, list, false, false)
+                        && BlockCampfire.updateCampfireBlockState(!cblock.isLit(), player, world, x, y, z) == 1)
                 {
-                    cblock.toggleCampfireBlockState(world, x, y, z);
+                    ThaumcraftApiHelper.consumeVisFromWand(wand, player, list, true, false);
                     return true;
                 }
             }

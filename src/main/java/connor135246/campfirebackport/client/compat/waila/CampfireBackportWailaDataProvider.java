@@ -36,13 +36,37 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
     {
         if (accessor.getTileEntity() instanceof TileEntityCampfire)
         {
+            if (accessor.getPlayer().isSneaking())
+            {
+                if (((TileEntityCampfire) accessor.getTileEntity()).hasCustomInventoryName())
+                    tooltip.add(" \"" + ((TileEntityCampfire) accessor.getTileEntity()).getInventoryName() + "\"");
+
+                String direction;
+                switch (accessor.getMetadata())
+                {
+                default:
+                    direction = "north";
+                    break;
+                case 5:
+                    direction = "east";
+                    break;
+                case 3:
+                    direction = "south";
+                    break;
+                case 4:
+                    direction = "west";
+                    break;
+                }
+
+                tooltip.add("  " + StatCollector.translateToLocal(Reference.MODID + ".waila.facing") + " "
+                        + StatCollector.translateToLocal(Reference.MODID + ".waila." + direction));
+            }
+
             NBTTagCompound data = accessor.getNBTData();
             NBTTagList itemList = data.getTagList(TileEntityCampfire.KEY_Items, 10);
 
             if (itemList.tagCount() == 0)
-            {
-                tooltip.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".waila.empty"));
-            }
+                tooltip.add(EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".waila.empty"));
             else
             {
                 int[] cookTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
@@ -56,7 +80,8 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                     {
                         ItemStack invStack = ItemStack.loadItemStackFromNBT(itemCompound);
                         int percentCooked = Math.min(Math.round((((float) cookTimes[slot]) / ((float) cookTotalTimes[slot])) * 100F), 100);
-                        tooltip.add(EnumChatFormatting.GRAY + invStack.getDisplayName() + " (" + percentCooked + "%)");
+                        tooltip.add(invStack.getDisplayName() + " (" + (cookTimes[slot] > cookTotalTimes[slot] ? EnumChatFormatting.ITALIC : "")
+                                + percentCooked + "%" + EnumChatFormatting.RESET + ")");
                     }
                 }
             }
