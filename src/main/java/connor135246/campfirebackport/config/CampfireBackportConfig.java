@@ -617,6 +617,9 @@ public class CampfireBackportConfig
         soulRecipeList = ConfigReference.empty;
         recipeListInheritance = ConfigReference.SOUL_GETS_REG;
 
+        spawnpointable = EnumCampfireType.NEITHER;
+        burnOutOnRespawn = EnumCampfireType.NEITHER;
+
         automation = EnumCampfireType.BOTH;
 
         startUnlit = EnumCampfireType.NEITHER;

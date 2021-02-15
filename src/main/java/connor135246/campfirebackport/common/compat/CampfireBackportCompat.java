@@ -88,10 +88,10 @@ public class CampfireBackportCompat
     /**
      * A question for space handlers.
      */
-    public static float getAtmosphereDensity(World world, int x, int y, int z)
+    public static float getAtmosphereDensity(World world, int y)
     {
-        return advancedRocketryHandler.canGetDimensionProperties(world) ? advancedRocketryHandler.getAtmosphereDensity(world, x, y, z)
-                : galacticraftHandler.canGetDimensionProperties(world) ? galacticraftHandler.getAtmosphereDensity(world, x, y, z) : 1.0F;
+        return advancedRocketryHandler.canGetDimensionProperties(world) ? advancedRocketryHandler.getAtmosphereDensity(world, y)
+                : galacticraftHandler.canGetDimensionProperties(world) ? galacticraftHandler.getAtmosphereDensity(world, y) : 1.0F;
     }
 
     // Compat Interfaces and their Dummy Implementations
@@ -193,9 +193,9 @@ public class CampfireBackportCompat
         public float getGravityMultiplier(World world);
 
         /**
-         * @return something like atmosphere density in this dimension at this location
+         * @return something like atmosphere density in this dimension at this height
          */
-        public float getAtmosphereDensity(World world, int x, int y, int z);
+        public float getAtmosphereDensity(World world, int y);
 
     }
 
@@ -229,7 +229,7 @@ public class CampfireBackportCompat
         }
 
         @Override
-        public float getAtmosphereDensity(World world, int x, int y, int z)
+        public float getAtmosphereDensity(World world, int y)
         {
             return 1.0F;
         }

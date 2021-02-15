@@ -753,12 +753,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (isItemValidForCampfire(stack))
         {
-            int slot = Arrays.asList(getInventory()).indexOf(null);
-            if (slot != -1)
-            {
-                setInventorySlotContents(slot, stack);
-                return true;
-            }
+            for (int slot = 0; slot < getSizeInventory(); ++slot)
+                if (getStackInSlot(slot) == null)
+                {
+                    setInventorySlotContents(slot, stack);
+                    return true;
+                }
         }
         return false;
     }
@@ -855,11 +855,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         return 0 <= slot && slot < getSizeInventory();
     }
 
-    public ItemStack[] getInventory()
-    {
-        return inventory;
-    }
-
     /**
      * Drops all the campfire's items into the world.
      */
@@ -917,7 +912,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public int getCookingTimeInSlot(int slot)
     {
-        return (isSlotNumber(slot)) ? cookingTimes[slot] : 0;
+        return isSlotNumber(slot) ? cookingTimes[slot] : 0;
     }
 
     public void setCookingTimeInSlot(int slot, int time)

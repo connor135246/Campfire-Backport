@@ -1,7 +1,6 @@
 package connor135246.campfirebackport.common.recipes;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -28,8 +27,6 @@ public class BurnOutRule
     protected final int timer;
     /** true if this rule is one of the default rules from {@link CampfireBackportConfig#burnOutTimer}. */
     protected final boolean defaultRule;
-    /** lines of text to use for displaying extra info in NEI. */
-    protected LinkedList<String> neiTooltip = new LinkedList<String>();
 
     /** the list of rules! the order is important. */
     private static List<BurnOutRule> rules = new ArrayList<BurnOutRule>();
@@ -288,11 +285,6 @@ public class BurnOutRule
     public int getTimer()
     {
         return timer;
-    }
-
-    public LinkedList<String> getNEITooltip()
-    {
-        return neiTooltip;
     }
 
     public boolean isDefaultRule()

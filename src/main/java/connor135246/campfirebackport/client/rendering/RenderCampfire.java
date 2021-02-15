@@ -96,19 +96,19 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         {
             int[] iro = getRenderSlotMappingFromMeta(meta);
 
-            for (int invSlot = 0; invSlot < ctile.getSizeInventory(); ++invSlot)
+            for (int slot = 0; slot < ctile.getSizeInventory(); ++slot)
             {
-                ItemStack stack = ctile.getStackInSlot(invSlot);
+                ItemStack stack = ctile.getStackInSlot(slot);
 
                 if (stack != null)
                 {
-                    int renderSlot = iro[invSlot];
+                    int renderSlot = iro[slot];
 
-                    if (invRender[invSlot] == null || !invRender[invSlot].getEntityItem().toString().equals(stack.toString()))
-                        invRender[invSlot] = new EntityItem(ctile.getWorldObj(), x, y, z, stack);
+                    if (invRender[slot] == null || !invRender[slot].getEntityItem().toString().equals(stack.toString()))
+                        invRender[slot] = new EntityItem(ctile.getWorldObj(), x, y, z, stack);
 
                     GL11.glPushMatrix();
-                    invRender[invSlot].hoverStart = 0.0F;
+                    invRender[slot].hoverStart = 0.0F;
                     RenderItem.renderInFrame = true;
                     GL11.glDisable(GL11.GL_LIGHTING);
 
@@ -120,7 +120,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                     GL11.glRotatef(270, 0, 0, 1);
 
                     GL11.glScalef(0.625F, 0.625F, 0.625F);
-                    RenderManager.instance.renderEntityWithPosYaw(invRender[invSlot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
+                    RenderManager.instance.renderEntityWithPosYaw(invRender[slot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
 
                     GL11.glEnable(GL11.GL_LIGHTING);
                     RenderItem.renderInFrame = false;

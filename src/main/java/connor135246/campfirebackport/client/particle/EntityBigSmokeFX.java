@@ -41,6 +41,9 @@ public class EntityBigSmokeFX extends EntityFX
     protected float alphaFadePerTick = -0.015F;
     protected boolean hasOxygen = true;
 
+    /**
+     * Posts a {@link EntityBigSmokeFXConstructingEvent}.
+     */
     public EntityBigSmokeFX(World world, double x, double y, double z, boolean signalFire, float[] colours)
     {
         super(world, x, y, z);
@@ -51,9 +54,8 @@ public class EntityBigSmokeFX extends EntityFX
 
         this.particleScale = 6.0F * (rand.nextFloat() * 0.5F + 0.5F);
         this.setSize(0.25F, 0.25F);
-        this.particleGravity = 0.00003F * CampfireBackportCompat.getGravityMultiplier(world);
-        this.motionY = (0.075 + this.rand.nextFloat() / 500.0F) / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(world,
-                MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)), 0.35F, 16.0F);
+        this.particleGravity = 0.00003F;
+        this.motionY = 0.075 + this.rand.nextFloat() / 500.0F;
         this.noClip = false;
 
         if (signalFire)
@@ -80,18 +82,15 @@ public class EntityBigSmokeFX extends EntityFX
             return;
         }
 
-        if (constructing.doChange)
-        {
-            this.particleRed = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[0] : this.particleRed;
-            this.particleGreen = constructing.coloursToChangeTo[1] != -1 ? constructing.coloursToChangeTo[1] : this.particleGreen;
-            this.particleBlue = constructing.coloursToChangeTo[2] != -1 ? constructing.coloursToChangeTo[2] : this.particleBlue;
-            this.motionX *= constructing.motionMultipliers[0];
-            this.motionY *= constructing.motionMultipliers[1];
-            this.motionZ *= constructing.motionMultipliers[2];
-            this.alphaFading = constructing.alphaFading;
-            this.alphaFadePerTick = constructing.alphaFadePerTick;
-            this.particleGravity = constructing.particleGravity;
-        }
+        this.particleRed = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[0] : this.particleRed;
+        this.particleGreen = constructing.coloursToChangeTo[1] != -1 ? constructing.coloursToChangeTo[1] : this.particleGreen;
+        this.particleBlue = constructing.coloursToChangeTo[2] != -1 ? constructing.coloursToChangeTo[2] : this.particleBlue;
+        this.motionX *= constructing.motionMultipliers[0];
+        this.motionY *= constructing.motionMultipliers[1];
+        this.motionZ *= constructing.motionMultipliers[2];
+        this.alphaFading = constructing.alphaFading;
+        this.alphaFadePerTick = constructing.alphaFadePerTick;
+        this.particleGravity = constructing.particleGravity;
     }
 
     /**
@@ -174,13 +173,14 @@ public class EntityBigSmokeFX extends EntityFX
             {
                 this.motionX += this.rand.nextFloat() / 5000.0F * (this.rand.nextBoolean() ? 1 : -1);
                 this.motionZ += this.rand.nextFloat() / 5000.0F * (this.rand.nextBoolean() ? 1 : -1);
-                this.motionY -= this.particleGravity;
             }
             else
             {
                 this.motionX += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
                 this.motionZ += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
             }
+            
+            this.motionY -= this.particleGravity;
 
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
@@ -193,34 +193,48 @@ public class EntityBigSmokeFX extends EntityFX
     }
 
     /**
-     * Allows you to change the colours and motion of campfire smoke particles. {@link #campfirePosition} is the x, y, z position of the campfire tile entity calling this event.
-     * {@link #coloursToChangeTo} is the r, g, b values to change the smoke to. {@link #motionMultipliers} is a set of multipliers for the base x, y, z motion values.
-     * {@link #alphaFading} is whether the smoke's alpha should currently be changing (fading in or out). {@link #alphaFadePerTick} is the amount the smoke's alpha changes per tick
-     * if {@link #alphaFading} is true. Negative values make it fade out, positive values make it fade back in. {@link #particleGravity} is the amount the particle's y motion
-     * changes per tick. <br>
-     * Finally, make sure to set {@link #doChange} to true for your changes to actually be used! <br>
+     * Allows you to change various aspects of campfire smoke particles:<br>
+     * - {@link #coloursToChangeTo} is the r, g, b values to change the smoke to. <br>
+     * - {@link #motionMultipliers} is a set of multipliers for the base x, y, z motion values.<br>
+     * - {@link #particleGravity} is the amount the particle's y motion changes per tick. <br>
+     * - {@link #particleAlpha} is the smoke's intial alpha. <br>
+     * - {@link #alphaFading} is whether the smoke's alpha should currently be changing (fading in or out). <br>
+     * - {@link #alphaFadePerTick} is the amount the smoke's alpha changes per tick if {@link #alphaFading} is true. Negative values make it fade out, positive values make it fade
+     * back in. <br>
+     * - {@link #particleMaxAge} is the maximum number of ticks the particle will live for. <br>
      * <br>
-     * Also, {@link EntityBigSmokeFX} are only created on the client side, so you probably should mark your subscribe event with {@link Side#CLIENT}. I think. <br>
+     * You're also given {@link #campfirePosition}, which is the x, y, z position of the campfire tile entity where the smoke was created. <br>
      * <br>
-     * This event is posted on the {@link MinecraftForge#EVENT_BUS}.<br>
+     * Also, {@link EntityBigSmokeFX} are only created on the client side, so you should mark your subscribe event with {@link Side#CLIENT}. <br>
+     * <br>
+     * This event is posted from {@link EntityBigSmokeFX#EntityBigSmokeFX} on the {@link MinecraftForge#EVENT_BUS}.<br>
      * This event is {@link Cancelable}. If canceled, the entity will be removed.<br>
      */
     @Cancelable
-    public class EntityBigSmokeFXConstructingEvent extends EntityConstructing
+    public static class EntityBigSmokeFXConstructingEvent extends EntityConstructing
     {
         public final int[] campfirePosition;
 
-        public boolean doChange = false;
+        public float particleGravity;
+        public float particleAlpha;
+        public boolean alphaFading;
+        public float alphaFadePerTick;
+        public int particleMaxAge;
+
         public float[] coloursToChangeTo = new float[] { -1, -1, -1 };
         public double[] motionMultipliers = new double[] { 1, 1, 1 };
-        public boolean alphaFading = false;
-        public float alphaFadePerTick = -0.015F;
-        public float particleGravity = 0.00003F;
 
         public EntityBigSmokeFXConstructingEvent(EntityBigSmokeFX entity, int x, int y, int z)
         {
             super(entity);
+
             campfirePosition = new int[] { x, y, z };
+
+            particleGravity = entity.particleGravity;
+            particleAlpha = entity.particleAlpha;
+            alphaFading = entity.alphaFading;
+            alphaFadePerTick = entity.alphaFadePerTick;
+            particleMaxAge = entity.particleMaxAge;
         }
     }
 

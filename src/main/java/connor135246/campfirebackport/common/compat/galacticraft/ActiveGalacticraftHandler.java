@@ -49,7 +49,7 @@ public class ActiveGalacticraftHandler implements ISpaceHandler
     }
 
     @Override
-    public float getAtmosphereDensity(World world, int x, int y, int z)
+    public float getAtmosphereDensity(World world, int y)
     {
         if (world.provider instanceof IGalacticraftWorldProvider)
             return (float) ((IGalacticraftWorldProvider) world.provider).getFuelUsageMultiplier();

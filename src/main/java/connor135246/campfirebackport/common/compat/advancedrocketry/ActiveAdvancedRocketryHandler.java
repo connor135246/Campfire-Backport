@@ -39,7 +39,7 @@ public class ActiveAdvancedRocketryHandler implements ISpaceHandler
         if (handler != null)
             return handler.getAtmosphereType(x, y, z).allowsCombustion();
         else
-            return true;
+            return true; // we're fine with returning true here since this is the very last check when testing for oxygen
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ActiveAdvancedRocketryHandler implements ISpaceHandler
     }
 
     @Override
-    public float getAtmosphereDensity(World world, int x, int y, int z)
+    public float getAtmosphereDensity(World world, int y)
     {
         return AdvancedRocketryAPI.dimensionManager.getDimensionProperties(world.provider.dimensionId).getAtmosphereDensityAtHeight(y);
     }

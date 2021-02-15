@@ -194,7 +194,7 @@ public class CommandCampfireBackport implements ICommand
                 sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GOLD +
                         "--- " + StatCollector.translateToLocal(getCommandUsage(sender)) + " ---"));
 
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0; i <= 7; ++i)
                     sender.addChatMessage(new ChatComponentTranslation(Reference.MODID + ".command.help." + i)
                             .setChatStyle(new ChatStyle().setColor(i % 2 == 1 ? EnumChatFormatting.GRAY : EnumChatFormatting.WHITE)));
             }

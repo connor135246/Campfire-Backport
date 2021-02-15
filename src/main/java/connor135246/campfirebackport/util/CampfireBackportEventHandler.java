@@ -3,6 +3,7 @@ package connor135246.campfirebackport.util;
 import org.lwjgl.opengl.GL11;
 
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
+import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigSmokeFXConstructingEvent;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.BlockCampfire.CampfireStateChangeEvent;
@@ -24,6 +25,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
@@ -132,6 +134,19 @@ public class CampfireBackportEventHandler
             event.useGoods = false;
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * Makes smoke from campfires move differently depending on the atmosphere. Galacticraft / Advanced Rocketry compatibility.
+     */
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onEntityBigSmokeFXConstructing(EntityBigSmokeFXConstructingEvent event)
+    {
+        event.particleGravity *= CampfireBackportCompat.getGravityMultiplier(event.entity.worldObj);
+
+        event.motionMultipliers[1] = 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
+                MathHelper.floor_double(event.entity.posY)), 0.25F, 8.0F);
     }
 
 }
