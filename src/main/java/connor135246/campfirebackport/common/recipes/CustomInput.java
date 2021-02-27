@@ -90,7 +90,7 @@ public class CustomInput implements Comparable<CustomInput>
     {
         this.inputSize = clamp > 0 ? MathHelper.clamp_int(inputSize, 1, clamp) : inputSize;
 
-        this.extraData = data == null || data.hasNoTags() ? null : data;
+        this.extraData = data == null || data.hasNoTags() ? null : (NBTTagCompound) data.copy();
 
         if (hasExtraData())
         {

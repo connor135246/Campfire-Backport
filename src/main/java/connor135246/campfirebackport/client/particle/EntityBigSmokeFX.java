@@ -35,8 +35,8 @@ public class EntityBigSmokeFX extends EntityFX
         }
     }
 
+    protected final int texIndex = rand.nextInt(TEXTURE_COUNT);
     protected float fScale, f2, f3, f4, f5, f6;
-    protected int texIndex = rand.nextInt(TEXTURE_COUNT);
     protected boolean alphaFading = false;
     protected float alphaFadePerTick = -0.015F;
     protected boolean hasOxygen = true;
@@ -54,18 +54,18 @@ public class EntityBigSmokeFX extends EntityFX
 
         this.particleScale = 6.0F * (rand.nextFloat() * 0.5F + 0.5F);
         this.setSize(0.25F, 0.25F);
-        this.particleGravity = 0.00003F;
+        this.particleGravity = 0.000003F;
         this.motionY = 0.075 + this.rand.nextFloat() / 500.0F;
         this.noClip = false;
 
         if (signalFire)
         {
-            this.particleMaxAge = rand.nextInt(50) + 300;
+            this.particleMaxAge = rand.nextInt(50) + 280;
             this.setAlphaF(0.95F);
         }
         else
         {
-            this.particleMaxAge = rand.nextInt(50) + 100;
+            this.particleMaxAge = rand.nextInt(50) + 80;
             this.setAlphaF(0.9F);
         }
 
@@ -82,15 +82,17 @@ public class EntityBigSmokeFX extends EntityFX
             return;
         }
 
-        this.particleRed = constructing.coloursToChangeTo[0] != -1 ? constructing.coloursToChangeTo[0] : this.particleRed;
-        this.particleGreen = constructing.coloursToChangeTo[1] != -1 ? constructing.coloursToChangeTo[1] : this.particleGreen;
-        this.particleBlue = constructing.coloursToChangeTo[2] != -1 ? constructing.coloursToChangeTo[2] : this.particleBlue;
-        this.motionX *= constructing.motionMultipliers[0];
-        this.motionY *= constructing.motionMultipliers[1];
-        this.motionZ *= constructing.motionMultipliers[2];
+        this.particleRed = constructing.particleRed;
+        this.particleGreen = constructing.particleGreen;
+        this.particleBlue = constructing.particleBlue;
+        this.motionX = constructing.motionX;
+        this.motionY = constructing.motionY;
+        this.motionZ = constructing.motionZ;
+        this.particleGravity = constructing.particleGravity;
+        this.particleAlpha = constructing.particleAlpha;
         this.alphaFading = constructing.alphaFading;
         this.alphaFadePerTick = constructing.alphaFadePerTick;
-        this.particleGravity = constructing.particleGravity;
+        this.particleMaxAge = constructing.particleMaxAge;
     }
 
     /**
@@ -179,7 +181,7 @@ public class EntityBigSmokeFX extends EntityFX
                 this.motionX += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
                 this.motionZ += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
             }
-            
+
             this.motionY -= this.particleGravity;
 
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
@@ -194,10 +196,10 @@ public class EntityBigSmokeFX extends EntityFX
 
     /**
      * Allows you to change various aspects of campfire smoke particles:<br>
-     * - {@link #coloursToChangeTo} is the r, g, b values to change the smoke to. <br>
-     * - {@link #motionMultipliers} is a set of multipliers for the base x, y, z motion values.<br>
-     * - {@link #particleGravity} is the amount the particle's y motion changes per tick. <br>
-     * - {@link #particleAlpha} is the smoke's intial alpha. <br>
+     * - {@link #particleRed}, {@link #particleGreen}, and {@link #particleBlue} are the float r, g, b values of the smoke. <br>
+     * - {@link #motionX}, {@link #motionY}, and {@link #motionZ} are the x, y, z motion of the smoke.<br>
+     * - {@link #particleGravity} is the amount the smoke's y motion changes per tick. <br>
+     * - {@link #particleAlpha} is the smoke's initial alpha. <br>
      * - {@link #alphaFading} is whether the smoke's alpha should currently be changing (fading in or out). <br>
      * - {@link #alphaFadePerTick} is the amount the smoke's alpha changes per tick if {@link #alphaFading} is true. Negative values make it fade out, positive values make it fade
      * back in. <br>
@@ -215,14 +217,17 @@ public class EntityBigSmokeFX extends EntityFX
     {
         public final int[] campfirePosition;
 
+        public float particleRed;
+        public float particleGreen;
+        public float particleBlue;
+        public double motionX;
+        public double motionY;
+        public double motionZ;
         public float particleGravity;
         public float particleAlpha;
         public boolean alphaFading;
         public float alphaFadePerTick;
         public int particleMaxAge;
-
-        public float[] coloursToChangeTo = new float[] { -1, -1, -1 };
-        public double[] motionMultipliers = new double[] { 1, 1, 1 };
 
         public EntityBigSmokeFXConstructingEvent(EntityBigSmokeFX entity, int x, int y, int z)
         {
@@ -230,12 +235,19 @@ public class EntityBigSmokeFX extends EntityFX
 
             campfirePosition = new int[] { x, y, z };
 
+            particleRed = entity.particleRed;
+            particleGreen = entity.particleGreen;
+            particleBlue = entity.particleBlue;
+            motionX = entity.motionX;
+            motionY = entity.motionY;
+            motionZ = entity.motionZ;
             particleGravity = entity.particleGravity;
             particleAlpha = entity.particleAlpha;
             alphaFading = entity.alphaFading;
             alphaFadePerTick = entity.alphaFadePerTick;
             particleMaxAge = entity.particleMaxAge;
         }
+
     }
 
 }

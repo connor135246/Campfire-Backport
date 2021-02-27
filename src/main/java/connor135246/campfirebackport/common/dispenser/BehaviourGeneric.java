@@ -54,7 +54,8 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
                 if (cstate.hasOutputs())
                 {
                     ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!doReplaceable(sourceblock, returned))
+                    if (!(sourceblock.getBlockTileEntity() instanceof IInventory
+                            && putStackInInventory((IInventory) sourceblock.getBlockTileEntity(), returned, false)))
                         super.dispenseStack(sourceblock, returned);
                 }
             }
@@ -64,54 +65,75 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
     }
 
     /**
-     * Tries to put the replacement stack back in the tile.
+     * Tries to put returned in the inventory.
      * 
-     * @param sourceblock
-     * @param returned
-     *            - the ItemStack to be put in the dispenser
-     * @return true if the ItemStack was put in, false if there's some left over
+     * @return true if all of returned was put in the inventory, false otherwise
      */
-    private boolean doReplaceable(IBlockSource sourceblock, ItemStack returned)
+    public static boolean putStackInInventory(IInventory inventory, ItemStack returned, boolean animate)
     {
-        if (sourceblock.getBlockTileEntity() instanceof IInventory)
-        {
-            IInventory inventory = (IInventory) sourceblock.getBlockTileEntity();
+        return putStackInExistingSlots(inventory, returned, animate) || putStackInEmptySlots(inventory, returned, animate);
+    }
 
-            // looking for inventory slots that already have returned, if it can stack
-            if (returned.isStackable())
+    /**
+     * If returned can stack, finds inventory slots that already have it and puts it there.
+     * 
+     * @return true if all of returned was put in the inventory, false otherwise
+     */
+    public static boolean putStackInExistingSlots(IInventory inventory, ItemStack returned, boolean animate)
+    {
+        if (returned.isStackable())
+        {
+            for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
             {
-                for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
+                ItemStack thisslot = inventory.getStackInSlot(slot);
+                if (thisslot != null && inventory.isItemValidForSlot(slot, returned) && thisslot.isStackable() && thisslot.getItem() == returned.getItem()
+                        && (!thisslot.getHasSubtypes() || thisslot.getItemDamage() == returned.getItemDamage())
+                        && ItemStack.areItemStackTagsEqual(thisslot, returned))
                 {
-                    ItemStack thisslot = inventory.getStackInSlot(slot);
-                    if (thisslot != null && inventory.isItemValidForSlot(slot, returned) && thisslot.isStackable() && thisslot.getItem() == returned.getItem()
-                            && (!thisslot.getHasSubtypes() || thisslot.getItemDamage() == returned.getItemDamage())
-                            && ItemStack.areItemStackTagsEqual(thisslot, returned))
+                    int space = Math.min(returned.stackSize, Math.min(thisslot.getMaxStackSize(), inventory.getInventoryStackLimit()) - thisslot.stackSize);
+                    if (space > 0)
                     {
-                        int space = Math.min(returned.stackSize, Math.min(thisslot.getMaxStackSize(), inventory.getInventoryStackLimit()) - thisslot.stackSize);
-                        if (space > 0)
-                        {
-                            thisslot.stackSize += space;
-                            returned.stackSize -= space;
-                            if (returned.stackSize <= 0)
-                                return true;
-                        }
+                        thisslot.stackSize += space;
+                        returned.stackSize -= space;
+                        if (animate)
+                            thisslot.animationsToGo = 5;
+                        if (returned.stackSize <= 0)
+                            return true;
                     }
                 }
             }
+        }
+        return false;
+    }
 
-            // looking for any empty inventory slots
-            for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
+    /**
+     * Finds empty inventory slots and puts returned there.
+     * 
+     * @return true if all of returned was put in the inventory, false otherwise
+     */
+    public static boolean putStackInEmptySlots(IInventory inventory, ItemStack returned, boolean animate)
+    {
+        for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
+        {
+            if (inventory.getStackInSlot(slot) == null && inventory.isItemValidForSlot(slot, returned))
             {
-                if (inventory.getStackInSlot(slot) == null && inventory.isItemValidForSlot(slot, returned)
-                        && inventory.getInventoryStackLimit() >= returned.stackSize)
+                if (inventory.getInventoryStackLimit() >= returned.stackSize)
                 {
+                    if (animate)
+                        returned.animationsToGo = 5;
                     inventory.setInventorySlotContents(slot, returned);
                     return true;
                 }
+                else
+                {
+                    ItemStack sideReturned = returned.splitStack(inventory.getInventoryStackLimit());
+                    if (animate)
+                        sideReturned.animationsToGo = 5;
+                    inventory.setInventorySlotContents(slot, sideReturned);
+                }
             }
         }
-
-        // failure to find space
         return false;
     }
+
 }

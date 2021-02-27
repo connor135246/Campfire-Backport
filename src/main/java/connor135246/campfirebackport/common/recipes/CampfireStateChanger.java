@@ -256,10 +256,13 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
      */
     public static CampfireStateChanger findStateChanger(ItemStack stack, boolean leftClick, String type, boolean lit)
     {
-        for (CampfireStateChanger cstate : getStateChangerList(leftClick))
+        if (stack != null)
         {
-            if (cstate.matches(stack, type, lit))
-                return cstate;
+            for (CampfireStateChanger cstate : getStateChangerList(leftClick))
+            {
+                if (cstate.matches(stack, type, lit))
+                    return cstate;
+            }
         }
         return null;
     }

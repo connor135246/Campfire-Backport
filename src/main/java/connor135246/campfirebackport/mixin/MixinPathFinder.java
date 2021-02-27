@@ -19,9 +19,10 @@ import net.minecraft.pathfinding.PathPoint;
 public abstract class MixinPathFinder
 {
 
+    // int flag3 (in production environment) / boolean flag3 (in development environment)
     @Inject(method = "func_82565_a", at = @At(value = "INVOKE", ordinal = 1), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
     private static void onGetVerticalOffsetStatic(Entity p_82565_0_, int p_82565_1_, int p_82565_2_, int p_82565_3_, PathPoint p_82565_4_,
-            boolean p_82565_5_, boolean p_82565_6_, boolean p_82565_7_, CallbackInfoReturnable<Integer> cir, boolean flag3, int l, int i1, int j1, Block block)
+            boolean p_82565_5_, boolean p_82565_6_, boolean p_82565_7_, CallbackInfoReturnable<Integer> cir, int flag3, int l, int i1, int j1, Block block)
     {
         if (block instanceof BlockCampfire)
             cir.setReturnValue(!p_82565_0_.isImmuneToFire() && ((BlockCampfire) block).isLit() ? -2 : 2);

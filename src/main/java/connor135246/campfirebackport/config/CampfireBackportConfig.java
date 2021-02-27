@@ -103,6 +103,11 @@ public class CampfireBackportConfig
     public static boolean printCustomRecipes;
     public static boolean suppressInputErrors;
 
+    static
+    {
+        getConfigDefault();
+    }
+
     // lists made from config settings
 
     public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
@@ -169,37 +174,35 @@ public class CampfireBackportConfig
     {
         if (-1 < mode || mode < 3)
         {
-            if (!useDefaultConfig)
+            if (mode == 0 && !useDefaultConfig)
+                config.load();
+
+            if (mode != 2)
             {
-                if (mode == 0)
-                    config.load();
-
-                if (mode != 2)
+                if (!useDefaultConfig)
                     getConfig();
-
-                if (stopConsoleSpam)
-                {
-                    boolean tempPrint = printCustomRecipes;
-                    boolean tempSuppress = suppressInputErrors;
-
-                    printCustomRecipes = false;
-                    suppressInputErrors = true;
-
-                    setConfig();
-
-                    printCustomRecipes = tempPrint;
-                    suppressInputErrors = tempSuppress;
-                }
                 else
-                    setConfig();
+                    getConfigDefault();
+            }
 
-                if (mode != 2)
-                    config.save();
+            if (stopConsoleSpam)
+            {
+                boolean tempPrint = printCustomRecipes;
+                boolean tempSuppress = suppressInputErrors;
+
+                printCustomRecipes = false;
+                suppressInputErrors = true;
+
+                setConfig();
+
+                printCustomRecipes = tempPrint;
+                suppressInputErrors = tempSuppress;
             }
             else
-            {
-                doDefaultConfig();
-            }
+                setConfig();
+
+            if (mode != 2 && !useDefaultConfig)
+                config.save();
         }
     }
 
@@ -599,9 +602,9 @@ public class CampfireBackportConfig
     }
 
     /**
-     * sets config with the default settings, ignoring the Configuration object
+     * sets settings to the default
      */
-    private static void doDefaultConfig()
+    private static void getConfigDefault()
     {
         charcoalOnly = false;
         soulSoilOnly = false;
@@ -655,8 +658,6 @@ public class CampfireBackportConfig
 
         printCustomRecipes = false;
         suppressInputErrors = false;
-
-        setConfig();
     }
 
 }

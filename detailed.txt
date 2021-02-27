@@ -1,3 +1,4 @@
+This file contains detailed information about config settings, CraftTweaker support, and other things to do with Campfire Backport.
 You can find the most recent version of this information at https://github.com/connor135246/Campfire-Backport/wiki
 
 Table of Contents
@@ -16,6 +17,7 @@ Table of Contents
 		# [Custom Input]
 		# [Custom Output]
 		# [Tinker's Construct Modifiers Format]
+# Campfire Backport Mixin Config
 
 ---
 	
@@ -395,3 +397,21 @@ Some examples:
 	[Tinkers:[I:{HarvestLevel:1}B:{Diamond:1}F:{Shoddy:-1.0}IA:{Redstone:1}]]
 -Matches a tool that's Stonebound 2, with Auto-Smelt, with Beheading 1 or greater, with a Ball of Moss added to it, with at least one full modifier of Fiery (25 Blaze Powder), and with at least half a modifier of Knockback (5 Pistons):
 	[Tinkers:[I:{Beheading:1,Moss:3,Fiery:25}B:{Lava:1}F:{Shoddy:2.0,Knockback:0.5}]]
+	
+# Campfire Backport Mixin Config
+The config file "campfirebackportmixins.cfg" lets you toggle which mixins will be used. 
+There's no in-game GUI for this config, and Minecraft must be restarted if you want to change the settings.
+If you're using the no-mixins version of Campfire Backport (the version number ends with -NM), this file won't exist.
+Here's an overview of the mixins:
+-Vanilla Mixins
+    EntityPotion: thrown splash potions will extinguish campfires near where they land
+    EntitySmallFireball: small fireballs (like those shot by blazes, or from dispensers with fire charges) will ignite campfires they hit
+    PathFinder: entities will try to avoid lit campfires when pathfinding, and will be able to path properly over unlit campfires
+-Witchery Mixins
+In order for these mixins to be applied, the witchery .jar has to be discovered before Minecraft launches.
+Avoid renaming the witchery .jar! If the filename doesn't include "witchery" in it somewhere, the .jar will not be found by Campfire Backport and mixins can't be applied.
+    TileEntityCauldron: campfires will be able to heat up witch's cauldrons just like fire
+    TileEntityKettle: campfires will be able to heat up kettles just like fire
+-Thaumcraft Mixins
+    TileCrucible: campfires will be able to heat up crucibles just like fire and lava
+    TileThaumatorium: campfires will be able to heat up thaumatoriums just like fire and lava

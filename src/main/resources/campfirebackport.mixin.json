@@ -1,12 +1,13 @@
 {
-    "required": true,
+    "required": false,
     "minVersion": "0.7",
     "package": "connor135246.campfirebackport.mixin",
     "refmap": "campfirebackport.mixin.refmap.json",
     "compatibilityLevel": "JAVA_8",
+    "target": "@env(DEFAULT)",
     "mixins": [
         "MixinEntitySmallFireball",
-		"MixinEntityPotion",
-		"MixinPathFinder"
+        "MixinEntityPotion",
+        "MixinPathFinder"
     ]
 }

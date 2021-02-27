@@ -1,4 +1,4 @@
-package connor135246.campfirebackport.common.compat.galacticraft;
+package connor135246.campfirebackport.common.compat.handlers;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ISpaceHandler;
@@ -10,12 +10,12 @@ import net.minecraft.world.World;
 /**
  * For when Galacticraft is loaded.
  */
-public class ActiveGalacticraftHandler implements ISpaceHandler
+public class GalacticraftHandler implements ISpaceHandler
 {
 
     public static void load()
     {
-        CampfireBackportCompat.galacticraftHandler = new ActiveGalacticraftHandler();
+        CampfireBackportCompat.galacticraftHandler = new GalacticraftHandler();
     }
 
     @Override

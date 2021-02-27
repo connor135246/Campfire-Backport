@@ -18,16 +18,19 @@ import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public class CampfireBackportEventHandler
 {
@@ -105,6 +108,27 @@ public class CampfireBackportEventHandler
     }
 
     /**
+     * Sets the player's respawn point to the campfire when they sneak-right-click it with an empty hand, if the relevant config options are set.
+     */
+    @SubscribeEvent
+    public void onPlayerInteract(PlayerInteractEvent event)
+    {
+        if (event.entityPlayer != null && !event.entityPlayer.worldObj.isRemote && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER
+                && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && event.entityPlayer.isSneaking()
+                && event.entityPlayer.getCurrentEquippedItem() == null)
+        {
+            Block block = event.entityPlayer.worldObj.getBlock(event.x, event.y, event.z);
+
+            if (block instanceof BlockCampfire && ((BlockCampfire) block).isLit() && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block))
+            {
+                event.entityPlayer.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
+                event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false);
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    /**
      * Burns out the campfire the player is respawning at, if the relevant config options are set.
      */
     @SubscribeEvent
@@ -118,7 +142,12 @@ public class CampfireBackportEventHandler
             {
                 TileEntity tile = event.player.worldObj.getTileEntity(bedlocation.posX, bedlocation.posY, bedlocation.posZ);
                 if (tile instanceof TileEntityCampfire)
-                    ((TileEntityCampfire) tile).burnOutWhenPlayerRespawns();
+                {
+                    TileEntityCampfire ctile = ((TileEntityCampfire) tile);
+
+                    if (ctile.isLit() && CampfireBackportConfig.burnOutOnRespawn.matches(ctile) && ctile.canBurnOut())
+                        ctile.burnOutOrToNothing();
+                }
             }
         }
     }
@@ -145,7 +174,7 @@ public class CampfireBackportEventHandler
     {
         event.particleGravity *= CampfireBackportCompat.getGravityMultiplier(event.entity.worldObj);
 
-        event.motionMultipliers[1] = 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
+        event.motionY *= 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
                 MathHelper.floor_double(event.entity.posY)), 0.25F, 8.0F);
     }
 

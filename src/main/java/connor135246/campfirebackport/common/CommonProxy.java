@@ -21,7 +21,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
-import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -46,7 +46,7 @@ public class CommonProxy
         simpleNetwork.registerMessage(SendConfigMessage.Handler.class, SendConfigMessage.class, 1, Side.CLIENT);
 
         CampfireBackportConfig.prepareConfig(event);
-        
+
         CampfireBackportBlocks.preInit();
 
         GameRegistry.registerTileEntity(TileEntityCampfire.class, Reference.MODID + ":" + "campfire");
@@ -60,7 +60,7 @@ public class CommonProxy
     public void postInit(FMLPostInitializationEvent event)
     {
         CampfireBackportCompat.postInit();
-        
+
         CampfireBackportConfig.doConfig(0, true);
     }
 
@@ -72,9 +72,17 @@ public class CommonProxy
     //
 
     /**
-     * Makes campfire smoke particles client side.
+     * Makes campfire smoke particles.
      */
-    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire, Block colourer, int meta)
+    public void generateBigSmokeParticles(World world, int x, int y, int z, String type, boolean signalFire)
+    {
+        ;
+    }
+
+    /**
+     * Makes vanilla smoke particles above items in the campfire.
+     */
+    public void generateSmokeOverItems(World world, int x, int y, int z, int meta, ItemStack[] items)
     {
         ;
     }

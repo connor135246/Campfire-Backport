@@ -15,25 +15,23 @@ import net.minecraft.world.World;
 public class CampfireBackportCompat
 {
 
-    public static boolean isThaumcraftLoaded = false,
-            isMineTweaker3Loaded = false,
+    public static boolean isMineTweaker3Loaded = false,
             isGalacticraftLoaded = false,
-            isAdvancedRocketryLoaded = false;
+            isAdvancedRocketryLoaded = false,
+            isThaumcraftLoaded = false;
 
     /**
      * prepares specific mod compatibility
      */
     public static void postInit()
     {
-        isGalacticraftLoaded = ifLoadedInvoke("GalacticraftCore", "galacticraft.ActiveGalacticraftHandler");
+        isGalacticraftLoaded = ifLoadedInvoke("GalacticraftCore", "handlers.GalacticraftHandler");
 
-        isAdvancedRocketryLoaded = ifLoadedInvoke("advancedRocketry", "advancedrocketry.ActiveAdvancedRocketryHandler");
+        isAdvancedRocketryLoaded = ifLoadedInvoke("advancedRocketry", "handlers.AdvancedRocketryHandler");
 
-        isThaumcraftLoaded = ifLoadedInvoke("Thaumcraft", "thaumcraft.CampfireBackportWandTriggerManager");
+        isThaumcraftLoaded = ifLoadedInvoke("Thaumcraft", "handlers.ThaumcraftHandler");
 
         isMineTweaker3Loaded = ifLoadedInvoke("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
-
-        // isOptiFineloaded = FMLCommonHandler.instance().getSide() == Side.CLIENT && FMLClientHandler.instance().hasOptifine();
     }
 
     private static boolean ifLoadedInvoke(String modid, String classnamepart)

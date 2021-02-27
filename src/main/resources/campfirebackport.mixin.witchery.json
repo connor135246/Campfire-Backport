@@ -1,0 +1,12 @@
+{
+    "required": false,
+    "minVersion": "0.7",
+    "package": "connor135246.campfirebackport.mixin.witchery",
+    //"refmap": "campfirebackport.mixin.witchery.refmap.json", // not needed as these mixins have remap = false
+    "compatibilityLevel": "JAVA_8",
+    "target": "@env(DEFAULT)",
+    "mixins": [
+        "MixinTileEntityKettle",
+        "MixinTileEntityCauldron"
+    ]
+}

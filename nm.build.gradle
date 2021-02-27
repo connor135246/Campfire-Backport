@@ -17,12 +17,13 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.8.1-NM"
+version = "1.7.10-1.8.2-NM"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
 minecraft {
     version = "1.7.10-10.13.4.1558-1.7.10"
+        replace '${version}', project.version
     runDir = "eclipse"
 }
 
@@ -30,7 +31,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-	compile fileTree(dir: 'lib2', include: '*.jar')
+    compile fileTree(dir: 'lib2', include: '*.jar')
 
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..

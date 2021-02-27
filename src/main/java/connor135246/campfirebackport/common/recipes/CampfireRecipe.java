@@ -279,10 +279,13 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      */
     public static CampfireRecipe findRecipe(ItemStack stack, String type, boolean signalFire, List<CampfireRecipe> skips, int maxInputs)
     {
-        for (CampfireRecipe crecipe : getRecipeList(type))
+        if (stack != null)
         {
-            if (crecipe.getInputs().length <= maxInputs && crecipe.matches(stack, signalFire) && !skips.contains(crecipe))
-                return crecipe;
+            for (CampfireRecipe crecipe : getRecipeList(type))
+            {
+                if (crecipe.getInputs().length <= maxInputs && crecipe.matches(stack, signalFire) && !skips.contains(crecipe))
+                    return crecipe;
+            }
         }
         return null;
     }

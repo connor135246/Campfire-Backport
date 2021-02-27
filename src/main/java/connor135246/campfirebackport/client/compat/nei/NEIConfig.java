@@ -4,6 +4,7 @@ import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
 import codechicken.nei.recipe.ICraftingHandler;
 import codechicken.nei.recipe.IUsageHandler;
+import connor135246.campfirebackport.util.Reference;
 
 public class NEIConfig implements IConfigureNEI
 {
@@ -30,6 +31,6 @@ public class NEIConfig implements IConfigureNEI
     @Override
     public String getVersion()
     {
-        return "1.7.10-1.8.1";
+        return Reference.VERSION;
     }
 }

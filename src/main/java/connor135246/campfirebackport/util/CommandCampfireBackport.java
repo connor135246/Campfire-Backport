@@ -177,7 +177,8 @@ public class CommandCampfireBackport implements ICommand
                     explanation.createNewFile();
 
                     PrintWriter explanationWriter = new PrintWriter(new FileWriter(explanation));
-                    for (int i = 0; i <= 396; ++i)
+                    explanationWriter.println("--- " + Reference.MODID + "-" + Reference.VERSION + " ---");
+                    for (int i = 0; i <= 416; ++i)
                         explanationWriter.println(StatCollector.translateToLocal(Reference.MODID + ".config.explanation." + i));
                     explanationWriter.close();
                 }

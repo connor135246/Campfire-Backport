@@ -3,10 +3,10 @@ package connor135246.campfirebackport.common.tileentity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import connor135246.campfirebackport.CampfireBackport;
-import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
@@ -14,11 +14,10 @@ import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
-import connor135246.campfirebackport.util.CampfireBackportEventHandler;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -81,9 +80,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     @Override
     public void updateEntity()
     {
-        if (getWorldObj().getTotalWorldTime() % 100L == 0L && (getWorldObj().isRemote || RAND.nextInt(6) == 0))
+        if (isLit() && getWorldObj().getTotalWorldTime() % 100L == 0L && (getWorldObj().isRemote || RAND.nextInt(6) == 0))
         {
-            rainAndSky = getWorldObj().isRaining() && getWorldObj().canBlockSeeTheSky(xCoord, yCoord, zCoord)
+            rainAndSky = getWorldObj().isRaining() && getWorldObj().getPrecipitationHeight(xCoord, zCoord) <= yCoord + 1
                     && getWorldObj().getBiomeGenForCoords(xCoord, zCoord).canSpawnLightningBolt();
         }
 
@@ -285,16 +284,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Burns out the campfire when a player uses it to respawn. <br>
-     * It's called from {@link CampfireBackportEventHandler#onPlayerRespawn}.
-     */
-    public void burnOutWhenPlayerRespawns()
-    {
-        if (isLit() && CampfireBackportConfig.burnOutOnRespawn.matches(this) && canBurnOut())
-            burnOutOrToNothing();
-    }
-
-    /**
      * Either burns out the campfire or burns it to nothing.
      */
     public void burnOutOrToNothing()
@@ -348,7 +337,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         {
             Block block = getWorldObj().getBlock(xCoord, yCoord - 1, zCoord);
 
-            if (block == Blocks.air)
+            if (block.getMaterial() == Material.air)
             {
                 updateSignalFireState(false);
                 return;
@@ -421,46 +410,13 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     protected void addParticles()
     {
-        // 0, 1, 2 -> 3, 2, 1
-        int setting = Minecraft.getMinecraft().gameSettings.particleSetting + 1;
-        int multiplier = setting % 2 == 1 ? setting ^ 2 : setting;
+        CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, getType(), isSignalFire());
 
-        int[] iro = RenderCampfire.getRenderSlotMappingFromMeta(getBlockMetadata());
-        for (int slot = 0; slot < getSizeInventory(); ++slot)
-        {
-            if (getStackInSlot(slot) != null)
-            {
-                if (RAND.nextFloat() < multiplier / 15F)
-                {
-                    double[] position = RenderCampfire.getRenderPositionFromRenderSlot(iro[slot], true);
-                    getWorldObj().spawnParticle("smoke", position[0] + xCoord, position[1] + 0.06 + yCoord, position[2] + zCoord, 0.0, 0.0005, 0.0);
-                }
-            }
-        }
-
-        if (RAND.nextFloat() < 0.11F)
-        {
-            Block block = Blocks.air;
-            int meta = 0;
-
-            if (CampfireBackportConfig.colourfulSmoke.matches(this))
-            {
-                Block blockBelow = getWorldObj().getBlock(xCoord, yCoord - 1, zCoord);
-
-                if (blockBelow != Blocks.air && getWorldObj().isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord))
-                {
-                    block = blockBelow;
-                    meta = getWorldObj().getBlockMetadata(xCoord, yCoord - 1, zCoord);
-                }
-            }
-
-            for (int i = 0; i < RAND.nextInt(2) + 2; ++i)
-                CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, isSignalFire(), block, meta);
-        }
+        CampfireBackport.proxy.generateSmokeOverItems(getWorldObj(), xCoord, yCoord, zCoord, getBlockMetadata(), inventory);
 
         if (rainAndSky)
         {
-            for (int i = 0; i < RAND.nextInt(multiplier); ++i)
+            for (int i = 0; i < RAND.nextInt(3); ++i)
                 getWorldObj().spawnParticle("smoke", xCoord + RAND.nextDouble(), yCoord + 0.9, zCoord + RAND.nextDouble(), 0.0, 0.0, 0.0);
         }
     }
@@ -503,10 +459,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public void readFromNBTIfItExists(NBTTagCompound compound)
     {
-        signalFire = compound.hasKey(KEY_SignalFire, 1) ? compound.getBoolean(KEY_SignalFire) : signalFire;
+        signalFire = compound.getBoolean(KEY_SignalFire);
 
         int[] cookingTimesArray = compound.hasKey(KEY_CookingTimes, 11) ? compound.getIntArray(KEY_CookingTimes) : cookingTimes;
-        int[] cookingTotalTimesArray = compound.hasKey(KEY_CookingTotalTimes, 11) ? compound.getIntArray(KEY_CookingTotalTimes) : cookingTotalTimes;
+        boolean hasCookingTotalTimes = compound.hasKey(KEY_CookingTotalTimes, 11);
+        int[] cookingTotalTimesArray = hasCookingTotalTimes ? compound.getIntArray(KEY_CookingTotalTimes) : cookingTotalTimes;
 
         regenWaitTimer = compound.hasKey(KEY_RegenWaitTimer, 99) ? compound.getInteger(KEY_RegenWaitTimer) : regenWaitTimer;
 
@@ -525,15 +482,23 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 byte slot = itemCompound.getByte(KEY_Slot);
                 if (slot >= 0 && slot < getSizeInventory())
                 {
-                    setStackInSlot(slot, ItemStack.loadItemStackFromNBT(itemCompound));
+                    ItemStack stack = ItemStack.loadItemStackFromNBT(itemCompound);
+                    setStackInSlot(slot, stack);
                     setCookingTimeInSlot(slot, cookingTimesArray[slot]);
-                    setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
+                    if (hasCookingTotalTimes)
+                        setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
+                    else
+                    {
+                        CampfireRecipe crecipe = Optional.ofNullable(CampfireRecipe.findRecipe(stack, getType(), true))
+                                .orElse(CampfireRecipe.findRecipe(stack, getType(), false));
+                        setCookingTotalTimeInSlot(slot, crecipe == null ? 600 : crecipe.getCookingTime());
+                    }
                 }
             }
         }
 
         if (compound.hasKey(KEY_CustomName, 8))
-            setCustomInventoryName(compound.getString(KEY_CustomName));
+            customName = compound.getString(KEY_CustomName);
     }
 
     @Override
@@ -676,15 +641,22 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             }
             else
             {
-                stack.splitStack(decrease);
+                ItemStack returnStack = stack.splitStack(decrease);
 
                 if (getStackInSlot(slot).stackSize == 0)
                     setInventorySlotContents(slot, null);
+                else
+                {
+                    markDirty();
+                    markForClient();
+                    markForNeighbours();
+                }
 
-                return stack;
+                return returnStack;
             }
         }
-        return null;
+        else
+            return null;
     }
 
     @Override
@@ -779,6 +751,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         customName = name;
         markDirty();
+        markForClient();
     }
 
     @Override

@@ -18,7 +18,7 @@ buildscript {
 repositories {
     maven { // this has to be here and not in buildscript.repositories, otherwise Gradle won't find mixin <0.8 for some reason
         name = 'sponge'
-        url = 'https://repo.spongepowered.org/maven/'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
     }
 }
 
@@ -30,12 +30,16 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.7.10-1.8.1"
+version = "1.7.10-1.8.2"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
+// thanks
+// https://github.com/makamys/MC-Modding-notes/tree/master/examples/Forge-Mixin-1_7_10
+
 minecraft {
     version = "1.7.10-10.13.4.1558-1.7.10"
+        replace '${version}', project.version
     runDir = "eclipse"
 }
 
@@ -70,8 +74,9 @@ def outRefMapFile = tasks.compileJava.temporaryDir.toString() + "/campfirebackpo
 jar {
     manifest {
         attributes (
-            'MixinConfigs': 'campfirebackport.mixin.json',
+            //'MixinConfigs': 'campfirebackport.mixin.json',
             'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
+            'FMLCorePlugin': 'connor135246.campfirebackport.CampfireBackportMixins',
             'TweakOrder': 0,
 
             // If these two are not set, Forge will not detect the mod, it will only run the mixins

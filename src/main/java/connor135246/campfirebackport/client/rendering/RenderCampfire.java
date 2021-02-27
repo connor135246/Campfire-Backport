@@ -156,15 +156,22 @@ public class RenderCampfire extends TileEntitySpecialRenderer
     private static final double ACROSS = 0.875;
     private static final double EDGE = 0.125;
     private static final double SMOKE_OFFSET = 0.15625;
-    private static final double[][] RENDER_POSITION_ITEM = new double[][] { { BASE_X_OFFSET, BASE_Y_OFFSET, BASE_Z_OFFSET + EDGE - ACROSS },
+    private static final double SMOKE_Y_OFFSET = 0.06;
+    private static final double[][] RENDER_POSITION_ITEM = new double[][] {
+            { BASE_X_OFFSET, BASE_Y_OFFSET, BASE_Z_OFFSET + EDGE - ACROSS },
             { BASE_X_OFFSET - EDGE, BASE_Y_OFFSET, BASE_Z_OFFSET },
             { BASE_X_OFFSET - ACROSS, BASE_Y_OFFSET, BASE_Z_OFFSET - EDGE },
             { BASE_X_OFFSET + EDGE - ACROSS, BASE_Y_OFFSET, BASE_Z_OFFSET - ACROSS } };
-    private static final double[][] RENDER_POSITION_SMOKE = new double[][] { { BASE_X_OFFSET - SMOKE_OFFSET, BASE_Y_OFFSET, BASE_Z_OFFSET + EDGE - ACROSS },
-            { BASE_X_OFFSET - EDGE, BASE_Y_OFFSET, BASE_Z_OFFSET - SMOKE_OFFSET },
-            { BASE_X_OFFSET - ACROSS + SMOKE_OFFSET, BASE_Y_OFFSET, BASE_Z_OFFSET - EDGE },
-            { BASE_X_OFFSET + EDGE - ACROSS, BASE_Y_OFFSET, BASE_Z_OFFSET - ACROSS + SMOKE_OFFSET } };
-    private static final int[][] RENDER_SLOT_MAPPING = new int[][] { { 3, 0, 1, 2 }, { 1, 2, 3, 0 }, { 2, 3, 0, 1 }, { 0, 1, 2, 3 } };
+    private static final double[][] RENDER_POSITION_SMOKE = new double[][] {
+            { BASE_X_OFFSET - SMOKE_OFFSET, BASE_Y_OFFSET + SMOKE_Y_OFFSET, BASE_Z_OFFSET + EDGE - ACROSS },
+            { BASE_X_OFFSET - EDGE, BASE_Y_OFFSET + SMOKE_Y_OFFSET, BASE_Z_OFFSET - SMOKE_OFFSET },
+            { BASE_X_OFFSET - ACROSS + SMOKE_OFFSET, BASE_Y_OFFSET + SMOKE_Y_OFFSET, BASE_Z_OFFSET - EDGE },
+            { BASE_X_OFFSET + EDGE - ACROSS, BASE_Y_OFFSET + SMOKE_Y_OFFSET, BASE_Z_OFFSET - ACROSS + SMOKE_OFFSET } };
+    private static final int[][] RENDER_SLOT_MAPPING = new int[][] {
+            { 3, 0, 1, 2 },
+            { 1, 2, 3, 0 },
+            { 2, 3, 0, 1 },
+            { 0, 1, 2, 3 } };
 
     /**
      * Returns the mapping of inventory slots to render slots based on block metadata. This is so that inventory slots are always rendered counterclockwise starting with the front

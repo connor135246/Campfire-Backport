@@ -1,4 +1,4 @@
-package connor135246.campfirebackport.common.compat.advancedrocketry;
+package connor135246.campfirebackport.common.compat.handlers;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ISpaceHandler;
@@ -10,12 +10,12 @@ import zmaster587.advancedRocketry.atmosphere.AtmosphereHandler;
 /**
  * For when AdvancedRocketry is loaded.
  */
-public class ActiveAdvancedRocketryHandler implements ISpaceHandler
+public class AdvancedRocketryHandler implements ISpaceHandler
 {
 
     public static void load()
     {
-        CampfireBackportCompat.advancedRocketryHandler = new ActiveAdvancedRocketryHandler();
+        CampfireBackportCompat.advancedRocketryHandler = new AdvancedRocketryHandler();
     }
 
     @Override

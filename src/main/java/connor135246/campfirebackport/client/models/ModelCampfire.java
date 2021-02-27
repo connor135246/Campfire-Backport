@@ -1,5 +1,7 @@
 package connor135246.campfirebackport.client.models;
 
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
@@ -50,16 +52,28 @@ public class ModelCampfire extends ModelBase
         this.topfrontlog.addBox(0.0F, 0.0F, 0.0F, 16, 4, 4, 0.0F);
     }
 
+    /**
+     * renders the logs normally; renders the fire fullbright
+     */
     @Override
     public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5)
     {
-        this.bottomleftlog.render(f5);
-        this.firepit.render(f5);
-        this.fire1.render(f5);
-        this.fire2.render(f5);
-        this.bottomrightlog.render(f5);
         this.topbacklog.render(f5);
         this.topfrontlog.render(f5);
+        this.bottomrightlog.render(f5);
+        this.bottomleftlog.render(f5);
+        this.firepit.render(f5);
+
+        boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+
+        if (lighting)
+            GL11.glDisable(GL11.GL_LIGHTING);
+
+        this.fire1.render(f5);
+        this.fire2.render(f5);
+
+        if (lighting)
+            GL11.glEnable(GL11.GL_LIGHTING);
     }
 
     /**

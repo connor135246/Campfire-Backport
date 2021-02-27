@@ -5,6 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
@@ -21,6 +22,7 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
@@ -28,8 +30,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
@@ -162,26 +162,8 @@ public class BlockCampfire extends BlockContainer
             if (tile instanceof TileEntityCampfire && ((TileEntityCampfire) tile).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
                 return true;
 
-            if (doStateChangers(survival, stack, false, world, x, y, z, player))
-                return true;
+            return doStateChangers(survival, stack, false, world, x, y, z, player);
         }
-
-        if (isLit() && CampfireBackportConfig.spawnpointable.matches(this))
-        {
-            ChunkCoordinates previousbed = player.getBedLocation(player.dimension);
-            ChunkCoordinates campfire = new ChunkCoordinates(x, y, z);
-
-            if (previousbed == null || !previousbed.equals(campfire))
-            {
-                if (!world.isRemote)
-                    player.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
-
-                player.setSpawnChunk(campfire, false);
-
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -214,18 +196,27 @@ public class BlockCampfire extends BlockContainer
                     if (cstate.isUsageTypeDamageable())
                         stack.damageItem(cstate.getInput().getInputSize(), player);
                     else if (cstate.isUsageTypeStackable())
-                    {
                         stack.stackSize -= cstate.getInput().getInputSize();
-                        if (stack.stackSize <= 0)
-                            player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-                    }
+
+                    if (stack.stackSize <= 0 && player.getCurrentEquippedItem() == stack)
+                        player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
                 }
 
                 if (cstate.hasOutputs())
                 {
                     ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!player.inventory.addItemStackToInventory(returned))
-                        player.dropPlayerItemWithRandomChoice(returned, false);
+                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, returned, true))
+                    {
+                        if (player.getCurrentEquippedItem() == null)
+                        {
+                            returned.animationsToGo = 5;
+                            player.inventory.setInventorySlotContents(player.inventory.currentItem, returned);
+                            if (player instanceof EntityPlayerMP)
+                                ((EntityPlayerMP) player).sendContainerToPlayer(player.inventoryContainer);
+                        }
+                        else if (!BehaviourGeneric.putStackInEmptySlots(player.inventory, returned, true))
+                            player.dropPlayerItemWithRandomChoice(returned, false);
+                    }
                 }
             }
 
@@ -558,6 +549,8 @@ public class BlockCampfire extends BlockContainer
      * this to false if you cancel the event!<br>
      * <br>
      * This event is posted from {@link BlockCampfire#updateCampfireBlockState} on the {@link MinecraftForge#EVENT_BUS}.<br>
+     * Note that this event is posted to both the client and server sides if the campfire is changing due to a player using a state changer. At other times, it's only posted to the
+     * server side.<br>
      * This event is {@link Cancelable}.<br>
      */
     @Cancelable

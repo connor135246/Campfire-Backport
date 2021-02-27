@@ -1,16 +1,20 @@
 [
-{
-  "modid": "campfirebackport",
-  "name": "Campfire Backport",
-  "description": "adds campfires & soul campfires from modern versions of minecraft, with way too many config options\nThis is the NO MIXINS version. That means fireballs won't be able to light campfires, and thrown splash potions won't be able to put them out. Also, mobs won't avoid walking onto campfires.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "https://github.com/connor135246/Campfire-Backport",
-  "updateUrl": "",
-  "authorList": ["connor135246"],
-  "credits": "so many githubs and modding tutorials, and also mcg",
-  "logoFile": "smallframedbanner.png",
-  "screenshots": [],
-  "dependencies": []
-}
+    {
+        "modid": "campfirebackport",
+        "name": "Campfire Backport",
+        "description": "adds campfires & soul campfires from modern versions of minecraft, with way too many config options\n\nThis is the NO MIXINS version. Some features are unavailable.\n-small fireball entities will NOT light campfires\n-thrown splash potions will NOT put out campfires\n-entities will NOT avoid lit campfires when pathfinding\n-campfires will NOT be able to heat up Thaumcraft Crucibles, Thaumcraft Thaumatoriums, Witchery Kettles, or Witchery Witch's Cauldrons",
+        "version": "${version}",
+        "mcversion": "${mcversion}",
+        "url": "https://github.com/connor135246/Campfire-Backport",
+        "updateUrl": "",
+        "authorList": [
+            "connor135246"
+        ],
+        "credits": "so many githubs and modding tutorials, and also mcg",
+        "logoFile": "smallframedbanner.png",
+        "screenshots": [
+        ],
+        "dependencies": [
+        ]
+    }
 ]
