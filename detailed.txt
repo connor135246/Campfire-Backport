@@ -407,11 +407,12 @@ Here's an overview of the mixins:
     EntityPotion: thrown splash potions will extinguish campfires near where they land
     EntitySmallFireball: small fireballs (like those shot by blazes, or from dispensers with fire charges) will ignite campfires they hit
     PathFinder: entities will try to avoid lit campfires when pathfinding, and will be able to path properly over unlit campfires
--Witchery Mixins
-In order for these mixins to be applied, the witchery .jar has to be discovered before Minecraft launches.
-Avoid renaming the witchery .jar! If the filename doesn't include "witchery" in it somewhere, the .jar will not be found by Campfire Backport and mixins can't be applied.
+-Mod Mixins
+In order for mod compatibility mixins to be applied, the mod's .jar file has to be discovered before Minecraft launches.
+Avoid renaming mod .jar files! If the filename doesn't include the mod name (ignoring case) in it somewhere, the .jar will not be found by Campfire Backport and mixins can't be applied.
+ -Witchery Mixins
     TileEntityCauldron: campfires will be able to heat up witch's cauldrons just like fire
     TileEntityKettle: campfires will be able to heat up kettles just like fire
--Thaumcraft Mixins
+ -Thaumcraft Mixins
     TileCrucible: campfires will be able to heat up crucibles just like fire and lava
     TileThaumatorium: campfires will be able to heat up thaumatoriums just like fire and lava

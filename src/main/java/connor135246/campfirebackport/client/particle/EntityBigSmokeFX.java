@@ -61,12 +61,12 @@ public class EntityBigSmokeFX extends EntityFX
         if (signalFire)
         {
             this.particleMaxAge = rand.nextInt(50) + 280;
-            this.setAlphaF(0.95F);
+            this.particleAlpha = 0.95F;
         }
         else
         {
             this.particleMaxAge = rand.nextInt(50) + 80;
-            this.setAlphaF(0.9F);
+            this.particleAlpha = 0.9F;
         }
 
         if (colours.length == 3)

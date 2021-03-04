@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.Mixins;
 
@@ -24,7 +26,7 @@ import net.minecraftforge.common.config.Configuration;
 public class CampfireBackportMixins implements IFMLLoadingPlugin
 {
 
-    public static final String prefix = "[campfirebackport] ";
+    public static final Logger coreLog = LogManager.getLogger("campfirebackportmixins");
 
     public static Configuration config;
     public static boolean mixins = true;
@@ -45,11 +47,11 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
 
             // hacky thing we do to make mixins work on witchery: load the witchery .jar early
             // thanks to ClientHax & Rongmario
-            if (witcheryMixins && findAndLoadMod("Witchery", "FMLAT", "witchery_at.cfg"))
+            if (witcheryMixins && findMod("Witchery", "FMLAT", "witchery_at.cfg", true))
                 Mixins.addConfiguration("campfirebackport.mixin.witchery.json");
 
             // thaumcraft has a coremod (it downloads baubles), so its .jar is already loaded
-            if (thaumcraftMixins && checkForMod("Thaumcraft", "thaumcraft.common.Thaumcraft"))
+            if (thaumcraftMixins && findMod("Thaumcraft", "FMLCorePlugin", "thaumcraft.codechicken.core.launch.DepLoader", false))
                 Mixins.addConfiguration("campfirebackport.mixin.thaumcraft.json");
         }
     }
@@ -78,17 +80,17 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
     }
 
     /**
-     * Finds a jar file with modname in the file name, and checks a value in the jar's manifest to verify that it's the right file. Then loads the mod jar to the class loader and
-     * tells the CoreModManager about it.<br>
+     * Finds a jar file with modname in the file name, and checks a value in the jar's manifest to verify that it's the right file. Then, if loadEarly is true, loads the mod jar to
+     * the class loader and tells the CoreModManager about it.<br>
      * <br>
      * The jar finding bit copy-pasted from {@link CoreModManager#discoverCoreMods}.<br>
      * The jar loading bit copy-pasted from ClientHax/Rongmario:<br>
      * {@code https://github.com/clienthax/PixelmonBridge2/blob/master/src/main/java/moe/clienthax/pixelmonbridge/impl/PixelmonBridgeCoreMod.java } <br>
      * {@code https://github.com/LoliKingdom/KemonoFixer/blob/master/src/main/java/com/rong/kemonofixer/KemonoFixerCoreMod.java }
      * 
-     * @return true if the mod was found and successfully loaded early, false otherwise
+     * @return true if the mod was found (and loaded), false otherwise
      */
-    private boolean findAndLoadMod(String modname, String manifestAtrName, String manifestAtrValue)
+    private boolean findMod(String modname, String manifestAtrName, String manifestAtrValue, boolean loadEarly)
     {
         try
         {
@@ -141,46 +143,37 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
 
                 if (manifestAtr.getValue(manifestAtrName).equals(manifestAtrValue))
                 {
-                    try
+                    if (loadEarly)
                     {
-                        ((LaunchClassLoader) this.getClass().getClassLoader()).addURL(modfile.toURI().toURL());
-                        CoreModManager.getReparseableCoremods().add(modfile.getName());
-                        System.out.println(prefix + "Successfully loaded \"" + modfile.getName() + "\" early. \"" + modname + "\" mixins will be applied.");
-                        return true;
+                        try
+                        {
+                            ((LaunchClassLoader) this.getClass().getClassLoader()).addURL(modfile.toURI().toURL());
+                            CoreModManager.getReparseableCoremods().add(modfile.getName());
+                            coreLog.info("Successfully loaded \"" + modfile.getName() + "\" early. \"" + modname + "\" mixins will be applied.");
+                            return true;
+                        }
+                        catch (Exception excep)
+                        {
+                            coreLog.error("An error occured when trying to load \"" + modfile.getName() + "\" early for mixin application.");
+                            return false;
+                        }
                     }
-                    catch (Exception excep)
+                    else
                     {
-                        System.out.println(prefix + "An error occured when trying to load \"" + modfile.getName() + "\" early for mixin application.");
-                        return false;
+                        coreLog.info("Found \"" + modfile.getName() + "\". \"" + modname + "\" mixins will be applied.");
+                        return true;
                     }
                 }
             }
         }
         catch (Exception excep)
         {
-            ;
-        }
-
-        System.out.println(prefix + "Did not find the mod \"" + modname + "\".");
-        return false;
-    }
-
-    /**
-     * Checks if a mod is loaded by checking for a class from that mod.
-     */
-    private boolean checkForMod(String modname, String classToCheckFor)
-    {
-        try
-        {
-            Class.forName(classToCheckFor, false, this.getClass().getClassLoader());
-            System.out.println(prefix + "Found \"" + modname + "\". \"" + modname + "\" mixins will be applied.");
-            return true;
-        }
-        catch (ClassNotFoundException excep)
-        {
-            System.out.println(prefix + "Did not find the mod \"" + modname + "\".");
+            coreLog.error("An error occured when searching for the mod \"" + modname + "\".");
             return false;
         }
+
+        coreLog.info("Did not find the mod \"" + modname + "\".");
+        return false;
     }
 
     //

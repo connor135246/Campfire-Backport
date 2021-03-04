@@ -151,7 +151,7 @@ public class CommandCampfireBackport implements ICommand
             }
             else if (arguments[0].equals(RELOAD))
             {
-                CampfireBackportConfig.doConfig(0, false);
+                CampfireBackportConfig.doConfig(15, false);
 
                 if (!MinecraftServer.getServer().isSinglePlayer())
                 {
@@ -178,7 +178,7 @@ public class CommandCampfireBackport implements ICommand
 
                     PrintWriter explanationWriter = new PrintWriter(new FileWriter(explanation));
                     explanationWriter.println("--- " + Reference.MODID + "-" + Reference.VERSION + " ---");
-                    for (int i = 0; i <= 416; ++i)
+                    for (int i = 0; i <= 417; ++i)
                         explanationWriter.println(StatCollector.translateToLocal(Reference.MODID + ".config.explanation." + i));
                     explanationWriter.close();
                 }

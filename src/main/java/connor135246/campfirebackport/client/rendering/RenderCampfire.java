@@ -6,11 +6,14 @@ import connor135246.campfirebackport.client.models.ModelCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
+import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
@@ -35,7 +38,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
     }
 
     protected ModelCampfire model;
-    protected EntityItem invRender[] = new EntityItem[4];
+    protected EntityItem[] invRender = new EntityItem[4];
 
     // https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571543-forge-rendering-an-item-on-your-block
     // thanks
@@ -66,6 +69,8 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         }
 
         GL11.glPushMatrix();
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glDisable(GL11.GL_BLEND);
 
         GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
         GL11.glRotatef(180, 0, 0, 1);
@@ -104,25 +109,50 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                 {
                     int renderSlot = iro[slot];
 
-                    if (invRender[slot] == null || !invRender[slot].getEntityItem().toString().equals(stack.toString()))
-                        invRender[slot] = new EntityItem(ctile.getWorldObj(), x, y, z, stack);
+                    if (invRender[slot] == null)
+                    {
+                        invRender[slot] = new EntityItem(ctile.getWorldObj());
+                        invRender[slot].hoverStart = 0.0F;
+                    }
+                    else
+                    {
+                        invRender[slot].setWorld(ctile.getWorldObj());
+                    }
+
+                    invRender[slot].setEntityItemStack(stack);
+
+                    boolean rendersAsBlock = stack.getItemSpriteNumber() == 0 && stack.getItem() instanceof ItemBlock
+                            && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem()).getRenderType());
 
                     GL11.glPushMatrix();
-                    invRender[slot].hoverStart = 0.0F;
                     RenderItem.renderInFrame = true;
-                    GL11.glDisable(GL11.GL_LIGHTING);
+
+                    GL11.glDisable(GL11.GL_BLEND);
+
+                    if (!rendersAsBlock)
+                        GL11.glDisable(GL11.GL_LIGHTING);
 
                     double[] position = getRenderPositionFromRenderSlot(renderSlot, false);
-                    GL11.glTranslated(position[0] + x, position[1] + y, position[2] + z);
+                    GL11.glTranslated(x + position[0], y + position[1], z + position[2]);
 
-                    GL11.glRotatef(180, 0, 1, 1);
-                    GL11.glRotatef(renderSlot * -90, 0, 0, 1);
-                    GL11.glRotatef(270, 0, 0, 1);
+                    if (rendersAsBlock)
+                    {
+                        GL11.glRotatef(renderSlot * -90, 0, 1, 0);
+                        GL11.glTranslated(-0.125, -0.01625, 0.0);
+                    }
+                    else
+                    {
+                        GL11.glRotatef(180, 0, 1, 1);
+                        GL11.glRotatef(renderSlot * -90, 0, 0, 1);
+                        GL11.glRotatef(270, 0, 0, 1);
+                    }
 
                     GL11.glScalef(0.625F, 0.625F, 0.625F);
                     RenderManager.instance.renderEntityWithPosYaw(invRender[slot], 0.0, 0.0, 0.0, 0.0F, 0.0F);
 
-                    GL11.glEnable(GL11.GL_LIGHTING);
+                    if (!rendersAsBlock)
+                        GL11.glEnable(GL11.GL_LIGHTING);
+
                     RenderItem.renderInFrame = false;
                     GL11.glPopMatrix();
                 }

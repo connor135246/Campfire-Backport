@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
+import connor135246.campfirebackport.common.recipes.CampfireBackportRecipes;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager.SendConfigMessage;
@@ -14,6 +15,7 @@ import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -45,7 +47,10 @@ public class CommonProxy
         simpleNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
         simpleNetwork.registerMessage(SendConfigMessage.Handler.class, SendConfigMessage.class, 1, Side.CLIENT);
 
+        CampfireBackportCompat.preInit();
+
         CampfireBackportConfig.prepareConfig(event);
+        CampfireBackportConfig.doConfig(11, true);
 
         CampfireBackportBlocks.preInit();
 
@@ -61,7 +66,12 @@ public class CommonProxy
     {
         CampfireBackportCompat.postInit();
 
-        CampfireBackportConfig.doConfig(0, true);
+        CampfireBackportRecipes.postInit();
+    }
+
+    public void loadComplete(FMLLoadCompleteEvent event)
+    {
+        CampfireBackportConfig.doConfig(4, true);
     }
 
     public void serverLoad(FMLServerStartingEvent event)

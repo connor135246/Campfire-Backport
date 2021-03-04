@@ -12,6 +12,7 @@ import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
@@ -68,9 +69,9 @@ public class CampfireBackportEventHandler
     {
         if (event.modID.equals(Reference.MODID))
         {
-            if (!CampfireBackportConfig.useDefaultConfig)
+            if (!CampfireBackportConfig.useDefaults)
             {
-                CampfireBackportConfig.doConfig(1, false);
+                CampfireBackportConfig.doConfig(14, false);
             }
             else
             {
@@ -103,7 +104,7 @@ public class CampfireBackportEventHandler
         if (!event.manager.isLocalChannel())
         {
             CommonProxy.modlog.info(StringParsers.translatePacket("restore_config"));
-            CampfireBackportConfig.doConfig(0, true);
+            CampfireBackportConfig.doConfig(15, true);
         }
     }
 
@@ -113,9 +114,9 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.entityPlayer != null && !event.entityPlayer.worldObj.isRemote && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER
-                && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK && event.entityPlayer.isSneaking()
-                && event.entityPlayer.getCurrentEquippedItem() == null)
+        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !event.entityPlayer.worldObj.isRemote
+                && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK
+                && event.entityPlayer.isSneaking() && event.entityPlayer.getCurrentEquippedItem() == null)
         {
             Block block = event.entityPlayer.worldObj.getBlock(event.x, event.y, event.z);
 
@@ -158,7 +159,8 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onCampfireStateChange(CampfireStateChangeEvent event)
     {
-        if (!((BlockCampfire) event.block).isLit() && !CampfireBackportCompat.hasOxygen(event.world, event.block, event.x, event.y, event.z))
+        if (!event.isCanceled() && !((BlockCampfire) event.block).isLit()
+                && !CampfireBackportCompat.hasOxygen(event.world, event.block, event.x, event.y, event.z))
         {
             event.useGoods = false;
             event.setCanceled(true);
@@ -172,10 +174,13 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onEntityBigSmokeFXConstructing(EntityBigSmokeFXConstructingEvent event)
     {
-        event.particleGravity *= CampfireBackportCompat.getGravityMultiplier(event.entity.worldObj);
+        if (!event.isCanceled())
+        {
+            event.particleGravity *= CampfireBackportCompat.getGravityMultiplier(event.entity.worldObj);
 
-        event.motionY *= 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
-                MathHelper.floor_double(event.entity.posY)), 0.25F, 8.0F);
+            event.motionY *= 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
+                    MathHelper.floor_double(event.entity.posY)), 0.25F, 8.0F);
+        }
     }
 
 }

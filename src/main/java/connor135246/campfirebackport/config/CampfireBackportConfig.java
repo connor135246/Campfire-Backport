@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 import com.google.common.io.Files;
 
 import connor135246.campfirebackport.common.CommonProxy;
-import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
@@ -21,11 +20,7 @@ import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.registry.GameData;
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
@@ -35,7 +30,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 
 public class CampfireBackportConfig
 {
@@ -45,7 +39,7 @@ public class CampfireBackportConfig
     public static Configuration config;
     public static File configDirectory;
 
-    public static boolean useDefaultConfig = false;
+    public static boolean useDefaults = false;
     public static boolean initialLoad = true;
 
     // config settings
@@ -105,7 +99,7 @@ public class CampfireBackportConfig
 
     static
     {
-        getConfigDefault();
+        getConfigDefaults();
     }
 
     // lists made from config settings
@@ -144,7 +138,7 @@ public class CampfireBackportConfig
                 CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.0"));
                 CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.1"));
                 CommonProxy.modlog.error(StatCollector.translateToLocal(Reference.MODID + ".config.rename_old_config.error.2"));
-                useDefaultConfig = true;
+                useDefaults = true;
             }
         }
 
@@ -155,36 +149,28 @@ public class CampfireBackportConfig
     }
 
     /**
-     * Handles loading/saving config settings.<br>
-     * Mode:<br>
-     * 0 - Configuration object is loaded from file, settings are taken from it, related values are set, and Configuration object is saved to file.<br>
-     * Used for when the file has changed or is being created.<br>
-     * 1 - Settings are taken from Configuration object, related values are set, and Configuration object is saved to file.<br>
-     * Used for when the Configuration object has changed, but not the file. Ex: changes in config GUI.<br>
-     * 2 - Related values are set.<br>
-     * Used for when config settings have changed (but not the Configuration object), and related values must be updated (but not saved to file). Ex: receiving external server
-     * config settings.
+     * Handles loading/saving config settings. <br>
+     * Flags: <br>
+     * 1 - Loads config from file. <br>
+     * 2 - Gets config settings. <br>
+     * 4 - Applies config settings. <br>
+     * 8 - Saves config to file. <br>
+     * Flags can be added together.
      * 
-     * @param mode
-     *            - 0, 1, or 2
+     * @param flag
      * @param stopConsoleSpam
      *            - if true, nothing will be printed to console while setting values, regardless of config settings
      */
-    public static void doConfig(int mode, boolean stopConsoleSpam)
+    public static void doConfig(int flag, boolean stopConsoleSpam)
     {
-        if (-1 < mode || mode < 3)
+        if ((flag & 1) != 0 && !useDefaults)
+            config.load();
+
+        if ((flag & 2) != 0)
+            getConfig();
+
+        if ((flag & 4) != 0)
         {
-            if (mode == 0 && !useDefaultConfig)
-                config.load();
-
-            if (mode != 2)
-            {
-                if (!useDefaultConfig)
-                    getConfig();
-                else
-                    getConfigDefault();
-            }
-
             if (stopConsoleSpam)
             {
                 boolean tempPrint = printCustomRecipes;
@@ -200,10 +186,10 @@ public class CampfireBackportConfig
             }
             else
                 setConfig();
-
-            if (mode != 2 && !useDefaultConfig)
-                config.save();
         }
+
+        if ((flag & 8) != 0 && !useDefaults)
+            config.save();
     }
 
     /**
@@ -211,6 +197,12 @@ public class CampfireBackportConfig
      */
     private static void getConfig()
     {
+        if (useDefaults)
+        {
+            getConfigDefaults();
+            return;
+        }
+
         config.setCategoryPropertyOrder(Configuration.CATEGORY_GENERAL, ConfigReference.configOrder);
 
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
@@ -332,32 +324,6 @@ public class CampfireBackportConfig
     private static void setConfig()
     {
         ConfigReference.logInfo("setting_config");
-
-        // startUnlit & charcoalOnly & soulSoilOnly
-        if (initialLoad)
-        {
-            GameRegistry.addRecipe(new ShapedOreRecipe(
-                    new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsRegular(), EnumCampfireType.regular)),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
-
-            if (!charcoalOnly)
-                GameRegistry.addRecipe(
-                        new ShapedOreRecipe(
-                                new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsRegular(), EnumCampfireType.regular)),
-                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
-
-            Block soulSoil = GameData.getBlockRegistry().getObject("netherlicious:SoulSoil");
-
-            if (soulSoil != Blocks.air)
-                GameRegistry.addRecipe(
-                        new ShapedOreRecipe(new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsSoul(), EnumCampfireType.soul)),
-                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(soulSoil), 'C', "logWood"));
-
-            if (soulSoil == Blocks.air || !soulSoilOnly)
-                GameRegistry.addRecipe(
-                        new ShapedOreRecipe(new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(!startUnlit.acceptsSoul(), EnumCampfireType.soul)),
-                                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Blocks.soul_sand), 'C', "logWood"));
-        }
 
         // regularRegen & soulRegen
         regularRegen[0] = MathHelper.clamp_int(regularRegen[0], 0, 31);
@@ -604,7 +570,7 @@ public class CampfireBackportConfig
     /**
      * sets settings to the default
      */
-    private static void getConfigDefault()
+    private static void getConfigDefaults()
     {
         charcoalOnly = false;
         soulSoilOnly = false;

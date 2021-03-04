@@ -18,37 +18,54 @@ public class CampfireBackportCompat
     public static boolean isMineTweaker3Loaded = false,
             isGalacticraftLoaded = false,
             isAdvancedRocketryLoaded = false,
-            isThaumcraftLoaded = false;
+            isThaumcraftLoaded = false,
+            isBotaniaLoaded = false;
 
     /**
-     * prepares specific mod compatibility
+     * checks for mods in preInit, before any content is registered
+     */
+    public static void preInit()
+    {
+        isGalacticraftLoaded = Loader.isModLoaded("GalacticraftCore");
+        isAdvancedRocketryLoaded = Loader.isModLoaded("advancedRocketry");
+        isThaumcraftLoaded = Loader.isModLoaded("Thaumcraft");
+        isBotaniaLoaded = Loader.isModLoaded("Botania");
+        isMineTweaker3Loaded = Loader.isModLoaded("MineTweaker3");
+    }
+
+    /**
+     * prepares specific mod compatibility in postInit
      */
     public static void postInit()
     {
-        isGalacticraftLoaded = ifLoadedInvoke("GalacticraftCore", "handlers.GalacticraftHandler");
+        if (isGalacticraftLoaded)
+            loadModHandler("GalacticraftCore", "handlers.GalacticraftHandler");
 
-        isAdvancedRocketryLoaded = ifLoadedInvoke("advancedRocketry", "handlers.AdvancedRocketryHandler");
+        if (isAdvancedRocketryLoaded)
+            loadModHandler("advancedRocketry", "handlers.AdvancedRocketryHandler");
 
-        isThaumcraftLoaded = ifLoadedInvoke("Thaumcraft", "handlers.ThaumcraftHandler");
+        if (isThaumcraftLoaded)
+            loadModHandler("Thaumcraft", "handlers.ThaumcraftHandler");
 
-        isMineTweaker3Loaded = ifLoadedInvoke("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
+        if (isMineTweaker3Loaded)
+            loadModHandler("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
     }
 
-    private static boolean ifLoadedInvoke(String modid, String classnamepart)
+    private static void loadModHandler(String modid, String classnamepart)
     {
-        if (Loader.isModLoaded(modid))
+        try
         {
-            try
-            {
-                Class.forName(Reference.MOD_PACKAGE + ".common.compat." + classnamepart).getDeclaredMethod("load").invoke(null);
-                return true;
-            }
-            catch (Exception excep)
-            {
-                CommonProxy.modlog.error(StatCollector.translateToLocalFormatted(Reference.MODID + ".compat.error", modid));
-            }
+            Class.forName(Reference.MOD_PACKAGE + ".common.compat." + classnamepart).getDeclaredMethod("load").invoke(null);
         }
-        return false;
+        catch (Exception excep)
+        {
+            logError(modid);
+        }
+    }
+
+    public static void logError(String modid)
+    {
+        CommonProxy.modlog.error(StatCollector.translateToLocalFormatted(Reference.MODID + ".compat.error", modid));
     }
 
     // Handlers

@@ -22,7 +22,6 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
@@ -211,8 +210,7 @@ public class BlockCampfire extends BlockContainer
                         {
                             returned.animationsToGo = 5;
                             player.inventory.setInventorySlotContents(player.inventory.currentItem, returned);
-                            if (player instanceof EntityPlayerMP)
-                                ((EntityPlayerMP) player).sendContainerToPlayer(player.inventoryContainer);
+                            player.inventoryContainer.detectAndSendChanges();
                         }
                         else if (!BehaviourGeneric.putStackInEmptySlots(player.inventory, returned, true))
                             player.dropPlayerItemWithRandomChoice(returned, false);
