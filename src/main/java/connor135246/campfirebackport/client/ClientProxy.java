@@ -40,9 +40,10 @@ public class ClientProxy extends CommonProxy
     {
         if (RAND.nextFloat() < 0.11F)
         {
+            float[] colours = new float[0];
+
             if (CampfireBackportConfig.colourfulSmoke.matches(type))
             {
-                float[] colours = new float[0];
                 Block blockBelow = world.getBlock(x, y - 1, z);
 
                 if (blockBelow.getMaterial() != Material.air && world.isBlockIndirectlyGettingPowered(x, y, z))
@@ -50,10 +51,10 @@ public class ClientProxy extends CommonProxy
                     int intColour = blockBelow.getMapColor(world.getBlockMetadata(x, y - 1, z)).func_151643_b(2);
                     colours = new float[] { ((intColour >> 16) & 0xFF) / 255F, ((intColour >> 8) & 0xFF) / 255F, (intColour & 0xFF) / 255F };
                 }
-
-                for (int i = 0; i < RAND.nextInt(2) + 2; ++i)
-                    Minecraft.getMinecraft().effectRenderer.addEffect(new EntityBigSmokeFX(world, x, y, z, signalFire, colours));
             }
+
+            for (int i = 0; i < RAND.nextInt(2) + 2; ++i)
+                Minecraft.getMinecraft().effectRenderer.addEffect(new EntityBigSmokeFX(world, x, y, z, signalFire, colours));
         }
     }
 
