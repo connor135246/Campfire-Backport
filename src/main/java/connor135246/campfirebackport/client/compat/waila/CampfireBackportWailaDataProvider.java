@@ -76,7 +76,7 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                 {
                     NBTTagCompound itemCompound = itemList.getCompoundTagAt(i);
                     byte slot = itemCompound.getByte(TileEntityCampfire.KEY_Slot);
-                    if (slot >= 0 && slot < 4)
+                    if (slot >= 0 && slot < ((TileEntityCampfire) accessor.getTileEntity()).getSizeInventory())
                     {
                         ItemStack invStack = ItemStack.loadItemStackFromNBT(itemCompound);
                         int percentCooked = Math.min(Math.round((((float) cookTimes[slot]) / ((float) cookTotalTimes[slot])) * 100F), 100);

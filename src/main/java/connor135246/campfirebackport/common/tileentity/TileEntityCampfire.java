@@ -643,7 +643,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             {
                 ItemStack returnStack = stack.splitStack(decrease);
 
-                if (getStackInSlot(slot).stackSize == 0)
+                if (stack.stackSize <= 0)
                     setInventorySlotContents(slot, null);
                 else
                 {
@@ -684,7 +684,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
         if (stack != null)
         {
-            invStack = stack.splitStack(1);
+            invStack = stack.splitStack(getInventoryStackLimit());
 
             CampfireRecipe crecipe = CampfireRecipe.findRecipe(invStack, getType(), isSignalFire());
             if (crecipe != null)
@@ -834,11 +834,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public void popItems()
     {
         for (int slot = 0; slot < getSizeInventory(); ++slot)
-        {
-            ItemStack stack = getStackInSlotOnClosing(slot);
-            if (stack != null)
-                popItem(stack, getWorldObj(), xCoord, yCoord, zCoord);
-        }
+            popItem(getStackInSlotOnClosing(slot), getWorldObj(), xCoord, yCoord, zCoord);
     }
 
     /**

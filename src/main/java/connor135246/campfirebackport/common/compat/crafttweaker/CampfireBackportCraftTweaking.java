@@ -80,9 +80,7 @@ public class CampfireBackportCraftTweaking
             CustomInput[] cinputs = new CustomInput[Math.min(input.length, 4)];
 
             for (int i = 0; i < cinputs.length; ++i)
-            {
                 cinputs[i] = new CustomInput(new ActiveCraftTweakerIngredient(input[i]), 1, OreDictionary.WILDCARD_VALUE, null, false, -1);
-            }
 
             addCampfireRecipe(types, cinputs, output, cookingTime, signalFire, byproduct, byproductChance);
         }
