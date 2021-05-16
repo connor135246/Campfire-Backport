@@ -933,7 +933,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public void incrementAnimTimer()
     {
         ++animTimer;
-        if (animTimer == Integer.MAX_VALUE)
+        if (animTimer > 31)
             animTimer = 0;
     }
 

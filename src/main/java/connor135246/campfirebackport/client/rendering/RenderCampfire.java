@@ -175,7 +175,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
 
     public static ResourceLocation getLitTexture(int animTimer, String type)
     {
-        return EnumCampfireType.option(type, REGULAR_TEXTURES, SOUL_TEXTURES)[Math.abs(animTimer % (TEXTURE_COUNT * 2 - 1)) / 2];
+        return EnumCampfireType.option(type, REGULAR_TEXTURES, SOUL_TEXTURES)[Math.abs(animTimer % (TEXTURE_COUNT * 2)) / 2];
     }
 
     // Rendering Positions
