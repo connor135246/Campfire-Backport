@@ -35,6 +35,7 @@ campfirebackport.nei.any_tinkers=<Any Tinker's Construct Tool>
 campfirebackport.nei.tinkers_mods=Modifiers:
 campfirebackport.nei.damage_by=Damages item by %s point(s)
 campfirebackport.nei.num_ticks=%s Ticks
+campfirebackport.nei.chance=Chance:
 campfirebackport.nei.onlysignal=Must be a signal fire
 campfirebackport.nei.notsignal=Must NOT be a signal fire
 campfirebackport.nei.burn_out=Burns out

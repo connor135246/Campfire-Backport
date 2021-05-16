@@ -1,10 +1,7 @@
 package connor135246.campfirebackport.util;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.ImmutableList;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
@@ -20,11 +17,11 @@ public enum EnumCampfireType
 
     // don't want to make a spelling mistake!
     public static final String regular = "regular", soul = "soul";
-
+    
     private final boolean acceptsRegular;
     private final boolean acceptsSoul;
     private final String stringForm;
-    private final List<String> asList;
+    private final String[] asArray;
 
     public static final Map<String, EnumCampfireType> FROM_NAME = new HashMap<String, EnumCampfireType>(10);
 
@@ -44,15 +41,15 @@ public enum EnumCampfireType
         this.acceptsRegular = acceptsRegular;
         this.acceptsSoul = acceptsSoul;
         this.stringForm = stringForm;
-
+        
         if (acceptsRegular && acceptsSoul)
-            asList = ImmutableList.of(regular, soul);
+            asArray = new String[] { regular, soul };
         else if (acceptsRegular)
-            asList = ImmutableList.of(regular);
+            asArray = new String[] { regular };
         else if (acceptsSoul)
-            asList = ImmutableList.of(soul);
+            asArray = new String[] { soul };
         else
-            asList = ImmutableList.of();
+            asArray = new String[] {};
     }
 
     @Override
@@ -72,19 +69,11 @@ public enum EnumCampfireType
     }
 
     /**
-     * @return a list containing the names of the types of campfires this enum accepts.
-     */
-    public List<String> asList()
-    {
-        return asList;
-    }
-
-    /**
      * @return an array containing the names of the types of campfires this enum accepts.
      */
     public String[] asArray()
     {
-        return (String[]) asList.toArray();
+        return asArray;
     }
 
     public boolean matches(BlockCampfire cblock)

@@ -50,7 +50,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
             for (int i = 0; i < numInputs; ++i)
             {
-                inputs.add(new PositionedStack(neiLists.get(i), getInputX(i), getInputY(i), genPerms[i]));
+                inputs.add(new PositionedStack(expandInputList(crecipe.getInputs()[i]), getInputX(i), getInputY(i), false));
                 inputRects[i] = new Rectangle(inputs.get(i).relx - 1, inputs.get(i).rely - 1, 18, 18);
             }
 
@@ -139,7 +139,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         {
             CachedCampfireRecipe cachedCrecipe = new CachedCampfireRecipe(crecipe);
 
-            if (cachedCrecipe != null && cachedCrecipe.types.size() != 0)
+            if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
             {
                 for (int i = 0; i < cachedCrecipe.numInputs; ++i)
                 {
@@ -172,7 +172,8 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         else if (!tooltip.isEmpty() && cachedCrecipe.byproduct != null && byproductRect.contains(relMouse) && cachedCrecipe.byproductChance < 100)
         {
             tooltip.add("");
-            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + Math.round(cachedCrecipe.byproductChance * 100) / 100.0D + "%");
+            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("chance") + " "
+                    + Math.round(cachedCrecipe.byproductChance * 100) / 100.0D + "%");
         }
         else
             return true;
@@ -188,7 +189,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
         CachedCampfireRecipe cachedCrecipe = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCrecipe != null && cachedCrecipe.types.size() != 0)
+        if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
         {
             GuiDraw.changeTexture(neiBackground);
             GuiDraw.drawTexturedModalRect(54, 7, 118, 2, 63, 41);

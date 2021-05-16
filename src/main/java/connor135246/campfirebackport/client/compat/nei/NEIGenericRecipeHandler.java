@@ -10,7 +10,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
-import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -42,8 +41,8 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
     public abstract class CachedGenericRecipe extends CachedRecipe
     {
-        /** {@link GenericRecipe#types} as list */
-        public List<String> types;
+        /** {@link GenericRecipe#types} as array */
+        public String[] types;
         /** {@link GenericRecipe#inputs} */
         public List<PositionedStack> inputs;
         /** {@link GenericRecipe#outputs} */
@@ -55,12 +54,8 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         public byte[] inputTypes;
         /** {@link CustomInput#dataType} */
         public byte[] dataTypes;
-        /** {@link PositionedStack#generatePermutations()} doesn't always do what i want it to... */
-        public boolean[] genPerms;
         /** {@link CustomInput#neiTooltip} */
         public List<LinkedList<String>> tooltips;
-        /** expanded from {@link CustomInput#inputList} */
-        public List<ArrayList<ItemStack>> neiLists;
 
         /** rectangles that cover each input */
         public Rectangle[] inputRects;
@@ -69,23 +64,13 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         {
             if (grecipe != null)
             {
-                types = grecipe.getTypes().asList();
+                types = grecipe.getTypes().asArray();
 
                 numInputs = grecipe.getInputs().length;
 
-                inputs = new ArrayList<PositionedStack>(numInputs);
                 inputTypes = new byte[numInputs];
                 dataTypes = new byte[numInputs];
-                genPerms = new boolean[numInputs];
                 tooltips = new ArrayList<LinkedList<String>>(numInputs);
-                neiLists = new ArrayList<ArrayList<ItemStack>>(numInputs);
-                inputRects = new Rectangle[numInputs];
-
-                for (int i = 0; i < numInputs; ++i)
-                {
-                    tooltips.add(new LinkedList<String>());
-                    neiLists.add(new ArrayList<ItemStack>());
-                }
 
                 for (int cinputIndex = 0; cinputIndex < numInputs; ++cinputIndex)
                 {
@@ -93,45 +78,73 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
                     inputTypes[cinputIndex] = cinput.getInputType();
                     dataTypes[cinputIndex] = cinput.getDataType();
-                    genPerms[cinputIndex] = cinput.isIIngredientInput() ? ((ICraftTweakerIngredient) cinput.getInput()).isSimple() : false;
+                    tooltips.add(new LinkedList<String>());
                     tooltips.get(cinputIndex).addAll(cinput.getNEITooltip());
+                }
 
-                    for (ItemStack cinputStack : cinput.getInputList())
+                inputs = new ArrayList<PositionedStack>(numInputs);
+                inputRects = new Rectangle[numInputs];
+            }
+        }
+
+        /**
+         * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems}. <br>
+         * Because {@link PositionedStack#generatePermutations()} doesn't always do what I want it to...
+         */
+        public List<ItemStack> expandInputList(CustomInput cinput)
+        {
+            List<ItemStack> neiList = new ArrayList<ItemStack>();
+
+            for (ItemStack cinputStack : cinput.getInputList())
+            {
+                if (cinputStack.getItemDamage() == OreDictionary.WILDCARD_VALUE)
+                {
+                    List<ItemStack> metaList = new ArrayList<ItemStack>();
+                    cinputStack.getItem().getSubItems(cinputStack.getItem(), CreativeTabs.tabAllSearch, metaList);
+
+                    if (cinput.getInputType() == 6)
                     {
-                        if (inputTypes[cinputIndex] != 6 && cinputStack.getItemDamage() == OreDictionary.WILDCARD_VALUE)
-                        {
-                            List<ItemStack> metaList = new ArrayList<ItemStack>();
-                            cinputStack.getItem().getSubItems(cinputStack.getItem(), CreativeTabs.tabAllSearch, metaList);
-                            if (cinput.doesInputSizeMatter() || cinput.hasExtraData())
+                        if (cinput.doesInputSizeMatter() || cinputStack.hasTagCompound())
+                            for (ItemStack metaStack : metaList)
                             {
-                                for (ItemStack metaStack : metaList)
-                                {
-                                    if (cinput.doesInputSizeMatter())
-                                        metaStack.stackSize = cinput.getInputSize();
-                                    if (cinput.hasExtraData())
-                                        metaStack.setTagCompound((NBTTagCompound) cinput.getExtraData().copy());
-                                }
+                                if (cinput.doesInputSizeMatter())
+                                    metaStack.stackSize = cinput.getInputSize();
+                                if (cinputStack.hasTagCompound())
+                                    metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
                             }
-                            neiLists.get(cinputIndex).addAll(metaList);
-                        }
-                        else
-                        {
-                            if (cinput.doesInputSizeMatter())
-                                cinputStack.stackSize = cinput.getInputSize();
-
-                            neiLists.get(cinputIndex).add(cinputStack);
-                        }
                     }
+                    else
+                    {
+                        if (cinput.doesInputSizeMatter() || cinput.hasExtraData())
+                            for (ItemStack metaStack : metaList)
+                            {
+                                if (cinput.doesInputSizeMatter())
+                                    metaStack.stackSize = cinput.getInputSize();
+                                if (cinput.hasExtraData())
+                                    metaStack.setTagCompound((NBTTagCompound) cinput.getExtraData().copy());
+                            }
+                    }
+
+                    neiList.addAll(metaList);
+                }
+                else
+                {
+                    if (cinput.doesInputSizeMatter())
+                        cinputStack.stackSize = cinput.getInputSize();
+
+                    neiList.add(cinputStack);
                 }
             }
+
+            return neiList;
         }
 
         public String getType()
         {
-            if (types.size() == 0)
+            if (types.length == 0)
                 return EnumCampfireType.regular;
             else
-                return types.get((cycleticks % (20 * types.size())) / 20);
+                return types[(cycleticks % (20 * types.length)) / 20];
         }
 
     }
@@ -172,7 +185,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     {
         CachedGenericRecipe cachedGrecipe = (CachedGenericRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedGrecipe != null && cachedGrecipe.types.size() != 0)
+        if (cachedGrecipe != null && cachedGrecipe.types.length != 0)
         {
             Point mouse = GuiDraw.getMousePosition();
             Point offset = gui.getRecipePosition(recipe);

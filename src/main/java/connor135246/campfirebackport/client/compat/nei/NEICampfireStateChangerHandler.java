@@ -68,7 +68,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             super(cstate);
 
-            inputs.add(new PositionedStack(neiLists.get(0), 74, 17, genPerms[0]));
+            inputs.add(new PositionedStack(expandInputList(cstate.getInput()), 74, 17, false));
             inputRects[0] = new Rectangle(inputs.get(0).relx - 1, inputs.get(0).rely - 1, 20, 20);
 
             extinguisher = cstate.isExtinguisher();
@@ -88,7 +88,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             super(null);
 
-            this.types = type.asList();
+            this.types = type.asArray();
 
             this.specialID = specialID;
             this.extinguisher = extinguisher;
@@ -166,7 +166,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
         {
             CachedCampfireStateChanger cachedCstate = new CachedCampfireStateChanger(cstate);
-            if (cachedCstate != null && cachedCstate.types.size() != 0 && cachedCstate.inputTypes[0] != 5 && cachedCstate.inputs.get(0).contains(ingredient))
+            if (cachedCstate != null && cachedCstate.types.length != 0 && cachedCstate.inputTypes[0] != 5 && cachedCstate.inputs.get(0).contains(ingredient))
                 arecipes.add(cachedCstate);
         }
     }
@@ -178,7 +178,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             arecipes.add(new CachedCampfireStateChanger(cstate));
 
         // creating non-recipe state changers
-        final List<String> typeArray = EnumCampfireType.BOTH.asList();
+        final String[] typeArray = EnumCampfireType.BOTH.asArray();
         final boolean[] extinguisherArray = new boolean[] { true, false };
 
         // wand
@@ -280,7 +280,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         CachedCampfireStateChanger cachedCstate = (CachedCampfireStateChanger) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCstate != null && cachedCstate.types.size() != 0)
+        if (cachedCstate != null && cachedCstate.types.length != 0)
         {
             GL11.glTranslatef(12, 32, 100);
             GL11.glRotatef(-30, 1, 0, 0);
