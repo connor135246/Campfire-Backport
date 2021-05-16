@@ -1,5 +1,6 @@
 package connor135246.campfirebackport.common.items;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
@@ -47,6 +48,7 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
         if (!world.isRemote && entity instanceof EntityPlayerMP && burnOutAsAnItem(stack, world, entity))
         {
             ((EntityPlayerMP) entity).inventory.setInventorySlotContents(invSlot, null);
+            ((EntityPlayerMP) entity).inventoryContainer.putStackInSlot(invSlot, null);
             ((EntityPlayerMP) entity).mcServer.getConfigurationManager().syncPlayerInventory(((EntityPlayerMP) entity));
         }
     }
@@ -82,94 +84,119 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
             if (baseBurnOut != -1)
             {
                 if (!stack.hasTagCompound())
+                {
                     stack.setTagCompound(new NBTTagCompound());
+                    stack.getTagCompound().setTag(TileEntityCampfire.KEY_BlockEntityTag, new NBTTagCompound());
+                }
 
                 NBTTagCompound tilenbt = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
-                long timestamp = world.getTotalWorldTime();
 
-                if (!tilenbt.hasNoTags())
+                final boolean hasLife = tilenbt.hasKey(TileEntityCampfire.KEY_Life, 99);
+                final boolean hasStartingLife = tilenbt.hasKey(TileEntityCampfire.KEY_StartingLife, 99);
+
+                int life;
+                final long timestamp = world.getTotalWorldTime();
+
+                if (hasLife || hasStartingLife)
                 {
-                    int timePassed = (int) (timestamp - tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp));
+                    life = hasLife ? tilenbt.getInteger(TileEntityCampfire.KEY_Life) : tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
 
-                    tilenbt.setInteger(TileEntityCampfire.KEY_Life, tilenbt.getInteger(TileEntityCampfire.KEY_Life) - timePassed);
+                    if (!hasStartingLife)
+                        tilenbt.setInteger(TileEntityCampfire.KEY_StartingLife, life);
 
-                    tilenbt.setLong(TileEntityCampfire.KEY_PreviousTimestamp, timestamp);
+                    long previousTimestamp = tilenbt.hasKey(TileEntityCampfire.KEY_PreviousTimestamp, 99)
+                            ? tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp)
+                            : timestamp;
+
+                    life -= (int) (timestamp - previousTimestamp);
                 }
                 else
                 {
-                    int burnOut = TileEntityCampfire.natureRange(baseBurnOut);
-
-                    tilenbt.setInteger(TileEntityCampfire.KEY_Life, burnOut);
-                    tilenbt.setInteger(TileEntityCampfire.KEY_StartingLife, burnOut);
-                    tilenbt.setLong(TileEntityCampfire.KEY_PreviousTimestamp, timestamp);
-                    stack.getTagCompound().setTag(TileEntityCampfire.KEY_BlockEntityTag, tilenbt);
+                    life = TileEntityCampfire.natureRange(baseBurnOut);
+                    tilenbt.setInteger(TileEntityCampfire.KEY_StartingLife, life);
                 }
 
-                if (tilenbt.getInteger(TileEntityCampfire.KEY_Life) <= 0)
+                if (life <= 0)
                 {
-                    int particles = 0;
-
-                    boolean copyTags = false;
-                    boolean hasItems = false;
-
-                    NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
-                    NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
-                    NBTTagList droptileitemstag = droptiletag.getTagList(TileEntityCampfire.KEY_Items, 10);
-
-                    droptiletag.removeTag(TileEntityCampfire.KEY_Life);
-                    droptiletag.removeTag(TileEntityCampfire.KEY_StartingLife);
-                    droptiletag.removeTag(TileEntityCampfire.KEY_PreviousTimestamp);
-
-                    if (droptileitemstag.tagCount() != 0)
-                    {
-                        droptiletag.removeTag(TileEntityCampfire.KEY_Items);
-                        hasItems = true;
-                    }
-
-                    if (droptiletag.hasNoTags())
-                        droptag.removeTag(TileEntityCampfire.KEY_BlockEntityTag);
-
-                    if (!droptag.hasNoTags())
-                        copyTags = true;
-
-                    for (int i = 0; i < stack.stackSize; ++i)
-                    {
-                        ItemStack dropstack;
-
-                        if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
-                        {
-                            dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]);
-
-                            particles = 65;
-                        }
-                        else
-                        {
-                            dropstack = new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(false, getType()));
-
-                            if (copyTags)
-                                dropstack.setTagCompound((NBTTagCompound) droptag.copy());
-
-                            if (particles == 0)
-                                particles = 20;
-                        }
-
-                        entity.entityDropItem(dropstack, 0.1F);
-
-                        // lit campfires drop their items when they're extinguished as a block. so they should do the same when they're extinguished as an item!
-                        if (hasItems)
-                        {
-                            for (int j = 0; j < droptileitemstag.tagCount(); ++j)
-                                entity.entityDropItem(ItemStack.loadItemStackFromNBT(droptileitemstag.getCompoundTagAt(j)), 0.1F);
-                        }
-                    }
-
-                    TileEntityCampfire.playFizzAndAddSmokeServerSide(world, entity.posX, entity.posY, entity.posZ, particles, 0.25);
-
+                    onBurningOut(stack, world, entity);
                     return true;
+                }
+                else
+                {
+                    tilenbt.setInteger(TileEntityCampfire.KEY_Life, life);
+                    tilenbt.setLong(TileEntityCampfire.KEY_PreviousTimestamp, timestamp);
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Drops the campfire's burn out drops and does burn out effects.
+     */
+    protected void onBurningOut(ItemStack stack, World world, Entity entity)
+    {
+        int particles = 0;
+
+        boolean copyTags = false;
+        boolean hasItems = false;
+        List<ItemStack> invItems = new ArrayList<ItemStack>();
+
+        NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
+        NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
+        NBTTagList droptileitemstag = droptiletag.getTagList(TileEntityCampfire.KEY_Items, 10);
+
+        droptiletag.removeTag(TileEntityCampfire.KEY_Life);
+        droptiletag.removeTag(TileEntityCampfire.KEY_StartingLife);
+        droptiletag.removeTag(TileEntityCampfire.KEY_PreviousTimestamp);
+
+        if (droptileitemstag.tagCount() != 0)
+        {
+            for (int i = 0; i < droptileitemstag.tagCount(); ++i)
+                invItems.add(ItemStack.loadItemStackFromNBT(droptileitemstag.getCompoundTagAt(i)));
+
+            droptiletag.removeTag(TileEntityCampfire.KEY_Items);
+            hasItems = true;
+        }
+
+        if (droptiletag.hasNoTags())
+            droptag.removeTag(TileEntityCampfire.KEY_BlockEntityTag);
+
+        if (!droptag.hasNoTags())
+            copyTags = true;
+
+        for (int i = 0; i < stack.stackSize; ++i)
+        {
+            ItemStack dropstack;
+
+            if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
+            {
+                dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]);
+
+                particles = 65;
+            }
+            else
+            {
+                dropstack = new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(false, getType()));
+
+                if (copyTags)
+                    dropstack.setTagCompound((NBTTagCompound) droptag.copy());
+
+                if (particles == 0)
+                    particles = 20;
+            }
+
+            entity.entityDropItem(dropstack, 0.1F);
+
+            // lit campfires drop their items when they're extinguished as a block. so they should do the same when they're extinguished as an item!
+            if (hasItems)
+                invItems.forEach(invStack -> {
+                    if (invStack != null)
+                        entity.entityDropItem(invStack.copy(), 0.1F);
+                });
+        }
+
+        TileEntityCampfire.playFizzAndAddSmokeServerSide(world, entity.posX, entity.posY, entity.posZ, particles, 0.25);
     }
 
     @SideOnly(Side.CLIENT)
@@ -178,10 +205,27 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
     {
         super.addInformation(stack, player, list, advancedTooltips);
 
+        boolean burnOutTip = false;
+
         if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this)
                 && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getType()).getTimer() != -1)
         {
             list.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".tooltip.burning_out"));
+            burnOutTip = true;
+        }
+
+        if (stack.hasTagCompound())
+        {
+            NBTTagList itemList = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag).getTagList(TileEntityCampfire.KEY_Items, 10);
+
+            if (itemList.tagCount() != 0)
+            {
+                if (burnOutTip)
+                    list.add("");
+
+                for (int i = 0; i < itemList.tagCount(); ++i)
+                    list.add(ItemStack.loadItemStackFromNBT(itemList.getCompoundTagAt(i)).getDisplayName());
+            }
         }
     }
 
