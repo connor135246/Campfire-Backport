@@ -368,7 +368,7 @@ public class CampfireBackportCraftTweaking
             return -1;
         else
         {
-            MineTweakerAPI.logError(StringParsers.translateCT("error.usage", signalFire));
+            MineTweakerAPI.logError(StringParsers.translateCT("error.signal", signalFire));
             return -2;
         }
     }
@@ -385,7 +385,7 @@ public class CampfireBackportCraftTweaking
         }
         else
         {
-            MineTweakerAPI.logError(StringParsers.translateCT("error.signal", usageType));
+            MineTweakerAPI.logError(StringParsers.translateCT("error.usage", usageType));
             return false;
         }
     }
