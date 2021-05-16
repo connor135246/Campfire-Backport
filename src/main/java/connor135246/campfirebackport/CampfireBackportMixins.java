@@ -113,6 +113,8 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
             }
         };
 
+        boolean result = false;
+
         try
         {
             File[] modfiles = modsDir.listFiles(modJarsFilter);
@@ -124,38 +126,46 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
                 modfiles = ObjectArrays.concat(modfiles, versionedModfiles, File.class);
             }
 
-            for (File modfile : modfiles)
+            if (modfiles.length == 0)
+                coreLog.info("Did not find the mod \"" + modname + "\".");
+            else
             {
-                if (loadEarly)
+                for (File modfile : modfiles)
                 {
-                    try
+                    if (loadEarly)
                     {
-                        ((LaunchClassLoader) this.getClass().getClassLoader()).addURL(modfile.toURI().toURL());
-                        CoreModManager.getReparseableCoremods().add(modfile.getName());
-                        coreLog.info("Successfully loaded \"" + modfile.getName() + "\" early. \"" + modname + "\" mixins will be applied.");
-                        return true;
+                        try
+                        {
+                            ((LaunchClassLoader) this.getClass().getClassLoader()).addURL(modfile.toURI().toURL());
+                            CoreModManager.getReparseableCoremods().add(modfile.getName());
+                            coreLog.info("Successfully loaded \"" + modfile.getName() + "\" early.");
+                            result = true;
+                        }
+                        catch (Exception excep)
+                        {
+                            coreLog.error("An error occured when trying to load \"" + modfile.getName() + "\" early.");
+                        }
                     }
-                    catch (Exception excep)
+                    else
                     {
-                        coreLog.error("An error occured when trying to load \"" + modfile.getName() + "\" early for mixin application.");
-                        return false;
+                        coreLog.info("Found \"" + modfile.getName() + "\".");
+                        result = true;
+                        break;
                     }
-                }
-                else
-                {
-                    coreLog.info("Found \"" + modfile.getName() + "\". \"" + modname + "\" mixins will be applied.");
-                    return true;
                 }
             }
         }
         catch (Exception excep)
         {
             coreLog.error("An error occured when searching for the mod \"" + modname + "\".");
-            return false;
         }
 
-        coreLog.info("Did not find the mod \"" + modname + "\".");
-        return false;
+        if (result)
+            coreLog.info("\"" + modname + "\" mixins will be applied.");
+        else
+            coreLog.info("\"" + modname + "\" mixins will NOT be applied.");
+
+        return result;
     }
 
     //
