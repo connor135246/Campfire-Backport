@@ -3,7 +3,6 @@ package connor135246.campfirebackport.common.tileentity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 import connor135246.campfirebackport.CampfireBackport;
@@ -450,6 +449,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         super.readFromNBT(compound);
 
+        signalFire = compound.getBoolean(KEY_SignalFire);
+
         readFromNBTIfItExists(compound);
     }
 
@@ -459,8 +460,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public void readFromNBTIfItExists(NBTTagCompound compound)
     {
-        signalFire = compound.getBoolean(KEY_SignalFire);
-
         int[] cookingTimesArray = compound.hasKey(KEY_CookingTimes, 11) ? compound.getIntArray(KEY_CookingTimes) : cookingTimes;
         boolean hasCookingTotalTimes = compound.hasKey(KEY_CookingTotalTimes, 11);
         int[] cookingTotalTimesArray = hasCookingTotalTimes ? compound.getIntArray(KEY_CookingTotalTimes) : cookingTotalTimes;
@@ -489,16 +488,14 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                         setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
                     else
                     {
-                        CampfireRecipe crecipe = Optional.ofNullable(CampfireRecipe.findRecipe(stack, getType(), true))
-                                .orElse(CampfireRecipe.findRecipe(stack, getType(), false));
+                        CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), signalFire);
                         setCookingTotalTimeInSlot(slot, crecipe == null ? 600 : crecipe.getCookingTime());
                     }
                 }
             }
         }
 
-        if (compound.hasKey(KEY_CustomName, 8))
-            customName = compound.getString(KEY_CustomName);
+        customName = compound.hasKey(KEY_CustomName, 8) ? compound.getString(KEY_CustomName) : customName;
     }
 
     @Override

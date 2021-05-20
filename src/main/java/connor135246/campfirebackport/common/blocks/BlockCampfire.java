@@ -92,16 +92,17 @@ public class BlockCampfire extends BlockContainer
         TileEntity tile = world.getTileEntity(x, y, z);
         if (tile instanceof TileEntityCampfire)
         {
+            ((TileEntityCampfire) tile).checkSignal();
+
             if (stack.hasTagCompound())
             {
-                if (stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag))
+                if (stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag, 10))
                     ((TileEntityCampfire) tile).readFromNBTIfItExists(stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag));
 
                 if (stack.hasDisplayName())
                     ((TileEntityCampfire) tile).setCustomInventoryName(stack.getDisplayName());
             }
 
-            ((TileEntityCampfire) tile).checkSignal();
             ((TileEntityCampfire) tile).burnOutDueToLackOfOxygen();
         }
     }
