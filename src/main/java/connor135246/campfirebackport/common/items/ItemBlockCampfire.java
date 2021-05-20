@@ -84,10 +84,10 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
             if (baseBurnOut != -1)
             {
                 if (!stack.hasTagCompound())
-                {
                     stack.setTagCompound(new NBTTagCompound());
+
+                if (!stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag, 10))
                     stack.getTagCompound().setTag(TileEntityCampfire.KEY_BlockEntityTag, new NBTTagCompound());
-                }
 
                 NBTTagCompound tilenbt = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
 
