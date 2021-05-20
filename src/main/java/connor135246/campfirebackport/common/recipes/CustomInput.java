@@ -320,38 +320,43 @@ public class CustomInput implements Comparable<CustomInput>
 
         if (matches)
         {
-            switch (cinput.getInputType())
-            {
-            case 1:
-                matches = matchesTheStack(cinput, stack);
-                break;
-            case 2:
-                matches = matchesTheOre(cinput, stack);
-                break;
-            case 3:
-                matches = matchesTheTool(cinput, stack);
-                break;
-            case 4:
-                matches = matchesTheClass(cinput, stack);
-                break;
-            case 5:
-                matches = true;
-                break;
-            case 6:
-                matches = matchesTheIIngredient(cinput, stack);
-                break;
-            default:
-                matches = false;
-                break;
-            }
-
-            if (cinput.hasExtraData())
-                matches = matches && matchesData(cinput, stack);
-
             if (cinput.doesInputSizeMatter())
-                matches = matches && stack.stackSize >= cinput.getInputSize();
-        }
+                matches = stack.stackSize >= cinput.getInputSize();
 
+            if (matches)
+            {
+                switch (cinput.getInputType())
+                {
+                case 1:
+                    matches = matchesTheStack(cinput, stack);
+                    break;
+                case 2:
+                    matches = matchesTheOre(cinput, stack);
+                    break;
+                case 3:
+                    matches = matchesTheTool(cinput, stack);
+                    break;
+                case 4:
+                    matches = matchesTheClass(cinput, stack);
+                    break;
+                case 5:
+                    matches = true;
+                    break;
+                case 6:
+                    matches = matchesTheIIngredient(cinput, stack);
+                    break;
+                default:
+                    matches = false;
+                    break;
+                }
+
+                if (matches)
+                {
+                    if (cinput.hasExtraData())
+                        matches = matchesData(cinput, stack);
+                }
+            }
+        }
         return matches;
     }
 
