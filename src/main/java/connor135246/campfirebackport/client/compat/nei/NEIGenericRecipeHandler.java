@@ -87,58 +87,6 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
             }
         }
 
-        /**
-         * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems}. <br>
-         * Because {@link PositionedStack#generatePermutations()} doesn't always do what I want it to...
-         */
-        public List<ItemStack> expandInputList(CustomInput cinput)
-        {
-            List<ItemStack> neiList = new ArrayList<ItemStack>();
-
-            for (ItemStack cinputStack : cinput.getInputList())
-            {
-                if (cinputStack.getItemDamage() == OreDictionary.WILDCARD_VALUE)
-                {
-                    List<ItemStack> metaList = new ArrayList<ItemStack>();
-                    cinputStack.getItem().getSubItems(cinputStack.getItem(), CreativeTabs.tabAllSearch, metaList);
-
-                    if (cinput.getInputType() == 6)
-                    {
-                        if (cinput.doesInputSizeMatter() || cinputStack.hasTagCompound())
-                            for (ItemStack metaStack : metaList)
-                            {
-                                if (cinput.doesInputSizeMatter())
-                                    metaStack.stackSize = cinput.getInputSize();
-                                if (cinputStack.hasTagCompound())
-                                    metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
-                            }
-                    }
-                    else
-                    {
-                        if (cinput.doesInputSizeMatter() || cinput.hasExtraData())
-                            for (ItemStack metaStack : metaList)
-                            {
-                                if (cinput.doesInputSizeMatter())
-                                    metaStack.stackSize = cinput.getInputSize();
-                                if (cinput.hasExtraData())
-                                    metaStack.setTagCompound((NBTTagCompound) cinput.getExtraData().copy());
-                            }
-                    }
-
-                    neiList.addAll(metaList);
-                }
-                else
-                {
-                    if (cinput.doesInputSizeMatter())
-                        cinputStack.stackSize = cinput.getInputSize();
-
-                    neiList.add(cinputStack);
-                }
-            }
-
-            return neiList;
-        }
-
         public String getType()
         {
             if (types.length == 0)
@@ -250,6 +198,58 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     }
 
     // Static Methods
+
+    /**
+     * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems}. <br>
+     * Because {@link PositionedStack#generatePermutations()} doesn't always do what I want it to...
+     */
+    public static List<ItemStack> expandInputList(CustomInput cinput)
+    {
+        List<ItemStack> neiList = new ArrayList<ItemStack>();
+
+        for (ItemStack cinputStack : cinput.getInputList())
+        {
+            if (cinputStack.getItemDamage() == OreDictionary.WILDCARD_VALUE)
+            {
+                List<ItemStack> metaList = new ArrayList<ItemStack>();
+                cinputStack.getItem().getSubItems(cinputStack.getItem(), CreativeTabs.tabAllSearch, metaList);
+
+                if (cinput.getInputType() == 6)
+                {
+                    if (cinput.doesInputSizeMatter() || cinputStack.hasTagCompound())
+                        for (ItemStack metaStack : metaList)
+                        {
+                            if (cinput.doesInputSizeMatter())
+                                metaStack.stackSize = cinput.getInputSize();
+                            if (cinputStack.hasTagCompound())
+                                metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
+                        }
+                }
+                else
+                {
+                    if (cinput.doesInputSizeMatter() || cinput.hasExtraData())
+                        for (ItemStack metaStack : metaList)
+                        {
+                            if (cinput.doesInputSizeMatter())
+                                metaStack.stackSize = cinput.getInputSize();
+                            if (cinput.hasExtraData())
+                                metaStack.setTagCompound((NBTTagCompound) cinput.getExtraData().copy());
+                        }
+                }
+
+                neiList.addAll(metaList);
+            }
+            else
+            {
+                if (cinput.doesInputSizeMatter())
+                    cinputStack.stackSize = cinput.getInputSize();
+
+                neiList.add(cinputStack);
+            }
+        }
+
+        return neiList;
+    }
 
     /**
      * Draws an inventory slot at x, y.
