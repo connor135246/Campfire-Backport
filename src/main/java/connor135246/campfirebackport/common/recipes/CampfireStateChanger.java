@@ -11,7 +11,6 @@ import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
-import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.item.Item;
@@ -19,7 +18,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.StatCollector;
 
 public class CampfireStateChanger extends GenericRecipe implements Comparable<CampfireStateChanger>
 {
@@ -138,7 +136,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
             if (tip.isEmpty())
                 tip.add("");
 
-            tip.add(EnumChatFormatting.GOLD + StatCollector.translateToLocalFormatted(Reference.MODID + ".nei.damage_by", getInput().getInputSize()));
+            tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("damage_by", getInput().getInputSize()));
         }
 
         // register dispensables (only on initial load)
