@@ -20,19 +20,20 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     // simple recipes don't really need the nei tooltip
     public static final Pattern simpleModidNameMetaPat = Pattern.compile("(?!^<ore:)<\\w+:\\w+(((:\\d+)?)|(:\\*))>");
 
-    public final IIngredient ingredient;
+    public final IIngredient iingredient;
     public final boolean isSimple;
 
-    public ActiveCraftTweakerIngredient(IIngredient ingredient)
+    public ActiveCraftTweakerIngredient(IIngredient iingredient)
     {
-        this.ingredient = ingredient;
-        this.isSimple = simpleModidNameMetaPat.matcher(ingredient.toString()).matches();
+        this.iingredient = iingredient;
+
+        this.isSimple = simpleModidNameMetaPat.matcher(iingredient.toString()).matches();
     }
 
     @Override
     public boolean matches(ItemStack stack, boolean inputSizeMatters)
     {
-        return ingredient.matches(new MCItemStack(stack, !inputSizeMatters));
+        return iingredient.matches(inputSizeMatters ? MineTweakerMC.getIItemStack(stack) : MineTweakerMC.getIItemStackWildcardSize(stack));
     }
 
     @Override
@@ -49,7 +50,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 
         if (!isSimple())
         {
-            String ingredientString = ingredient.toString();
+            String ingredientString = iingredient.toString();
 
             if (ingredientString.startsWith("(Ingredient) "))
                 ingredientString = ingredientString.substring(13);
