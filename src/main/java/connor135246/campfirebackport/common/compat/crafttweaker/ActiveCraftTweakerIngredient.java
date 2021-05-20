@@ -38,7 +38,8 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     @Override
     public List<ItemStack> getItems()
     {
-        return Arrays.asList(MineTweakerMC.getExamples(ingredient));
+        ItemStack[] stacks = MineTweakerMC.getItemStacks(iingredient.getItems());
+        return stacks != null ? Arrays.asList(stacks) : new ArrayList<ItemStack>();
     }
 
     @Override
