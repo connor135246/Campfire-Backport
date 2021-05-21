@@ -118,7 +118,7 @@ public class StringParsers
         if (ench != null && !ench.isEmpty())
         {
             int id = Integer.valueOf(ench.substring(6, ench.lastIndexOf(",")));
-            if (Enchantment.enchantmentsList[id] != null)
+            if (id >= 0 && id < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList[id] != null)
             {
                 input = enchMatcher.replaceFirst("");
                 NBTTagList enchList = new NBTTagList();
@@ -134,7 +134,7 @@ public class StringParsers
             }
             else
             {
-                ConfigReference.logError("invalid_ench_id", input);
+                ConfigReference.logError("invalid_ench_id", ench);
                 return new Object[] { null, null, null, null };
             }
         }
@@ -164,7 +164,7 @@ public class StringParsers
             }
             else
             {
-                ConfigReference.logError("invalid_fluid", input);
+                ConfigReference.logError("invalid_fluid", fluid);
                 return new Object[] { null, null, null, null };
             }
         }
