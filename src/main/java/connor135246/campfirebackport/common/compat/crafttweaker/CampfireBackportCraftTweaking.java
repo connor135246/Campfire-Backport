@@ -69,26 +69,6 @@ public class CampfireBackportCraftTweaking
     // Campfire Recipes
 
     /**
-     * ZenScript method that adds a Campfire Recipe.
-     */
-    @ZenMethod
-    public static void addCampfireRecipe(String types, IIngredient[] input, IItemStack output, @Optional Integer cookingTime, @Optional String signalFire,
-            @Optional IItemStack byproduct, @Optional Double byproductChance)
-    {
-        if (input.length > 0)
-        {
-            CustomInput[] cinputs = new CustomInput[Math.min(input.length, 4)];
-
-            for (int i = 0; i < cinputs.length; ++i)
-                cinputs[i] = new CustomInput(new ActiveCraftTweakerIngredient(input[i]), 1, OreDictionary.WILDCARD_VALUE, null, false, -1);
-
-            addCampfireRecipe(types, cinputs, output, cookingTime, signalFire, byproduct, byproductChance);
-        }
-        else
-            MineTweakerAPI.logError(StringParsers.translateCT("error.empty_array"));
-    }
-
-    /**
      * Helper ZenScript method so that you don't have to create an array for simpler recipes.
      */
     @ZenMethod
@@ -98,24 +78,44 @@ public class CampfireBackportCraftTweaking
         addCampfireRecipe(types, new IIngredient[] { input }, output, cookingTime, signalFire, byproduct, byproductChance);
     }
 
-    private static void addCampfireRecipe(String types, CustomInput[] cinputs, IItemStack output, Integer cookingTime, String signalFire, IItemStack byproduct,
-            Double byproductChance)
+    /**
+     * ZenScript method that adds a Campfire Recipe.
+     */
+    @ZenMethod
+    public static void addCampfireRecipe(String types, IIngredient[] input, IItemStack output, @Optional Integer cookingTime, @Optional String signalFire,
+            @Optional IItemStack byproduct, @Optional Double byproductChance)
     {
         try
         {
-            EnumCampfireType typesVerified = getTypes(types);
-            byte signalFireVerified = getSignalFire(signalFire);
-            if (typesVerified != null && signalFireVerified != -2)
+            if (input.length > 0)
             {
-                CampfireRecipe crecipe = new CampfireRecipe(typesVerified, cinputs, new ItemStack[] { MineTweakerMC.getItemStack(output) }, cookingTime,
-                        signalFireVerified, MineTweakerMC.getItemStack(byproduct), byproductChance, 100);
+                CustomInput[] cinputs = new CustomInput[Math.min(input.length, 4)];
 
-                MineTweakerAPI.apply(new AddCampfireRecipeAction(crecipe));
+                for (int i = 0; i < cinputs.length; ++i)
+                    cinputs[i] = new CustomInput(new ActiveCraftTweakerIngredient(input[i]), 1, OreDictionary.WILDCARD_VALUE, null, false, -1);
+
+                addCampfireRecipe(types, cinputs, output, cookingTime, signalFire, byproduct, byproductChance);
             }
+            else
+                MineTweakerAPI.logError(StringParsers.translateCT("error.empty_array"));
         }
         catch (Exception excep)
         {
             MineTweakerAPI.logError(StringParsers.translateCT("recipe.error"), excep);
+        }
+    }
+
+    private static void addCampfireRecipe(String types, CustomInput[] cinputs, IItemStack output, Integer cookingTime, String signalFire, IItemStack byproduct,
+            Double byproductChance)
+    {
+        EnumCampfireType typesVerified = getTypes(types);
+        byte signalFireVerified = getSignalFire(signalFire);
+        if (typesVerified != null && signalFireVerified != -2)
+        {
+            CampfireRecipe crecipe = new CampfireRecipe(typesVerified, cinputs, new ItemStack[] { MineTweakerMC.getItemStack(output) }, cookingTime,
+                    signalFireVerified, MineTweakerMC.getItemStack(byproduct), byproductChance, 100);
+
+            MineTweakerAPI.apply(new AddCampfireRecipeAction(crecipe));
         }
     }
 
