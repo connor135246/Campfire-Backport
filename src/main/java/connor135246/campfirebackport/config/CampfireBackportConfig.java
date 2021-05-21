@@ -522,8 +522,11 @@ public class CampfireBackportConfig
                         throw new Exception();
 
                     ItemStack drop = new ItemStack((Item) output[0], (Integer) output[1], (Integer) output[2]);
-                    if (!((NBTTagCompound) output[3]).hasNoTags())
+                    if (output[3] != null && !((NBTTagCompound) output[3]).hasNoTags())
+                    {
+                        ((NBTTagCompound) output[3]).removeTag(StringParsers.KEY_GCIDataType);
                         drop.setTagCompound((NBTTagCompound) output[3]);
+                    }
 
                     campfireDropsStacks[i] = drop;
                 }
