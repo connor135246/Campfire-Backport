@@ -113,11 +113,13 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
      */
     public static boolean putStackInEmptySlots(IInventory inventory, ItemStack returned, boolean animate)
     {
+        int space = Math.min(returned.getMaxStackSize(), inventory.getInventoryStackLimit());
+
         for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
         {
             if (inventory.getStackInSlot(slot) == null && inventory.isItemValidForSlot(slot, returned))
             {
-                if (inventory.getInventoryStackLimit() >= returned.stackSize)
+                if (space >= returned.stackSize)
                 {
                     if (animate)
                         returned.animationsToGo = 5;
@@ -126,7 +128,7 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
                 }
                 else
                 {
-                    ItemStack sideReturned = returned.splitStack(inventory.getInventoryStackLimit());
+                    ItemStack sideReturned = returned.splitStack(space);
                     if (animate)
                         sideReturned.animationsToGo = 5;
                     inventory.setInventorySlotContents(slot, sideReturned);
