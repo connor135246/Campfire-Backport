@@ -66,14 +66,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
                 for (int i = 0; i < stackSize; ++i)
                 {
                     if (tempInputsList.size() < 4)
-                    {
-                        CustomInput cinput = CustomInput.createFromParsed(anInput, false, -1);
-
-                        if (cinput.input == null)
-                            throw new Exception();
-
-                        tempInputsList.add(cinput);
-                    }
+                        tempInputsList.add(CustomInput.createFromParsed(anInput, false, -1));
                     else
                         break inputLoop;
                 }

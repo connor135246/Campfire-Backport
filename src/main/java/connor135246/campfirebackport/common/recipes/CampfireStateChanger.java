@@ -93,8 +93,6 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
             CustomInput cinput = CustomInput.createFromParsed(StringParsers.parseItemOrOreOrToolOrClassWithNBTOrDataWithSize(segment[1], true), !damageable,
                     !damageable ? 64 : -1);
-            if (cinput.input == null)
-                throw new Exception();
 
             // dispensable
 

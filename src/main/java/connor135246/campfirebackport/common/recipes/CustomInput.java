@@ -57,7 +57,7 @@ public class CustomInput implements Comparable<CustomInput>
      * @param parsed
      *            - the Object[] received from {@link StringParsers}
      */
-    public static CustomInput createFromParsed(Object[] parsed, boolean inputSizeMatters, int clamp)
+    public static CustomInput createFromParsed(Object[] parsed, boolean inputSizeMatters, int clamp) throws Exception
     {
         return new CustomInput(parsed[0], (Integer) parsed[1], (Integer) parsed[2], (NBTTagCompound) parsed[3], inputSizeMatters, clamp);
     }
@@ -68,7 +68,7 @@ public class CustomInput implements Comparable<CustomInput>
      * @param stack
      *            - the input ItemStack
      */
-    public static CustomInput createAuto(ItemStack stack)
+    public static CustomInput createAuto(ItemStack stack) throws Exception
     {
         return new CustomInput(stack.getItem(), 1, stack.getItemDamage(), null, false, -1);
     }
@@ -86,7 +86,7 @@ public class CustomInput implements Comparable<CustomInput>
      * @param clamp
      *            - clamps {@link #inputSize} to be between 1 and this number. if it's less than 1, doesn't clamp.
      */
-    public CustomInput(Object input, int inputSize, int inputMeta, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp)
+    public CustomInput(Object input, int inputSize, int inputMeta, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp) throws Exception
     {
         this.inputSize = clamp > 0 ? MathHelper.clamp_int(inputSize, 1, clamp) : inputSize;
 
@@ -140,9 +140,7 @@ public class CustomInput implements Comparable<CustomInput>
                 if (inputList.isEmpty())
                 {
                     ConfigReference.logError("no_matches_ore", OreDictionary.getOreName((Integer) input));
-                    this.input = null;
-                    this.inputType = 0;
-                    return;
+                    throw new Exception();
                 }
 
                 this.input = (Integer) input;
@@ -163,9 +161,7 @@ public class CustomInput implements Comparable<CustomInput>
                 if (inputList.isEmpty())
                 {
                     ConfigReference.logError("no_matches_tool", (String) input);
-                    this.input = null;
-                    this.inputType = 0;
-                    return;
+                    throw new Exception();
                 }
 
                 this.input = (String) input;
@@ -196,9 +192,7 @@ public class CustomInput implements Comparable<CustomInput>
                 if (inputList.isEmpty())
                 {
                     ConfigReference.logError("no_matches_class", ((Class) input).getCanonicalName());
-                    this.input = null;
-                    this.inputType = 0;
-                    return;
+                    throw new Exception();
                 }
 
                 this.input = (Class) input;
@@ -229,11 +223,7 @@ public class CustomInput implements Comparable<CustomInput>
                 inputList.add(listStack);
             }
             else
-            {
-                this.input = null;
-                this.inputType = 0;
-                return;
-            }
+                throw new Exception();
         }
 
         switch (getDataType())
