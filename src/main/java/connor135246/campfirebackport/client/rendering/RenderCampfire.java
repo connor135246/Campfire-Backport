@@ -69,31 +69,11 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         }
 
         GL11.glPushMatrix();
+
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glDisable(GL11.GL_BLEND);
 
-        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
-        GL11.glRotatef(180, 0, 0, 1);
-
-        switch (meta)
-        {
-        case 5:
-            GL11.glRotatef(90F, 0.0F, 1.0F, 0.0F);
-            break;
-        case 3:
-            GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
-            break;
-        case 4:
-            GL11.glRotatef(270F, 0.0F, 1.0F, 0.0F);
-            break;
-        }
-
-        if (lit)
-            bindTexture(getLitTexture(animTimer, type));
-        else
-            bindTexture(BASE_TEXTURE);
-
-        model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
+        renderModelAt(lit, type, animTimer, x, y, z, meta);
 
         GL11.glPopMatrix();
 
@@ -115,9 +95,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                         invRender[slot].hoverStart = 0.0F;
                     }
                     else
-                    {
                         invRender[slot].setWorld(ctile.getWorldObj());
-                    }
 
                     invRender[slot].setEntityItemStack(stack);
 
@@ -160,17 +138,36 @@ public class RenderCampfire extends TileEntitySpecialRenderer
         }
     }
 
-    public void renderSimple(boolean lit, String type, int animTimer)
+    private void renderModelAt(boolean lit, String type, int animTimer, double x, double y, double z, int meta)
     {
-        GL11.glTranslated(0.5, 1.5, 0.5);
+        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
         GL11.glRotatef(180, 0, 0, 1);
+
+        switch (meta)
+        {
+        case 5:
+            GL11.glRotatef(90, 0, 1, 0);
+            break;
+        case 3:
+            GL11.glRotatef(180, 0, 1, 0);
+            break;
+        case 4:
+            GL11.glRotatef(270, 0, 1, 0);
+            break;
+        }
 
         if (lit)
             bindTexture(getLitTexture(animTimer, type));
         else
             bindTexture(BASE_TEXTURE);
 
+        model.renderFire = lit;
         model.render((Entity) null, 0, -0.1F, 0, 0, 0, 0.0625F);
+    }
+
+    public void renderSimple(boolean lit, String type, int animTimer)
+    {
+        renderModelAt(lit, type, animTimer, 0, 0, 0, 0);
     }
 
     public static ResourceLocation getLitTexture(int animTimer, String type)

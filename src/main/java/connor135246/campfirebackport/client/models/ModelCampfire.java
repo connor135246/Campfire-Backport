@@ -19,6 +19,8 @@ public class ModelCampfire extends ModelBase
     public ModelRenderer fire1;
     public ModelRenderer fire2;
 
+    public boolean renderFire = true;
+
     public ModelCampfire()
     {
         this.textureWidth = 40;
@@ -64,16 +66,26 @@ public class ModelCampfire extends ModelBase
         this.bottomleftlog.render(f5);
         this.firepit.render(f5);
 
-        boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+        if (renderFire)
+        {
+            boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+            boolean alphatest = GL11.glGetBoolean(GL11.GL_ALPHA_TEST);
 
-        if (lighting)
-            GL11.glDisable(GL11.GL_LIGHTING);
+            if (lighting)
+                GL11.glDisable(GL11.GL_LIGHTING);
 
-        this.fire1.render(f5);
-        this.fire2.render(f5);
+            if (!alphatest)
+                GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-        if (lighting)
-            GL11.glEnable(GL11.GL_LIGHTING);
+            this.fire1.render(f5);
+            this.fire2.render(f5);
+
+            if (lighting)
+                GL11.glEnable(GL11.GL_LIGHTING);
+
+            if (!alphatest)
+                GL11.glDisable(GL11.GL_ALPHA_TEST);
+        }
     }
 
     /**
