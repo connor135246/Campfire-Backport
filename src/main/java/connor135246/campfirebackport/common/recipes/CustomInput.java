@@ -1,15 +1,14 @@
 package connor135246.campfirebackport.common.recipes;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
-import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.config.ConfigReference;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
@@ -19,12 +18,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -429,7 +426,7 @@ public class CustomInput implements Comparable<CustomInput>
             case 3:
             {
                 NBTTagCompound cinputFluidData = cinputData.getCompoundTag(StringParsers.KEY_Fluid);
-                return containsFluid(stack, cinputFluidData.getString(StringParsers.KEY_FluidName), cinputFluidData.getInteger(StringParsers.KEY_Amount));
+                return MiscUtil.containsFluid(stack, cinputFluidData.getString(StringParsers.KEY_FluidName), cinputFluidData.getInteger(StringParsers.KEY_Amount));
             }
             case 4:
             {
@@ -491,78 +488,6 @@ public class CustomInput implements Comparable<CustomInput>
     }
 
     /**
-     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}.
-     */
-    public static NBTTagCompound mergeNBT(final NBTTagCompound base, final NBTTagCompound merger)
-    {
-        if (base == null)
-            return (NBTTagCompound) merger.copy();
-
-        if (merger != null)
-        {
-            try
-            {
-                NBTTagCompound returnTag = (NBTTagCompound) base.copy();
-
-                Iterator iterator = merger.func_150296_c().iterator();
-                while (iterator.hasNext())
-                {
-                    String mergerKey = (String) iterator.next();
-                    NBTBase mergerTag = merger.getTag(mergerKey).copy();
-                    mergeNBT(returnTag, mergerKey, mergerTag);
-                }
-
-                return returnTag;
-            }
-            catch (ClassCastException excep)
-            {
-                // CommonProxy.modlog.error("Error while attempting to merge NBT: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
-            }
-        }
-
-        return (NBTTagCompound) base.copy();
-    }
-
-    /**
-     * Merges the merger into the base with the key. <br>
-     * If the merger is a compound, its tags are recursively added to the base's compound. <br>
-     * If the merger is a list of the same type as the base's list, its tags are appended to the base's list. <br>
-     * Otherwise, the merger replaces the value in the base.
-     */
-    public static NBTTagCompound mergeNBT(final NBTTagCompound base, final String key, NBTBase merger) throws ClassCastException
-    {
-        NBTBase baseTag = base.getTag(key);
-
-        if (baseTag == null || baseTag.getId() != merger.getId() || (baseTag.getId() != 9 && baseTag.getId() != 10)
-                || (baseTag.getId() == 10 && ((NBTTagCompound) baseTag).hasNoTags()))
-        {
-            base.setTag(key, merger);
-        }
-        else if (baseTag.getId() == 10)
-        {
-            Iterator iterator = ((NBTTagCompound) merger).func_150296_c().iterator();
-            while (iterator.hasNext())
-            {
-                String mergerKey = (String) iterator.next();
-                NBTBase mergerTag = ((NBTTagCompound) merger).getTag(mergerKey).copy();
-                mergeNBT((NBTTagCompound) baseTag, mergerKey, mergerTag);
-            }
-        }
-        else if (baseTag.getId() == 9 && ((NBTTagList) merger).tagCount() > 0)
-        {
-            if (((NBTTagList) baseTag).func_150303_d() != ((NBTTagList) merger).func_150303_d())
-                base.setTag(key, merger);
-            else
-            {
-                for (int i = 0; i < ((NBTTagList) merger).tagCount(); ++i)
-                    ((NBTTagList) baseTag).appendTag(((NBTTagList) merger).removeTag(i));
-            }
-        }
-
-        return base;
-    }
-
-    /**
      * Modifies an input stack for displaying in NEI.
      */
     public ItemStack modifyStackForDisplay(ItemStack stack)
@@ -575,72 +500,14 @@ public class CustomInput implements Comparable<CustomInput>
             if (hasExtraData())
             {
                 if (getDataType() == 1 || getDataType() == 2)
-                    stack.setTagCompound(mergeNBT(stack.getTagCompound(), getExtraData()));
+                    stack.setTagCompound(MiscUtil.mergeNBT(stack.getTagCompound(), getExtraData()));
                 else if (getDataType() == 3)
-                    stack = fillContainerWithFluid(stack, FluidStack.loadFluidStackFromNBT(getExtraData().getCompoundTag(StringParsers.KEY_Fluid)));
+                    stack = MiscUtil.fillContainerWithFluid(stack, FluidStack.loadFluidStackFromNBT(getExtraData().getCompoundTag(StringParsers.KEY_Fluid)));
             }
 
             if (isIIngredientInput())
                 stack = ((ICraftTweakerIngredient) getInput()).modifyStackForDisplay(stack);
         }
-        return stack;
-    }
-
-    /**
-     * @return true if the stack contains the fluid given by name and amount
-     */
-    public static boolean containsFluid(ItemStack stack, String name, int amount)
-    {
-        if (stack != null && name != null)
-        {
-            Fluid fluid = FluidRegistry.getFluid(name);
-            if (fluid != null)
-                return containsFluid(stack, new FluidStack(fluid, amount));
-        }
-        return false;
-    }
-
-    /**
-     * @return true if the stack contains the fluidStack
-     */
-    public static boolean containsFluid(ItemStack stack, FluidStack fluidStack)
-    {
-        if (stack != null && fluidStack != null)
-        {
-            if (stack.getItem() instanceof IFluidContainerItem)
-            {
-                FluidStack result = ((IFluidContainerItem) stack.getItem()).drain(stack, fluidStack.amount, false);
-                return result != null && result.containsFluid(fluidStack);
-            }
-            else
-                return FluidContainerRegistry.containsFluid(stack, fluidStack);
-        }
-        return false;
-    }
-
-    /**
-     * @return a copy of the fluid container after it's been filled with the fluidStack
-     */
-    public static ItemStack fillContainerWithFluid(ItemStack stack, FluidStack fluidStack)
-    {
-        try
-        {
-            if (fluidStack != null && stack != null && stack.getItem() instanceof IFluidContainerItem)
-            {
-                FluidStack currentFluid = ((IFluidContainerItem) stack.getItem()).getFluid(stack);
-                if (currentFluid == null || currentFluid.isFluidEqual(fluidStack))
-                {
-                    ItemStack modifiedStack = stack.copy();
-                    ((IFluidContainerItem) stack.getItem()).fill(modifiedStack, fluidStack, true);
-                    return modifiedStack;
-                }
-            }
-        }
-        catch (Exception excep)
-        {
-            // CommonProxy.modlog.error("Error while attempting to fill a fluid container: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
-        }
-
         return stack;
     }
 
@@ -667,7 +534,7 @@ public class CustomInput implements Comparable<CustomInput>
                 if (emptyContainer != null)
                 {
                     stack.stackSize--;
-                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, emptyContainer, true))
+                    if (!MiscUtil.putStackInExistingSlots(player.inventory, emptyContainer, true))
                     {
                         if (stack.stackSize <= 0)
                             stack = emptyContainer;

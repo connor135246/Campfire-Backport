@@ -3,6 +3,7 @@ package connor135246.campfirebackport.common.dispenser;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.util.CampfireBackportFakePlayer;
+import connor135246.campfirebackport.util.MiscUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
@@ -51,14 +52,14 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
                     {
                         ItemStack fakePlayerStack = fakePlayer.inventory.getStackInSlotOnClosing(slot);
                         if (fakePlayerStack != null)
-                            if (!(hasInv && putStackInInventory((IInventory) source.getBlockTileEntity(), fakePlayerStack, false)))
+                            if (!(hasInv && MiscUtil.putStackInInventory((IInventory) source.getBlockTileEntity(), fakePlayerStack, false)))
                                 super.dispenseStack(source, fakePlayerStack);
                     }
 
                     if (cstate.hasOutputs())
                     {
                         ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
-                        if (!(hasInv && putStackInInventory((IInventory) source.getBlockTileEntity(), returned, false)))
+                        if (!(hasInv && MiscUtil.putStackInInventory((IInventory) source.getBlockTileEntity(), returned, false)))
                             super.dispenseStack(source, returned);
                     }
                 }
@@ -66,80 +67,6 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
             return stack;
         }
         return super.dispenseStack(source, stack);
-    }
-
-    /**
-     * Tries to put returned in the inventory.
-     * 
-     * @return true if all of returned was put in the inventory, false otherwise
-     */
-    public static boolean putStackInInventory(IInventory inventory, ItemStack returned, boolean animate)
-    {
-        return putStackInExistingSlots(inventory, returned, animate) || putStackInEmptySlots(inventory, returned, animate);
-    }
-
-    /**
-     * If returned can stack, finds inventory slots that already have it and puts it there.
-     * 
-     * @return true if all of returned was put in the inventory, false otherwise
-     */
-    public static boolean putStackInExistingSlots(IInventory inventory, ItemStack returned, boolean animate)
-    {
-        if (returned.isStackable())
-        {
-            for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
-            {
-                ItemStack thisslot = inventory.getStackInSlot(slot);
-                if (thisslot != null && inventory.isItemValidForSlot(slot, returned) && thisslot.isStackable() && thisslot.getItem() == returned.getItem()
-                        && (!thisslot.getHasSubtypes() || thisslot.getItemDamage() == returned.getItemDamage())
-                        && ItemStack.areItemStackTagsEqual(thisslot, returned))
-                {
-                    int space = Math.min(returned.stackSize, Math.min(thisslot.getMaxStackSize(), inventory.getInventoryStackLimit()) - thisslot.stackSize);
-                    if (space > 0)
-                    {
-                        thisslot.stackSize += space;
-                        returned.stackSize -= space;
-                        if (animate)
-                            thisslot.animationsToGo = 5;
-                        if (returned.stackSize <= 0)
-                            return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Finds empty inventory slots and puts returned there.
-     * 
-     * @return true if all of returned was put in the inventory, false otherwise
-     */
-    public static boolean putStackInEmptySlots(IInventory inventory, ItemStack returned, boolean animate)
-    {
-        int space = Math.min(returned.getMaxStackSize(), inventory.getInventoryStackLimit());
-
-        for (int slot = 0; slot < inventory.getSizeInventory(); ++slot)
-        {
-            if (inventory.getStackInSlot(slot) == null && inventory.isItemValidForSlot(slot, returned))
-            {
-                if (space >= returned.stackSize)
-                {
-                    if (animate)
-                        returned.animationsToGo = 5;
-                    inventory.setInventorySlotContents(slot, returned);
-                    return true;
-                }
-                else
-                {
-                    ItemStack sideReturned = returned.splitStack(space);
-                    if (animate)
-                        sideReturned.animationsToGo = 5;
-                    inventory.setInventorySlotContents(slot, sideReturned);
-                }
-            }
-        }
-        return false;
     }
 
 }

@@ -32,8 +32,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fluids.FluidContainerRegistry.FluidContainerRegisterEvent;
-import net.minecraftforge.fluids.FluidRegistry;
 
 public class CampfireBackportEventHandler
 {
@@ -183,14 +181,6 @@ public class CampfireBackportEventHandler
             event.motionY *= 1 / MathHelper.clamp_float(CampfireBackportCompat.getAtmosphereDensity(event.entity.worldObj,
                     MathHelper.floor_double(event.entity.posY)), 0.25F, 8.0F);
         }
-    }
-
-    // TODO temp
-    @SubscribeEvent
-    public void onFluidContainerRegistery(FluidContainerRegisterEvent event)
-    {
-        CommonProxy.modlog.warn("Register! Fluid: " + event.data.fluid.amount + "x" + FluidRegistry.getFluidName(event.data.fluid) + ", Filled: "
-                + event.data.filledContainer + ", Empty: " + event.data.emptyContainer);
     }
 
 }

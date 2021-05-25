@@ -69,7 +69,7 @@ public class BurnOutRule
                 if (segment3[0].equals("biome"))
                 {
                     biomeId = Integer.parseInt(segment3[1]);
-                    if (biomeId > 255 || 0 > biomeId)
+                    if (biomeId >= BiomeGenBase.getBiomeGenArray().length || biomeId < 0)
                     {
                         ConfigReference.logError("invalid_biome_id", biomeId);
                         throw new Exception();
@@ -208,18 +208,18 @@ public class BurnOutRule
     }
 
     /**
-     * @return whether the biome id is a valid biome id
+     * @return whether the biome id is valid and registered
      */
     public static boolean checkBiomeId(int biomeId)
     {
-        if (biomeId > 255 || 0 > biomeId || BiomeGenBase.getBiomeGenArray()[biomeId] == null)
+        if (biomeId >= BiomeGenBase.getBiomeGenArray().length || biomeId < 0  || BiomeGenBase.getBiomeGenArray()[biomeId] == null)
             return false;
         else
             return true;
     }
 
     /**
-     * @return whether the dimension id is a valid dimension id
+     * @return whether the dimension id is registered
      */
     public static boolean checkDimensionId(int dimensionId)
     {

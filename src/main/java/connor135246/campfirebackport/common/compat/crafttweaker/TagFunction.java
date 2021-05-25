@@ -8,7 +8,7 @@ import java.util.Stack;
 
 import org.apache.commons.lang3.StringUtils;
 
-import connor135246.campfirebackport.common.recipes.CustomInput;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
 import minetweaker.MineTweakerAPI;
 import minetweaker.api.data.DataByte;
@@ -107,7 +107,7 @@ public class TagFunction extends AbstractItemFunction
     public ItemStack modifyStackForDisplay(ItemStack stack)
     {
         if (stack != null)
-            stack.setTagCompound(CustomInput.mergeNBT(stack.getTagCompound(), asNBT));
+            stack.setTagCompound(MiscUtil.mergeNBT(stack.getTagCompound(), asNBT));
 
         return stack;
     }

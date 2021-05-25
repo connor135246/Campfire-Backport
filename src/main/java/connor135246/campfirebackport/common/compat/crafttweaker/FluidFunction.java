@@ -1,6 +1,7 @@
 package connor135246.campfirebackport.common.compat.crafttweaker;
 
 import connor135246.campfirebackport.common.recipes.CustomInput;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
 import minetweaker.api.item.IItemStack;
 import minetweaker.api.minecraft.MineTweakerMC;
@@ -35,7 +36,7 @@ public class FluidFunction extends AbstractItemFunction
     @Override
     public boolean matches(IItemStack istack)
     {
-        return CustomInput.containsFluid(MineTweakerMC.getItemStack(istack), asFluidStack);
+        return MiscUtil.containsFluid(MineTweakerMC.getItemStack(istack), asFluidStack);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class FluidFunction extends AbstractItemFunction
     @Override
     public ItemStack modifyStackForDisplay(ItemStack stack)
     {
-        return CustomInput.fillContainerWithFluid(stack, asFluidStack.copy());
+        return MiscUtil.fillContainerWithFluid(stack, asFluidStack.copy());
     }
 
     @Override

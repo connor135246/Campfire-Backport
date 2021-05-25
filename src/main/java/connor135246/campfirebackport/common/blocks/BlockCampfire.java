@@ -5,11 +5,11 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.relauncher.Side;
@@ -212,7 +212,7 @@ public class BlockCampfire extends BlockContainer
                 if (cstate.hasOutputs())
                 {
                     ItemStack outputStack = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, outputStack, true))
+                    if (!MiscUtil.putStackInExistingSlots(player.inventory, outputStack, true))
                     {
                         if (returnStack.stackSize <= 0)
                             returnStack = outputStack;

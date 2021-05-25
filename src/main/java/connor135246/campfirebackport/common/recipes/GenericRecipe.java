@@ -3,8 +3,8 @@ package connor135246.campfirebackport.common.recipes;
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
-import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -55,8 +55,7 @@ public abstract class GenericRecipe
             if (cinput.isIIngredientInput())
                 stack = ((ICraftTweakerIngredient) cinput.getInput()).applyTransform(stack, player);
             else if (cinput.hasExtraData() && cinput.getDataType() == 3)
-                stack = CustomInput.doFluidEmptying(stack, cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount),
-                        player);
+                stack = CustomInput.doFluidEmptying(stack, cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount), player);
 
             if (stack != null)
             {
@@ -90,7 +89,7 @@ public abstract class GenericRecipe
             {
                 if (containerStack.isItemStackDamageable() && containerStack.getItemDamage() > containerStack.getMaxDamage())
                     ForgeEventFactory.onPlayerDestroyItem(player, containerStack);
-                else if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, containerStack, true))
+                else if (!MiscUtil.putStackInExistingSlots(player.inventory, containerStack, true))
                 {
                     // an odd thing we have to do, but ultimately this simulates how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it
                     if (use(cinput, stack.copy(), player).stackSize <= 0)

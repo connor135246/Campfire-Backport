@@ -121,13 +121,13 @@ public class StringParsers
 
         if (ench != null && !ench.isEmpty())
         {
-            int id = Integer.valueOf(ench.substring(6, ench.lastIndexOf(",")));
+            int id = Integer.parseInt(ench.substring(6, ench.lastIndexOf(",")));
             if (id >= 0 && id < Enchantment.enchantmentsList.length && Enchantment.enchantmentsList[id] != null)
             {
                 input = enchMatcher.replaceFirst("");
                 NBTTagList enchList = new NBTTagList();
                 NBTTagCompound theench = new NBTTagCompound();
-                theench.setInteger(KEY_lvl, Integer.valueOf(ench.substring(ench.lastIndexOf(",") + 1, ench.length() - 1)));
+                theench.setInteger(KEY_lvl, Integer.parseInt(ench.substring(ench.lastIndexOf(",") + 1, ench.length() - 1)));
                 theench.setInteger(KEY_id, id);
                 enchList.appendTag(theench);
                 data.setTag(KEY_ench, enchList);
@@ -138,7 +138,7 @@ public class StringParsers
             }
             else
             {
-                ConfigReference.logError("invalid_ench_id", ench);
+                ConfigReference.logError("invalid_ench_id", id);
                 return new Object[] { null, null, null, null };
             }
         }
@@ -154,23 +154,27 @@ public class StringParsers
             input = fluidMatcher.replaceFirst("");
 
             String fluidName = fluid.substring(8, fluid.lastIndexOf("\""));
-
-            if (FluidRegistry.isFluidRegistered(fluidName))
+            if (!FluidRegistry.isFluidRegistered(fluidName))
             {
-                NBTTagCompound fluidCom = new NBTTagCompound();
-                fluidCom.setString(KEY_FluidName, fluidName);
-                fluidCom.setInteger(KEY_Amount, Integer.valueOf(fluid.substring(fluid.lastIndexOf(":") + 1, fluid.length() - 1)));
-                data.setTag(KEY_Fluid, fluidCom);
-
-                data.setByte(KEY_GCIDataType, (byte) 3);
-
-                return parseItemOrOreOrToolOrClass(input, size, data, returnWildcard);
-            }
-            else
-            {
-                ConfigReference.logError("invalid_fluid", fluid);
+                ConfigReference.logError("invalid_fluid", fluidName);
                 return new Object[] { null, null, null, null };
             }
+
+            int fluidAmount = Integer.parseInt(fluid.substring(fluid.lastIndexOf(":") + 1, fluid.length() - 1));
+            if (fluidAmount <= 0)
+            {
+                ConfigReference.logError("invalid_fluid_amount", fluidAmount);
+                return new Object[] { null, null, null, null };
+            }
+
+            NBTTagCompound fluidCom = new NBTTagCompound();
+            fluidCom.setString(KEY_FluidName, fluidName);
+            fluidCom.setInteger(KEY_Amount, fluidAmount);
+            data.setTag(KEY_Fluid, fluidCom);
+
+            data.setByte(KEY_GCIDataType, (byte) 3);
+
+            return parseItemOrOreOrToolOrClass(input, size, data, returnWildcard);
         }
 
         Matcher tinkersMatcher = tinkersPattern.matcher(input);
