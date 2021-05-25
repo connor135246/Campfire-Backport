@@ -33,8 +33,9 @@ public class CampfireBackportCraftTweaking
     {
         if (FMLCommonHandler.instance().findContainerFor("MineTweaker3").getVersion().startsWith("3.0"))
             MineTweakerAPI.logError(StringParsers.translateCT("version_warning"));
-        
+
         MineTweakerAPI.registerClass(CampfireBackportCraftTweaking.class);
+        MineTweakerAPI.registerClass(IngredientFunctions.class);
         MineTweakerImplementationAPI.onReloadEvent(new ReloadEventHandler());
         MineTweakerImplementationAPI.onPostReload(new PostReloadEventHandler());
     }
@@ -50,6 +51,8 @@ public class CampfireBackportCraftTweaking
             CampfireRecipe.getCraftTweakerList().clear();
             CampfireStateChanger.getCraftTweakerList().clear();
             BurnOutRule.getCraftTweakerRules().clear();
+
+            AbstractItemFunction.clearFunctions();
         }
     }
 
@@ -197,6 +200,18 @@ public class CampfireBackportCraftTweaking
             EnumCampfireType typesVerified = getTypes(types);
             if (typesVerified != null && verifyUsageType(usageType))
             {
+                // campfire state changers don't necessarily use up their inputs, so a .reuse() applied to the input would end up giving you an extra item.
+                // to fix this, if there was a .reuse() applied by an AbstractItemFunction, we add a transform that undoes it.
+                AbstractItemFunction[] functions = AbstractItemFunction.getFunctions(input);
+                if (AbstractItemFunction.anyAppliedReuse(functions))
+                {
+                    AbstractItemFunction.forgetFunctions(input);
+                    input = input.transform((istack, iplayer) -> {
+                        return istack == null ? istack : istack.withAmount(Math.max(istack.getAmount() - 1, 0));
+                    });
+                    AbstractItemFunction.rememberFunctions(input, functions);
+                }
+
                 boolean damageable = usageType.equals(CampfireStateChanger.DAMAGEABLE);
 
                 CustomInput[] cinputs = new CustomInput[] { new CustomInput(new ActiveCraftTweakerIngredient(input),

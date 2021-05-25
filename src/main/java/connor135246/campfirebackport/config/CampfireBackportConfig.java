@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import com.google.common.io.Files;
 
 import connor135246.campfirebackport.common.CommonProxy;
@@ -29,6 +31,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class CampfireBackportConfig
@@ -276,8 +279,18 @@ public class CampfireBackportConfig
         dispenserBlacklistStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.dispenserBlacklistStrings, ConfigReference.empty,
                 StringParsers.translateComment("dispenser_blacklist"), StringParsers.itemPat).setRequiresMcRestart(true).getStringList();
 
-        regularExtinguishersList = listFromConfig(ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher, ConfigReference.regular);
+        // due to recipe updates, the old default extinguisher "right/minecraft:water_bucket/stackable>minecraft:bucket" is no longer necessary.
+        // also, it would end up giving the player back 2 buckets with the new system. so we remove it here.
+        Property regularExtinguishersListProperty = config.get(Configuration.CATEGORY_GENERAL,
+                ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
+                StringParsers.translateComment("state_changers", ConfigReference.extinguisher, ConfigReference.regular),
+                StringParsers.stateChangePat);
+
+        regularExtinguishersList = ArrayUtils.removeElement(regularExtinguishersListProperty.getStringList(),
+                "right/minecraft:water_bucket/stackable>minecraft:bucket");
+
+        regularExtinguishersListProperty.setValues(regularExtinguishersList);
+        //
 
         soulExtinguishersList = listFromConfig(ConfigReference.soulExtinguishersList, ConfigReference.empty,
                 StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher, ConfigReference.soul);

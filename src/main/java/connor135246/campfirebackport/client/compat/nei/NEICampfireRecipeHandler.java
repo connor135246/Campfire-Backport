@@ -118,12 +118,8 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
     public void loadCraftingRecipes(ItemStack result)
     {
         for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
-        {
-            if (NEIServerUtils.areStacksSameTypeCrafting(crecipe.getOutput(), result))
+            if (matchesCrafting(crecipe, result) || (crecipe.hasByproduct() && NEIServerUtils.areStacksSameTypeCrafting(crecipe.getByproduct(), result)))
                 arecipes.add(new CachedCampfireRecipe(crecipe));
-            else if (crecipe.hasByproduct() && NEIServerUtils.areStacksSameTypeCrafting(crecipe.getByproduct(), result))
-                arecipes.add(new CachedCampfireRecipe(crecipe));
-        }
     }
 
     @Override
@@ -136,21 +132,8 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         }
 
         for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
-        {
-            CachedCampfireRecipe cachedCrecipe = new CachedCampfireRecipe(crecipe);
-
-            if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
-            {
-                for (int i = 0; i < cachedCrecipe.numInputs; ++i)
-                {
-                    if (cachedCrecipe.inputTypes[i] != 5 && cachedCrecipe.inputs.get(i).contains(ingredient))
-                    {
-                        arecipes.add(cachedCrecipe);
-                        break;
-                    }
-                }
-            }
-        }
+            if (matchesUsage(crecipe, ingredient))
+                arecipes.add(new CachedCampfireRecipe(crecipe));
     }
 
     @Override

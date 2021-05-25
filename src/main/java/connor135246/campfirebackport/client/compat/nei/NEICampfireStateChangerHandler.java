@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.collect.Lists;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
@@ -99,8 +98,6 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             numInputs = 1;
             inputs = new ArrayList<PositionedStack>(1);
             inputs.add(new PositionedStack(inputStacks, 74, 17, false));
-            inputTypes = new byte[] { -1 };
-            dataTypes = new byte[] { -1 };
             inputRects = new Rectangle[] { new Rectangle(73, 16, 20, 20) };
         }
 
@@ -148,10 +145,8 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
     public void loadCraftingRecipes(ItemStack result)
     {
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
-        {
-            if (cstate.hasOutputs() && NEIServerUtils.areStacksSameTypeCrafting(cstate.getOutput(), result))
+            if (matchesCrafting(cstate, result))
                 arecipes.add(new CachedCampfireStateChanger(cstate));
-        }
     }
 
     @Override
@@ -164,11 +159,8 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         }
 
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
-        {
-            CachedCampfireStateChanger cachedCstate = new CachedCampfireStateChanger(cstate);
-            if (cachedCstate != null && cachedCstate.types.length != 0 && cachedCstate.inputTypes[0] != 5 && cachedCstate.inputs.get(0).contains(ingredient))
-                arecipes.add(cachedCstate);
-        }
+            if (matchesUsage(cstate, ingredient))
+                arecipes.add(new CachedCampfireStateChanger(cstate));
     }
 
     @Override

@@ -1,28 +1,34 @@
 package connor135246.campfirebackport.common.recipes;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
+import connor135246.campfirebackport.common.dispenser.BehaviourGeneric;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.StatCollector;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidContainerItem;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class CustomInput implements Comparable<CustomInput>
@@ -112,15 +118,7 @@ public class CustomInput implements Comparable<CustomInput>
             this.inputType = 1;
             this.metaSpecified = inputMeta != OreDictionary.WILDCARD_VALUE;
 
-            if (metaWasSpecified())
-            {
-                listStack = new ItemStack((Item) input, doesInputSizeMatter() ? getInputSize() : 1, inputMeta);
-                if (hasExtraData())
-                    listStack.setTagCompound((NBTTagCompound) getExtraData().copy());
-                inputList.add(listStack);
-            }
-            else
-                inputList.add(ItemStack.copyItemStack((ItemStack) getInput()));
+            inputList.add(ItemStack.copyItemStack((ItemStack) getInput()));
         }
         else
         {
@@ -129,12 +127,7 @@ public class CustomInput implements Comparable<CustomInput>
             if (input instanceof Integer)
             {
                 for (ItemStack stack : OreDictionary.getOres(OreDictionary.getOreName((Integer) input), false))
-                {
-                    listStack = new ItemStack(stack.getItem(), doesInputSizeMatter() ? getInputSize() : 1, stack.getItemDamage());
-                    if (hasExtraData())
-                        listStack.setTagCompound((NBTTagCompound) getExtraData().copy());
-                    inputList.add(listStack);
-                }
+                    inputList.add(new ItemStack(stack.getItem(), 1, stack.getItemDamage()));
 
                 // ore inputs may have empty inputLists at this point, which is a problem, probably
                 if (inputList.isEmpty())
@@ -152,9 +145,13 @@ public class CustomInput implements Comparable<CustomInput>
             {
                 for (Item item : GameData.getItemRegistry().typeSafeIterable())
                 {
-                    ItemStack stack = new ItemStack(item);
-                    if (item.getToolClasses(stack).contains((String) input))
-                        inputList.add(stack);
+                    listStack = new ItemStack(item);
+                    if (item.getToolClasses(listStack).contains((String) input))
+                    {
+                        if (item.isDamageable())
+                            listStack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+                        inputList.add(listStack);
+                    }
                 }
 
                 // tool inputs may have empty inputLists at this point, which is a problem, probably
@@ -174,18 +171,14 @@ public class CustomInput implements Comparable<CustomInput>
                 if (Block.class.isAssignableFrom((Class) input))
                 {
                     for (Block block : GameData.getBlockRegistry().typeSafeIterable())
-                    {
                         if (((Class) input).isAssignableFrom(block.getClass()))
                             inputList.add(new ItemStack(block, 1, OreDictionary.WILDCARD_VALUE));
-                    }
                 }
                 else
                 {
                     for (Item item : GameData.getItemRegistry().typeSafeIterable())
-                    {
                         if (((Class) input).isAssignableFrom(item.getClass()))
                             inputList.add(new ItemStack(item, 1, OreDictionary.WILDCARD_VALUE));
-                    }
                 }
 
                 // class inputs may have empty inputLists at this point, which is a problem, probably
@@ -200,30 +193,46 @@ public class CustomInput implements Comparable<CustomInput>
 
                 neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("class_input", ((Class) getInput()).getSimpleName()));
             }
-            else if (input instanceof ICraftTweakerIngredient)
-            {
-                this.input = (ICraftTweakerIngredient) input;
-                this.inputType = 6;
-
-                inputList.addAll(((ICraftTweakerIngredient) getInput()).getItems());
-                if (inputList.isEmpty())
-                    inputList.add(new ItemStack(Items.written_book));
-
-                neiTooltip.addAll(((ICraftTweakerIngredient) getInput()).getNEITooltip());
-            }
-            else if (hasExtraData())
-            {
-                this.input = (NBTTagCompound) this.extraData.copy();
-                this.inputType = 5;
-
-                listStack = new ItemStack(Items.written_book, doesInputSizeMatter() ? getInputSize() : 1);
-                if (getDataType() != 4)
-                    listStack.setTagCompound((NBTTagCompound) getExtraData().copy());
-
-                inputList.add(listStack);
-            }
             else
-                throw new Exception();
+            {
+                listStack = new ItemStack(Items.written_book);
+
+                if (input instanceof ICraftTweakerIngredient)
+                {
+                    this.input = (ICraftTweakerIngredient) input;
+                    this.inputType = 6;
+
+                    inputList.addAll(((ICraftTweakerIngredient) getInput()).getItems());
+                    if (inputList.isEmpty())
+                    {
+                        String name = StringParsers.translateNEI(((ICraftTweakerIngredient) getInput()).isWildcard() ? "anything" : "unknown");
+
+                        neiTooltip.add(EnumChatFormatting.GOLD + name);
+
+                        listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
+
+                        inputList.add(listStack);
+                    }
+
+                    neiTooltip.addAll(((ICraftTweakerIngredient) getInput()).getNEITooltip());
+                }
+                else if (hasExtraData())
+                {
+                    this.input = (NBTTagCompound) this.extraData.copy();
+                    this.inputType = 5;
+
+                    String name = StringParsers.translateNEI(getDataType() != 4 ? "anything" : "any_tinkers");
+
+                    if (getDataType() != 4)
+                        neiTooltip.add(EnumChatFormatting.GOLD + name);
+
+                    listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
+
+                    inputList.add(listStack);
+                }
+                else
+                    throw new Exception();
+            }
         }
 
         switch (getDataType())
@@ -274,18 +283,15 @@ public class CustomInput implements Comparable<CustomInput>
         case 2:
         {
             NBTTagCompound ench = getExtraData().getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
-            int level = ench.getInteger(StringParsers.KEY_lvl);
-            if (Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getMaxLevel() > level)
-            {
-                neiTooltip.add(EnumChatFormatting.GOLD
-                        + StringParsers.translateNEI("enchantment_data", StatCollector.translateToLocal("enchantment.level." + level)));
-            }
+            neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("enchantment_data",
+                    Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getTranslatedName(ench.getInteger(StringParsers.KEY_lvl))));
             break;
         }
         case 1:
         {
-            neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("nbt_data"));
-            neiTooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + getExtraData().toString());
+            String firstLinePrefix = EnumChatFormatting.GOLD + StringParsers.translateNEI("exact_nbt_data") + " ";
+            String otherLinePrefix = EnumChatFormatting.GOLD + "   ";
+            neiTooltip.addAll(StringParsers.lineifyString(getExtraData().toString(), ",", firstLinePrefix, otherLinePrefix, 50));
             break;
         }
         }
@@ -399,43 +405,40 @@ public class CustomInput implements Comparable<CustomInput>
 
     public static boolean matchesData(CustomInput cinput, ItemStack stack)
     {
-        if (stack.hasTagCompound() && cinput.hasExtraData())
+        if (cinput.hasExtraData())
         {
-            NBTTagCompound data = cinput.getExtraData();
+            NBTTagCompound cinputData = cinput.getExtraData();
 
             switch (cinput.getDataType())
             {
             case 1:
             {
-                return stack.getTagCompound().equals(data);
+                if (!stack.hasTagCompound())
+                    break;
+
+                return stack.getTagCompound().equals(cinputData);
             }
             case 2:
             {
-                NBTTagCompound ench = data.getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
+                if (!stack.hasTagCompound())
+                    break;
+
+                NBTTagCompound ench = cinputData.getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
                 return EnchantmentHelper.getEnchantmentLevel(ench.getInteger(StringParsers.KEY_id), stack) >= ench.getInteger(StringParsers.KEY_lvl);
             }
             case 3:
             {
-                String cinputFluid = cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getString(StringParsers.KEY_FluidName);
-                int cinputFluidAmount = cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount);
-                String[] stackFluidData = getFluidData(stack.getTagCompound());
-
-                if (!cinputFluid.isEmpty() && !stackFluidData[2].isEmpty())
-                {
-                    if ((stackFluidData[2]).equals(cinputFluid)
-                            && Integer.parseInt(stackFluidData[4]) >= cinputFluidAmount)
-                    {
-                        return true;
-                    }
-                }
-                break;
+                NBTTagCompound cinputFluidData = cinputData.getCompoundTag(StringParsers.KEY_Fluid);
+                return containsFluid(stack, cinputFluidData.getString(StringParsers.KEY_FluidName), cinputFluidData.getInteger(StringParsers.KEY_Amount));
             }
             case 4:
             {
+                if (!stack.hasTagCompound())
+                    break;
+
                 NBTTagCompound stackData = stack.getTagCompound().getCompoundTag(StringParsers.KEY_InfiTool);
                 if (!stackData.hasNoTags())
                 {
-                    NBTTagCompound cinputData = cinput.getExtraData();
                     NBTTagList keyList = cinputData.getTagList(StringParsers.KEY_KeySet, 8);
                     NBTTagList typeList = cinputData.getTagList(StringParsers.KEY_TypeSet, 8);
 
@@ -488,89 +491,193 @@ public class CustomInput implements Comparable<CustomInput>
     }
 
     /**
-     * Gets the fluid data out of an NBTTagCompound. There are three ways (that I know of) that fluid data can be stored. The first one is the suggested Forge format, which I
-     * assume is used with most mods (tested with TE and TiC). The second one is the format used by IE's jerrycans (which, by the way, I wouldn't recommend using anyway since they
-     * do their right click action before doing any block right click action). The third one is the format used by IE's wooden/metal barrels.
-     * 
-     * @return an String[] where the first element is the key for the fluid compound tag, the second element is the key for the fluid name, the third element is the fluid name, the
-     *         fourth element is the key for the fluid amount, and the fifth element is the fluid amount.
+     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}.
      */
-    public static String[] getFluidData(NBTTagCompound data)
+    public static NBTTagCompound mergeNBT(final NBTTagCompound base, final NBTTagCompound merger)
     {
-        String dataFluidKey = "";
-        String dataFluidNameKey = "";
-        String dataFluidName = "";
-        String dataFluidAmountKey = "";
-        String dataFluidAmount = "-1";
+        if (base == null)
+            return (NBTTagCompound) merger.copy();
 
-        if (data.hasKey(StringParsers.KEY_Fluid))
+        if (merger != null)
         {
-            dataFluidKey = StringParsers.KEY_Fluid;
-            dataFluidNameKey = StringParsers.KEY_FluidName;
-            dataFluidName = data.getCompoundTag(StringParsers.KEY_Fluid).getString(StringParsers.KEY_FluidName);
-            dataFluidAmountKey = StringParsers.KEY_Amount;
-            dataFluidAmount = "" + data.getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount);
-        }
-        else if (data.hasKey(StringParsers.KEY_fluid))
-        {
-            dataFluidKey = StringParsers.KEY_fluid;
-            dataFluidNameKey = StringParsers.KEY_fluid;
-            dataFluidName = data.getCompoundTag(StringParsers.KEY_fluid).getString(StringParsers.KEY_fluid);
-            dataFluidAmountKey = StringParsers.KEY_amount;
-            dataFluidAmount = "" + data.getCompoundTag(StringParsers.KEY_fluid).getInteger(StringParsers.KEY_amount);
-        }
-        else if (data.hasKey(StringParsers.KEY_tank))
-        {
-            dataFluidKey = StringParsers.KEY_tank;
-            dataFluidNameKey = StringParsers.KEY_FluidName;
-            dataFluidName = data.getCompoundTag(StringParsers.KEY_tank).getString(StringParsers.KEY_FluidName);
-            dataFluidAmountKey = StringParsers.KEY_Amount;
-            dataFluidAmount = "" + data.getCompoundTag(StringParsers.KEY_tank).getInteger(StringParsers.KEY_Amount);
+            try
+            {
+                NBTTagCompound returnTag = (NBTTagCompound) base.copy();
+
+                Iterator iterator = merger.func_150296_c().iterator();
+                while (iterator.hasNext())
+                {
+                    String mergerKey = (String) iterator.next();
+                    NBTBase mergerTag = merger.getTag(mergerKey).copy();
+                    mergeNBT(returnTag, mergerKey, mergerTag);
+                }
+
+                return returnTag;
+            }
+            catch (ClassCastException excep)
+            {
+                // CommonProxy.modlog.error("Error while attempting to merge NBT: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
+            }
         }
 
-        return new String[] { dataFluidKey, dataFluidNameKey, dataFluidName, dataFluidAmountKey, dataFluidAmount };
+        return (NBTTagCompound) base.copy();
     }
 
     /**
-     * Tries to empty the ItemStack's fluid NBT by this CustomInput's fluid NBT.
-     * 
-     * @return true if it worked, false if it didn't
+     * Merges the merger into the base with the key. <br>
+     * If the merger is a compound, its tags are recursively added to the base's compound. <br>
+     * If the merger is a list of the same type as the base's list, its tags are appended to the base's list. <br>
+     * Otherwise, the merger replaces the value in the base.
      */
-    public boolean doFluidEmptying(ItemStack stack)
+    public static NBTTagCompound mergeNBT(final NBTTagCompound base, final String key, NBTBase merger) throws ClassCastException
     {
-        return doFluidEmptying(this, stack);
+        NBTBase baseTag = base.getTag(key);
+
+        if (baseTag == null || baseTag.getId() != merger.getId() || (baseTag.getId() != 9 && baseTag.getId() != 10)
+                || (baseTag.getId() == 10 && ((NBTTagCompound) baseTag).hasNoTags()))
+        {
+            base.setTag(key, merger);
+        }
+        else if (baseTag.getId() == 10)
+        {
+            Iterator iterator = ((NBTTagCompound) merger).func_150296_c().iterator();
+            while (iterator.hasNext())
+            {
+                String mergerKey = (String) iterator.next();
+                NBTBase mergerTag = ((NBTTagCompound) merger).getTag(mergerKey).copy();
+                mergeNBT((NBTTagCompound) baseTag, mergerKey, mergerTag);
+            }
+        }
+        else if (baseTag.getId() == 9 && ((NBTTagList) merger).tagCount() > 0)
+        {
+            if (((NBTTagList) baseTag).func_150303_d() != ((NBTTagList) merger).func_150303_d())
+                base.setTag(key, merger);
+            else
+            {
+                for (int i = 0; i < ((NBTTagList) merger).tagCount(); ++i)
+                    ((NBTTagList) baseTag).appendTag(((NBTTagList) merger).removeTag(i));
+            }
+        }
+
+        return base;
     }
 
-    public static boolean doFluidEmptying(CustomInput cinput, ItemStack stack)
+    /**
+     * Modifies an input stack for displaying in NEI.
+     */
+    public ItemStack modifyStackForDisplay(ItemStack stack)
     {
-        if (stack.hasTagCompound() && cinput.hasExtraData() && cinput.getDataType() == 3)
+        if (stack != null)
         {
-            String cinputFluid = cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getString(StringParsers.KEY_FluidName);
-            int cinputFluidAmount = cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount);
-            String[] stackFluidData = getFluidData(stack.getTagCompound());
-            int stackFluidAmount = Integer.parseInt(stackFluidData[4]);
+            if (doesInputSizeMatter())
+                stack.stackSize = getInputSize();
 
-            if (!cinputFluid.isEmpty() && !(stackFluidData[2]).isEmpty())
+            if (hasExtraData())
             {
-                if ((stackFluidData[2]).equals(cinputFluid)
-                        && stackFluidAmount >= cinputFluidAmount)
+                if (getDataType() == 1 || getDataType() == 2)
+                    stack.setTagCompound(mergeNBT(stack.getTagCompound(), getExtraData()));
+                else if (getDataType() == 3)
+                    stack = fillContainerWithFluid(stack, FluidStack.loadFluidStackFromNBT(getExtraData().getCompoundTag(StringParsers.KEY_Fluid)));
+            }
+
+            if (isIIngredientInput())
+                stack = ((ICraftTweakerIngredient) getInput()).modifyStackForDisplay(stack);
+        }
+        return stack;
+    }
+
+    /**
+     * @return true if the stack contains the fluid given by name and amount
+     */
+    public static boolean containsFluid(ItemStack stack, String name, int amount)
+    {
+        if (stack != null && name != null)
+        {
+            Fluid fluid = FluidRegistry.getFluid(name);
+            if (fluid != null)
+                return containsFluid(stack, new FluidStack(fluid, amount));
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the stack contains the fluidStack
+     */
+    public static boolean containsFluid(ItemStack stack, FluidStack fluidStack)
+    {
+        if (stack != null && fluidStack != null)
+        {
+            if (stack.getItem() instanceof IFluidContainerItem)
+            {
+                FluidStack result = ((IFluidContainerItem) stack.getItem()).drain(stack, fluidStack.amount, false);
+                return result != null && result.containsFluid(fluidStack);
+            }
+            else
+                return FluidContainerRegistry.containsFluid(stack, fluidStack);
+        }
+        return false;
+    }
+
+    /**
+     * @return a copy of the fluid container after it's been filled with the fluidStack
+     */
+    public static ItemStack fillContainerWithFluid(ItemStack stack, FluidStack fluidStack)
+    {
+        try
+        {
+            if (fluidStack != null && stack != null && stack.getItem() instanceof IFluidContainerItem)
+            {
+                FluidStack currentFluid = ((IFluidContainerItem) stack.getItem()).getFluid(stack);
+                if (currentFluid == null || currentFluid.isFluidEqual(fluidStack))
                 {
-                    if (stackFluidAmount - cinputFluidAmount <= 0)
-                    {
-                        stack.getTagCompound().removeTag(stackFluidData[0]);
-                        if (stack.getTagCompound().hasNoTags())
-                            stack.setTagCompound(null);
-                    }
-                    else
-                    {
-                        stack.getTagCompound().getCompoundTag(stackFluidData[0]).setInteger(stackFluidData[3],
-                                stackFluidAmount - cinputFluidAmount);
-                    }
-                    return true;
+                    ItemStack modifiedStack = stack.copy();
+                    ((IFluidContainerItem) stack.getItem()).fill(modifiedStack, fluidStack, true);
+                    return modifiedStack;
                 }
             }
         }
-        return false;
+        catch (Exception excep)
+        {
+            // CommonProxy.modlog.error("Error while attempting to fill a fluid container: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
+        }
+
+        return stack;
+    }
+
+    /**
+     * If the stack is an IFluidContainerItem, drains the stack's fluid by the amount and returns it. <br>
+     * If the stack has a container item, reduces the stack's size by 1 and returns it. (It's assumed that container items will be taken care of elsewhere) <br>
+     * If the stack is in the FluidContainerRegistry, reduces the stack's size by 1, then if the stack's size is now zero, returns the empty container. If not, gives the player the
+     * emptyContainer.
+     */
+    public static ItemStack doFluidEmptying(ItemStack stack, int amount, EntityPlayer player)
+    {
+        if (stack != null && player != null && amount > 0)
+        {
+            if (stack.getItem() instanceof IFluidContainerItem)
+            {
+                ((IFluidContainerItem) stack.getItem()).drain(stack, amount, true);
+                GenericRecipe.returnContainer = false; // there are some items that are an IFluidContainerItem AND have a container item.
+            }
+            else if (stack.getItem().hasContainerItem(stack))
+                stack.stackSize--;
+            else
+            {
+                ItemStack emptyContainer = FluidContainerRegistry.drainFluidContainer(stack);
+                if (emptyContainer != null)
+                {
+                    stack.stackSize--;
+                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, emptyContainer, true))
+                    {
+                        if (stack.stackSize <= 0)
+                            stack = emptyContainer;
+                        else if (!player.inventory.addItemStackToInventory(emptyContainer))
+                            player.dropPlayerItemWithRandomChoice(emptyContainer, false);
+                    }
+                }
+            }
+        }
+        return stack;
     }
 
     // toString
@@ -580,64 +687,74 @@ public class CustomInput implements Comparable<CustomInput>
     @Override
     public String toString()
     {
-        StringBuilder inputToString = new StringBuilder();
-
-        inputToString.append("[");
-
-        if (isDataInput())
+        try
         {
-            if (getDataType() == 4)
-                inputToString.append("A Tinker's Construct tool");
+            StringBuilder inputToString = new StringBuilder();
+
+            inputToString.append("[");
+
+            if (isDataInput())
+            {
+                if (getDataType() == 4)
+                    inputToString.append("A Tinker's Construct tool");
+                else
+                    inputToString.append("Anything");
+            }
             else
-                inputToString.append("Anything");
-        }
-        else
-        {
-            if (isOreDictInput())
-                inputToString.append("Ore: " + OreDictionary.getOreName((Integer) getInput()));
-            else if (isToolInput())
-                inputToString.append("Any " + getInput() + "-type tool");
-            else if (isItemInput() && (metaWasSpecified() || anIffyCheckToJustifyImprovedReadability()))
-                inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()));
-            else if (isItemInput())
-                inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()) + " (any metadata)");
-            else if (isClassInput())
-                inputToString.append("Any " + ((Class) getInput()).getSimpleName() + ".class");
-            else if (isIIngredientInput())
-                inputToString.append("Unknown CraftTweaker IIngredient (check NEI)");
-        }
+            {
+                if (isOreDictInput())
+                    inputToString.append("Ore: " + OreDictionary.getOreName((Integer) getInput()));
+                else if (isToolInput())
+                    inputToString.append("Any " + getInput() + "-type tool");
+                else if (isItemInput() && (metaWasSpecified() || anIffyCheckToJustifyImprovedReadability()))
+                    inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()));
+                else if (isItemInput())
+                    inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()) + " (any metadata)");
+                else if (isClassInput())
+                    inputToString.append("Any " + ((Class) getInput()).getSimpleName() + ".class");
+                else if (isIIngredientInput())
+                    inputToString.append("Unknown CraftTweaker IIngredient (check NEI)");
+            }
 
-        if (hasExtraData())
-            inputToString.append(" with ");
+            if (hasExtraData())
+                inputToString.append(" with ");
 
-        switch (getDataType())
-        {
-        case 1:
-        {
-            inputToString.append("NBT:" + getExtraData());
-            break;
-        }
-        case 2:
-        {
-            NBTTagCompound ench = getExtraData().getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
-            inputToString.append(Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getTranslatedName(ench.getInteger(StringParsers.KEY_lvl))
-                    + " or greater");
-            break;
-        }
-        case 3:
-        {
-            NBTTagCompound fluidData = getExtraData().getCompoundTag(StringParsers.KEY_Fluid);
-            inputToString.append("at least " + fluidData.getInteger(StringParsers.KEY_Amount) + " mB of " + fluidData.getString(StringParsers.KEY_FluidName));
-            break;
-        }
-        case 4:
-        {
-            inputToString.append("some specific modifiers (check NEI)");
-            break;
-        }
-        }
+            switch (getDataType())
+            {
+            case 1:
+            {
+                inputToString.append("NBT:" + getExtraData());
+                break;
+            }
+            case 2:
+            {
+                NBTTagCompound ench = getExtraData().getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
+                inputToString
+                        .append(Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getTranslatedName(ench.getInteger(StringParsers.KEY_lvl))
+                                + " or greater");
+                break;
+            }
+            case 3:
+            {
+                NBTTagCompound fluidData = getExtraData().getCompoundTag(StringParsers.KEY_Fluid);
+                inputToString
+                        .append("at least " + fluidData.getInteger(StringParsers.KEY_Amount) + " mB of " + fluidData.getString(StringParsers.KEY_FluidName));
+                break;
+            }
+            case 4:
+            {
+                inputToString.append("some specific modifiers (check NEI)");
+                break;
+            }
+            }
 
-        return inputToString.append("]" + (getInputSize() > 1 ? " x " + getInputSize() : "")).toString();
+            return inputToString.append("]" + (getInputSize() > 1 ? " x " + getInputSize() : "")).toString();
+        }
+        catch (Exception excep)
+        {
+            // CommonProxy.modlog.error("Error while attempting to get an item's name: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
+            return "[ERROR GETTING NAME]";
+        }
     }
 
     /**

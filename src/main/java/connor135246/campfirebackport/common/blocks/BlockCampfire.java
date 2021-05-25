@@ -188,34 +188,45 @@ public class BlockCampfire extends BlockContainer
 
             if (result == 1)
             {
+                ItemStack returnStack = stack;
+
                 if (survival)
                 {
-                    if (cstate.getInput().getDataType() == 3)
-                        cstate.getInput().doFluidEmptying(stack);
-
-                    if (cstate.isUsageTypeDamageable())
-                        stack.damageItem(cstate.getInput().getInputSize(), player);
-                    else if (cstate.isUsageTypeStackable())
-                        stack.stackSize -= cstate.getInput().getInputSize();
-
-                    if (stack.stackSize <= 0 && player.getCurrentEquippedItem() == stack)
-                        player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+                    ItemStack transformedStack = cstate.onUsingInput(returnStack, player);
+                    if (transformedStack != null)
+                        returnStack = transformedStack;
+                    else
+                        returnStack.stackSize = 0;
+                }
+                else
+                {
+                    ItemStack returnStackCopy = ItemStack.copyItemStack(returnStack);
+                    ItemStack transformedStack = cstate.onUsingInput(returnStackCopy, player);
+                    if (transformedStack != null && transformedStack != returnStackCopy)
+                    {
+                        if (!player.inventory.addItemStackToInventory(transformedStack))
+                            player.dropPlayerItemWithRandomChoice(transformedStack, false);
+                    }
                 }
 
                 if (cstate.hasOutputs())
                 {
-                    ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, returned, true))
+                    ItemStack outputStack = ItemStack.copyItemStack(cstate.getOutput());
+                    if (!BehaviourGeneric.putStackInExistingSlots(player.inventory, outputStack, true))
                     {
-                        if (player.getCurrentEquippedItem() == null)
-                        {
-                            returned.animationsToGo = 5;
-                            player.inventory.setInventorySlotContents(player.inventory.currentItem, returned);
-                            player.inventoryContainer.detectAndSendChanges();
-                        }
-                        else if (!BehaviourGeneric.putStackInEmptySlots(player.inventory, returned, true))
-                            player.dropPlayerItemWithRandomChoice(returned, false);
+                        if (returnStack.stackSize <= 0)
+                            returnStack = outputStack;
+                        else if (!player.inventory.addItemStackToInventory(outputStack))
+                            player.dropPlayerItemWithRandomChoice(outputStack, false);
                     }
+                }
+
+                if (returnStack != stack || returnStack.stackSize <= 0)
+                {
+                    if (returnStack.getItem() != stack.getItem())
+                        returnStack.animationsToGo = 5;
+                    player.inventory.setInventorySlotContents(player.inventory.currentItem, returnStack.stackSize <= 0 ? null : returnStack);
+                    player.inventoryContainer.detectAndSendChanges();
                 }
             }
 

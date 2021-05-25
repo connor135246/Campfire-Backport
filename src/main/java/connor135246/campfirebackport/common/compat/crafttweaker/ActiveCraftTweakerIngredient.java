@@ -1,14 +1,19 @@
 package connor135246.campfirebackport.common.compat.crafttweaker;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
+import connor135246.campfirebackport.util.StringParsers;
 import minetweaker.api.item.IIngredient;
+import minetweaker.api.item.IngredientAny;
+import minetweaker.api.item.IngredientAnyAdvanced;
 import minetweaker.api.minecraft.MineTweakerMC;
-import minetweaker.mc1710.item.MCItemStack;
+import minetweaker.api.oredict.IOreDictEntry;
+import minetweaker.api.oredict.IngredientOreDict;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -17,23 +22,40 @@ import net.minecraft.util.EnumChatFormatting;
  */
 public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 {
-    // simple recipes don't really need the nei tooltip
-    public static final Pattern simpleModidNameMetaPat = Pattern.compile("(?!^<ore:)<\\w+:\\w+(((:\\d+)?)|(:\\*))>");
 
     public final IIngredient iingredient;
-    public final boolean isSimple;
+    public final boolean isWildcard;
+    public final boolean hasFunctions;
 
     public ActiveCraftTweakerIngredient(IIngredient iingredient)
     {
         this.iingredient = iingredient;
 
-        this.isSimple = simpleModidNameMetaPat.matcher(iingredient.toString()).matches();
+        IIngredient internal = AbstractItemFunction.reflectIngredientStackInternal(iingredient);
+        this.isWildcard = internal instanceof IngredientAny || internal instanceof IngredientAnyAdvanced;
+
+        this.hasFunctions = AbstractItemFunction.getFunctions(iingredient).length > 0;
     }
 
     @Override
     public boolean matches(ItemStack stack, boolean inputSizeMatters)
     {
         return iingredient.matches(inputSizeMatters ? MineTweakerMC.getIItemStack(stack) : MineTweakerMC.getIItemStackWildcardSize(stack));
+    }
+
+    @Override
+    public boolean hasTransforms()
+    {
+        return iingredient.hasTransformers();
+    }
+
+    @Override
+    public ItemStack applyTransform(ItemStack stack, EntityPlayer player)
+    {
+        if (hasTransforms())
+            return MineTweakerMC.getItemStack(iingredient.applyTransform(MineTweakerMC.getIItemStack(stack), MineTweakerMC.getIPlayer(player)));
+        else
+            return stack;
     }
 
     @Override
@@ -48,30 +70,60 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     {
         LinkedList<String> tip = new LinkedList<String>();
 
-        if (!isSimple())
+        IIngredient internal = isWildcard() ? iingredient : AbstractItemFunction.reflectIngredientStackInternal(iingredient);
+
+        if (internal instanceof IOreDictEntry || internal instanceof IngredientOreDict)
+            tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", internal.getInternal()));
+
+        String nbt = "";
+
+        if (hasFunctions())
         {
-            String ingredientString = iingredient.toString();
+            AbstractItemFunction[] functions = AbstractItemFunction.getFunctions(iingredient);
 
-            if (ingredientString.startsWith("(Ingredient) "))
-                ingredientString = ingredientString.substring(13);
+            for (String functionTip : AbstractItemFunction.getInfoStrings(functions))
+                tip.add(EnumChatFormatting.GOLD + functionTip);
 
+            nbt = AbstractItemFunction.getCombinedNBTString(functions);
+        }
+
+        if (nbt.isEmpty())
+        {
+            String ingredientString = internal.toString();
             int withTagIndex = ingredientString.indexOf(".withTag");
-            if (withTagIndex != -1)
-            {
-                tip.add(EnumChatFormatting.GOLD + ingredientString.substring(0, withTagIndex));
-                tip.add(EnumChatFormatting.GOLD + "   " + ingredientString.substring(withTagIndex));
-            }
-            else
-                tip.add(EnumChatFormatting.GOLD + ingredientString);
+            if (withTagIndex != -1 && withTagIndex + 9 <= ingredientString.length() - 1)
+                nbt = ingredientString.substring(withTagIndex + 9, ingredientString.length() - 1);
+        }
+
+        if (!nbt.isEmpty())
+        {
+            String firstLinePrefix = EnumChatFormatting.GOLD + StringParsers.translateNEI("nbt_data") + " ";
+            String otherLinePrefix = EnumChatFormatting.GOLD + "   ";
+            tip.addAll(StringParsers.lineifyString(nbt, ",", firstLinePrefix, otherLinePrefix, 50));
         }
 
         return tip;
     }
 
     @Override
-    public boolean isSimple()
+    public ItemStack modifyStackForDisplay(ItemStack stack)
     {
-        return isSimple;
+        if (hasFunctions())
+            for (AbstractItemFunction function : AbstractItemFunction.getFunctions(iingredient))
+                stack = function.modifyStackForDisplay(stack);
+        return stack;
+    }
+
+    @Override
+    public boolean isWildcard()
+    {
+        return isWildcard;
+    }
+
+    @Override
+    public boolean hasFunctions()
+    {
+        return hasFunctions;
     }
 
 }

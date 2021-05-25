@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager;
 import connor135246.campfirebackport.config.ConfigReference;
@@ -20,6 +21,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
@@ -70,7 +73,23 @@ public class CommandCampfireBackport implements ICommand
     {
         if (arguments.length > 0)
         {
-            if (arguments[0].equals(NBT))
+            if (arguments[0].equals("mergenbt"))
+            {
+                if (arguments.length > 2)
+                {
+                    try
+                    {
+                        NBTTagCompound base = (NBTTagCompound) JsonToNBT.func_150315_a(arguments[1]);
+                        NBTTagCompound merger = (NBTTagCompound) JsonToNBT.func_150315_a(arguments[2]);
+                        sender.addChatMessage(new ChatComponentText(CustomInput.mergeNBT(base, merger).toString()));
+                    }
+                    catch (NBTException excep)
+                    {
+                        throw new CommandException(excep.getLocalizedMessage());
+                    }
+                }
+            }
+            else if (arguments[0].equals(NBT))
             {
                 if (arguments.length == 1 || arguments.length == 2)
                 {

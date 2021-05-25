@@ -1,5 +1,9 @@
 package connor135246.campfirebackport.util;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -336,7 +340,124 @@ public class StringParsers
         }
     }
 
-    // Translators
+    // Making Things Look Nice
+
+    /**
+     * Separates a long string into lines after each lineEnder. Tries to join short lines together while staying under lineLength. Puts prefixes in front of each line.
+     * 
+     * @param string
+     * @param lineEnder
+     * @param firstLinePrefix
+     *            - the prefix that should go in front of only the first line of the string
+     * @param otherLinePrefix
+     *            - the prefix that should go in front of every other line of the string
+     * @param lineLength
+     *            - the preferred length of a line
+     */
+    public static List<String> lineifyString(String string, String lineEnder, String firstLinePrefix, String otherLinePrefix, int lineLength)
+    {
+        List<String> lines = new LinkedList<String>();
+
+        if (firstLinePrefix.length() + string.length() <= lineLength)
+            lines.add(firstLinePrefix + string);
+        else
+        {
+            int nextLineEnder = string.indexOf(lineEnder);
+
+            if (nextLineEnder == -1)
+                lines.add(firstLinePrefix + string);
+            else
+            {
+                StringBuilder line = new StringBuilder((int) (lineLength * 1.5));
+                line.append(firstLinePrefix + string.substring(0, nextLineEnder + lineEnder.length()));
+
+                for (int index = nextLineEnder + lineEnder.length(); index < string.length(); index = nextLineEnder + lineEnder.length())
+                {
+                    nextLineEnder = string.indexOf(lineEnder, index);
+
+                    String substring;
+                    if (nextLineEnder == -1)
+                    {
+                        substring = string.substring(index);
+                        nextLineEnder = string.length();
+                    }
+                    else
+                        substring = string.substring(index, nextLineEnder + lineEnder.length());
+
+                    if (line.length() + substring.length() <= lineLength)
+                        line.append(substring);
+                    else
+                    {
+                        lines.add(line.toString());
+                        line.delete(0, line.length());
+                        line.append(otherLinePrefix + substring);
+                    }
+                }
+
+                lines.add(line.toString());
+            }
+        }
+
+        return lines;
+    }
+
+    /**
+     * Separates a long string into lines after each lineEnder. Then sends to {@link #joinShortLinesAndPrefix}.
+     */
+    public static List<String> lineifyStringLazy(String string, String lineEnder, String firstLinePrefix, String otherLinePrefix, int lineLength)
+    {
+        if (firstLinePrefix.length() + string.length() <= lineLength)
+        {
+            List<String> lines = new LinkedList<String>();
+            lines.add(firstLinePrefix + string);
+            return lines;
+        }
+        else
+            return joinShortLinesAndPrefix(Arrays.asList(string.split("(?<=" + lineEnder + ")")), firstLinePrefix, otherLinePrefix, lineLength);
+    }
+
+    /**
+     * Tries to join short lines together while staying under lineLength. Puts prefixes in front of each line.
+     * 
+     * @param strings
+     * @param firstLinePrefix
+     *            - the prefix that should go in front of only the first line of the string
+     * @param otherLinePrefix
+     *            - the prefix that should go in front of every other line of the string
+     * @param lineLength
+     *            - the preferred length of a line
+     */
+    public static List<String> joinShortLinesAndPrefix(List<String> strings, String firstLinePrefix, String otherLinePrefix, int lineLength)
+    {
+        List<String> lines = new LinkedList<String>();
+
+        Iterator<String> iterator = strings.iterator();
+        if (iterator.hasNext())
+        {
+            String element = iterator.next();
+
+            StringBuilder line = new StringBuilder((int) (lineLength * 1.5));
+            line.append(firstLinePrefix + element);
+
+            while (iterator.hasNext())
+            {
+                element = iterator.next();
+
+                if (line.length() + element.length() <= lineLength)
+                    line.append(element);
+                else
+                {
+                    lines.add(line.toString());
+                    line.delete(0, line.length());
+                    line.append(otherLinePrefix + element);
+                }
+            }
+
+            lines.add(line.toString());
+        }
+
+        return lines;
+    }
 
     /**
      * converts an nbt key and value that represents a tinkers modifier into a String that's closer to the tooltip on an actual tinkers tool
@@ -510,6 +631,8 @@ public class StringParsers
 
         return returned.toString();
     }
+
+    // Translators
 
     /**
      * @return the key translated using the "config.inputerror" prefix

@@ -1,7 +1,6 @@
 package connor135246.campfirebackport.common.tileentity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -13,6 +12,7 @@ import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.util.CampfireBackportFakePlayer;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.block.Block;
@@ -35,6 +35,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.oredict.OreDictionary;
 
 public class TileEntityCampfire extends TileEntity implements ISidedInventory
@@ -153,7 +154,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                             doMultiInputCooking(crecipe);
                         }
                         else
-                            drop(crecipe, Arrays.asList(slot));
+                        {
+                            int[] slotToCinput = new int[] { -1, -1, -1, -1 };
+                            slotToCinput[slot] = 0;
+                            useInputs(crecipe, slotToCinput);
+                            drop(crecipe);
+                        }
                     }
                 }
             }
@@ -166,8 +172,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     protected void doMultiInputCooking(CampfireRecipe crecipe)
     {
         int target = crecipe.getInputs().length;
-        List<Integer> found = new ArrayList<Integer>(target);
-        boolean[] matchedCinputs = new boolean[target];
+        int[] cinputToSlot = new int[] { -1, -1, -1, -1 };
+        int[] slotToCinput = new int[] { -1, -1, -1, -1 };
+        int matchCount = 0;
 
         invLoop: for (int slot = 0; slot < getSizeInventory(); ++slot)
         {
@@ -176,17 +183,18 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             {
                 for (int cinputIndex = 0; cinputIndex < target; ++cinputIndex)
                 {
-                    if (matchedCinputs[cinputIndex])
+                    if (cinputToSlot[cinputIndex] != -1)
                         continue;
-
-                    if (crecipe.getInputs()[cinputIndex].matches(stack) && getCookingTimeInSlot(slot) >= crecipe.getCookingTime())
+                    else if (crecipe.getInputs()[cinputIndex].matches(stack) && getCookingTimeInSlot(slot) >= crecipe.getCookingTime())
                     {
-                        matchedCinputs[cinputIndex] = true;
-                        found.add(slot);
+                        cinputToSlot[cinputIndex] = slot;
+                        slotToCinput[slot] = cinputIndex;
+                        matchCount++;
 
-                        if (found.size() == target)
+                        if (matchCount == target)
                         {
-                            drop(crecipe, found);
+                            useInputs(crecipe, slotToCinput);
+                            drop(crecipe);
                             return;
                         }
 
@@ -198,17 +206,44 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
+     * Calls {@link CampfireRecipe#onUsingInput(int, ItemStack, EntityPlayer)} on each slot for each input with the fake player. <br>
+     * Then drops any items that were added to the fake player.
+     * 
+     * @param crecipe
+     * @param slotToCinput
+     *            - an array of length 4, of inventory slot indexes to CustomInput indexes (or -1).
+     */
+    protected void useInputs(CampfireRecipe crecipe, int[] slotToCinput)
+    {
+        if (getWorldObj() instanceof WorldServer)
+        {
+            FakePlayer fakePlayer = CampfireBackportFakePlayer.getFakePlayer((WorldServer) getWorldObj());
+
+            for (int slot = 0; slot < getSizeInventory(); ++slot)
+                if (slotToCinput[slot] != -1)
+                {
+                    ItemStack stack = getStackInSlot(slot);
+                    ItemStack transformedStack = crecipe.onUsingInput(slotToCinput[slot], stack, fakePlayer);
+                    if (transformedStack != null && transformedStack.stackSize <= 0)
+                        transformedStack = null;
+                    if (transformedStack != stack)
+                        setInventorySlotContentsForced(slot, transformedStack);
+                }
+
+            for (int slot = 0; slot < fakePlayer.inventory.getSizeInventory(); ++slot)
+                popStackedItem(fakePlayer.inventory.getStackInSlotOnClosing(slot), getWorldObj(), xCoord, yCoord, zCoord);
+        }
+    }
+
+    /**
      * ...and drops them when done.
      */
-    protected void drop(CampfireRecipe crecipe, List<Integer> slotsToEmpty)
+    protected void drop(CampfireRecipe crecipe)
     {
         popStackedItem(ItemStack.copyItemStack(crecipe.getOutput()), getWorldObj(), xCoord, yCoord, zCoord);
 
         if (crecipe.hasByproduct() && RAND.nextDouble() < crecipe.getByproductChance())
             popStackedItem(ItemStack.copyItemStack(crecipe.getByproduct()), getWorldObj(), xCoord, yCoord, zCoord);
-
-        for (int slot : slotsToEmpty)
-            setInventorySlotContents(slot, null);
     }
 
     /**
@@ -697,6 +732,33 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         markForNeighbours();
     }
 
+    /**
+     * Unlike {@link #setInventorySlotContents}, the stack given is exactly the stack that is placed in the campfire; it doesn't split the stack to fit
+     * {@link #getInventoryStackLimit}. <br>
+     * Also, {@link #cookingTimes} is only reset if the stack is null. And {@link #cookingTotalTimes} is only updated if the stack is null or actually has a recipe. <br>
+     * In other words, this method behaves exactly the same as {@link #setInventorySlotContents} if the stack is null.
+     */
+    public void setInventorySlotContentsForced(int slot, ItemStack stack)
+    {
+        if (stack != null)
+        {
+            CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire());
+            if (crecipe != null)
+                setCookingTotalTimeInSlot(slot, crecipe.getCookingTime());
+        }
+        else
+        {
+            resetCookingTimeInSlot(slot);
+            setCookingTotalTimeInSlot(slot, 600);
+        }
+
+        setStackInSlot(slot, stack);
+
+        markDirty();
+        markForClient();
+        markForNeighbours();
+    }
+
     @Override
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
@@ -835,11 +897,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Drops the given ItemStack, if it's not null. Splits the stack into multiple stacks if the given stack has an illegal stack size.
+     * Drops the given ItemStack, if it's not null or empty. Splits the stack into multiple stacks if the given stack has an illegal stack size.
      */
     public static void popStackedItem(ItemStack stack, World world, int x, int y, int z)
     {
-        if (stack != null)
+        if (stack != null && stack.stackSize > 0)
         {
             int max = stack.getMaxStackSize();
 
@@ -857,11 +919,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Drops the given ItemStack, if it's not null.
+     * Drops the given ItemStack, if it's not null or empty.
      */
     public static void popItem(ItemStack stack, World world, int x, int y, int z)
     {
-        if (stack != null)
+        if (stack != null && stack.stackSize > 0)
         {
             EntityItem entityitem = new EntityItem(world, x + RAND.nextDouble() * 0.75 + 0.125, y + RAND.nextDouble() * 0.75 + 0.5,
                     z + RAND.nextDouble() * 0.75 + 0.125, stack);

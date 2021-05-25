@@ -8,6 +8,7 @@ import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
@@ -126,6 +127,16 @@ public class CampfireBackportCompat
         public boolean matches(ItemStack stack, boolean inputSizeMatters);
 
         /**
+         * @return whether the IIngredient has any transforms
+         */
+        public boolean hasTransforms();
+
+        /**
+         * @return the stack after transformations have been applied
+         */
+        public ItemStack applyTransform(ItemStack stack, EntityPlayer player);
+
+        /**
          * @return list of example items for this IIngredient to display in NEI
          */
         public List<ItemStack> getItems();
@@ -136,9 +147,20 @@ public class CampfireBackportCompat
         public LinkedList<String> getNEITooltip();
 
         /**
-         * @return true if the IIngredient is just a simple item. false if the IIngredient is more complicated, such as an oredict or an item with NBT
+         * @return the stack after this IIngredient's AbstractItemFunctions have done
+         *         {@link connor135246.campfirebackport.common.compat.crafttweaker.AbstractItemFunction#modifyStackForDisplay} to it
          */
-        public boolean isSimple();
+        public ItemStack modifyStackForDisplay(ItemStack stack);
+
+        /**
+         * @return true if the IIngredient is an IngredientAny or an IngredientAnyAdvanced
+         */
+        public boolean isWildcard();
+
+        /**
+         * @return true if the IIngredient had any {@link connor135246.campfirebackport.common.compat.crafttweaker.AbstractItemFunction} applied to it
+         */
+        public boolean hasFunctions();
 
     }
 
@@ -160,6 +182,18 @@ public class CampfireBackportCompat
         }
 
         @Override
+        public boolean hasTransforms()
+        {
+            return false;
+        }
+
+        @Override
+        public ItemStack applyTransform(ItemStack stack, EntityPlayer player)
+        {
+            return stack;
+        }
+
+        @Override
         public List<ItemStack> getItems()
         {
             return new ArrayList<ItemStack>(0);
@@ -172,9 +206,21 @@ public class CampfireBackportCompat
         }
 
         @Override
-        public boolean isSimple()
+        public ItemStack modifyStackForDisplay(ItemStack stack)
         {
-            return true;
+            return stack;
+        }
+
+        @Override
+        public boolean isWildcard()
+        {
+            return false;
+        }
+
+        @Override
+        public boolean hasFunctions()
+        {
+            return false;
         }
 
     }

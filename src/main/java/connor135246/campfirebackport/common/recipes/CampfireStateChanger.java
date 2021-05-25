@@ -13,6 +13,7 @@ import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.block.BlockDispenser;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -134,7 +135,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
             if (tip.isEmpty())
                 tip.add("");
 
-            tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("damage_by", getInput().getInputSize()));
+            tip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("damage_by", getInput().getInputSize()));
         }
 
         // register dispensables (only on initial load)
@@ -271,6 +272,28 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
         return stack != null && isExtinguisher() == lit && getTypes().matches(type) && getInput().matches(stack);
     }
 
+    /**
+     * CampfireStateChangers have only one input, so we have a shortcut for {@link #onUsingInput(int, ItemStack, EntityPlayer)}.
+     */
+    public ItemStack onUsingInput(ItemStack stack, EntityPlayer player)
+    {
+        return onUsingInput(0, stack, player);
+    }
+
+    @Override
+    protected ItemStack use(CustomInput cinput, ItemStack stack, EntityPlayer player)
+    {
+        if (stack != null && stack.stackSize > 0)
+        {
+            if (isUsageTypeDamageable())
+                stack.damageItem(cinput.getInputSize(), player);
+            else if (isUsageTypeStackable())
+                stack.stackSize = Math.max(stack.stackSize - cinput.getInputSize(), 0);
+        }
+
+        return stack;
+    }
+
     // toString
     /**
      * for easy readin
@@ -286,7 +309,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     // Getters
 
     /**
-     * CampfireStateChangers have only one input, so we have a shortcut.
+     * CampfireStateChangers have only one input, so we have a shortcut for {@link #getInputs()}.
      */
     public CustomInput getInput()
     {
@@ -294,7 +317,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     }
 
     /**
-     * CampfireStateChangers have only one output, so we have a shortcut.
+     * CampfireStateChangers have only one output, so we have a shortcut for {@link #getOutputs()}.
      */
     public ItemStack getOutput()
     {

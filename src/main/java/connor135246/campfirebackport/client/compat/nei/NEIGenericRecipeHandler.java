@@ -7,14 +7,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
-import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -22,7 +23,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.oredict.OreDictionary;
 
 public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
@@ -50,10 +50,6 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         /** the length of {@link GenericRecipe#inputs} */
         public int numInputs;
 
-        /** {@link CustomInput#inputType} */
-        public byte[] inputTypes;
-        /** {@link CustomInput#dataType} */
-        public byte[] dataTypes;
         /** {@link CustomInput#neiTooltip} */
         public List<LinkedList<String>> tooltips;
 
@@ -68,18 +64,11 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
                 numInputs = grecipe.getInputs().length;
 
-                inputTypes = new byte[numInputs];
-                dataTypes = new byte[numInputs];
                 tooltips = new ArrayList<LinkedList<String>>(numInputs);
-
                 for (int cinputIndex = 0; cinputIndex < numInputs; ++cinputIndex)
                 {
-                    CustomInput cinput = grecipe.getInputs()[cinputIndex];
-
-                    inputTypes[cinputIndex] = cinput.getInputType();
-                    dataTypes[cinputIndex] = cinput.getDataType();
                     tooltips.add(new LinkedList<String>());
-                    tooltips.get(cinputIndex).addAll(cinput.getNEITooltip());
+                    tooltips.get(cinputIndex).addAll(grecipe.getInputs()[cinputIndex].getNEITooltip());
                 }
 
                 inputs = new ArrayList<PositionedStack>(numInputs);
@@ -170,17 +159,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         {
             int cinputIndex = hoveringOverInput(relMouse, cachedGrecipe);
             if (cinputIndex > -1 && cinputIndex < cachedGrecipe.numInputs)
-            {
-                if (cachedGrecipe.inputTypes[cinputIndex] == 5)
-                {
-                    if (cachedGrecipe.dataTypes[cinputIndex] == 4)
-                        tooltip.set(0, EnumChatFormatting.ITALIC + StringParsers.translateNEI("any_tinkers"));
-                    else
-                        tooltip.set(0, EnumChatFormatting.ITALIC + StringParsers.translateNEI("anything"));
-                }
-
                 tooltip.addAll(cachedGrecipe.tooltips.get(cinputIndex));
-            }
         }
     }
 
@@ -200,55 +179,90 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     // Static Methods
 
     /**
-     * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems}. <br>
+     * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems} and modified with {@link CustomInput#modifyStackForDisplay}. <br>
      * Because {@link PositionedStack#generatePermutations()} doesn't always do what I want it to...
      */
     public static List<ItemStack> expandInputList(CustomInput cinput)
     {
         List<ItemStack> neiList = new ArrayList<ItemStack>();
 
-        for (ItemStack cinputStack : cinput.getInputList())
+        for (final ItemStack cinputStack : cinput.getInputList())
         {
             if (cinputStack.getItemDamage() == OreDictionary.WILDCARD_VALUE)
             {
                 List<ItemStack> metaList = new ArrayList<ItemStack>();
                 cinputStack.getItem().getSubItems(cinputStack.getItem(), CreativeTabs.tabAllSearch, metaList);
 
-                if (cinput.getInputType() == 6)
+                for (ItemStack metaStack : metaList)
                 {
-                    if (cinput.doesInputSizeMatter() || cinputStack.hasTagCompound())
-                        for (ItemStack metaStack : metaList)
-                        {
-                            if (cinput.doesInputSizeMatter())
-                                metaStack.stackSize = cinput.getInputSize();
-                            if (cinputStack.hasTagCompound())
-                                metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
-                        }
-                }
-                else
-                {
-                    if (cinput.doesInputSizeMatter() || cinput.hasExtraData())
-                        for (ItemStack metaStack : metaList)
-                        {
-                            if (cinput.doesInputSizeMatter())
-                                metaStack.stackSize = cinput.getInputSize();
-                            if (cinput.hasExtraData())
-                                metaStack.setTagCompound((NBTTagCompound) cinput.getExtraData().copy());
-                        }
-                }
+                    if (cinput.isIIngredientInput() && cinputStack.hasTagCompound())
+                        metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
 
-                neiList.addAll(metaList);
+                    metaStack = cinput.modifyStackForDisplay(metaStack);
+
+                    if (metaStack.getItem().isDamageable())
+                    {
+                        try
+                        {
+                            for (int i = 0; i < 4; ++i)
+                            {
+                                ItemStack damagedStack = metaStack.copy();
+                                damagedStack.setItemDamage(damagedStack.getMaxDamage() * i / 4);
+                                neiList.add(damagedStack);
+                            }
+
+                            continue;
+                        }
+                        catch (Exception excep)
+                        {
+                            // CommonProxy.modlog.error("Error while attempting to set a stack's damage: " + excep.getClass().getName() + ": " + excep.getLocalizedMessage());
+                        }
+                    }
+
+                    neiList.add(metaStack);
+                }
             }
             else
-            {
-                if (cinput.doesInputSizeMatter())
-                    cinputStack.stackSize = cinput.getInputSize();
-
-                neiList.add(cinputStack);
-            }
+                neiList.add(cinput.modifyStackForDisplay(cinputStack.copy()));
         }
 
         return neiList;
+    }
+
+    /**
+     * @return true if the result matches any of the grecipe's outputs
+     */
+    public static boolean matchesCrafting(GenericRecipe grecipe, ItemStack result)
+    {
+        if (grecipe.hasOutputs())
+        {
+            for (ItemStack output : grecipe.getOutputs())
+                if (NEIServerUtils.areStacksSameTypeCrafting(output, result))
+                    return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the ingredient matches any of the grecipe's inputs
+     */
+    public static boolean matchesUsage(GenericRecipe grecipe, ItemStack ingredient)
+    {
+        for (CustomInput cinput : grecipe.getInputs())
+        {
+            if (cinput.isDataInput() && CustomInput.matchesData(cinput, ingredient))
+                return true;
+            else if (cinput.isIIngredientInput() && ((ICraftTweakerIngredient) cinput.getInput()).isWildcard()
+                    && ((ICraftTweakerIngredient) cinput.getInput()).matches(ingredient, false))
+                return true;
+            else
+            {
+                for (ItemStack cinputStack : cinput.getInputList())
+                    if (NEIServerUtils.areStacksSameTypeCrafting(cinputStack, ingredient))
+                        return true;
+            }
+        }
+        return false;
     }
 
     /**

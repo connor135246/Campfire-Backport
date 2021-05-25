@@ -2,6 +2,7 @@ package connor135246.campfirebackport.common.dispenser;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
+import connor135246.campfirebackport.util.CampfireBackportFakePlayer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
@@ -10,9 +11,12 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayer;
 
 public class BehaviourGeneric extends BehaviorDefaultDispenseItem
 {
+
     private final CampfireStateChanger cstate;
 
     public BehaviourGeneric(CampfireStateChanger cstate)
@@ -21,13 +25,14 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
     }
 
     @Override
-    protected ItemStack dispenseStack(IBlockSource sourceblock, ItemStack stack)
+    protected ItemStack dispenseStack(IBlockSource source, ItemStack stack)
     {
-        EnumFacing enumfacing = BlockDispenser.func_149937_b(sourceblock.getBlockMetadata());
-        World world = sourceblock.getWorld();
-        int i = sourceblock.getXInt() + enumfacing.getFrontOffsetX();
-        int j = sourceblock.getYInt() + enumfacing.getFrontOffsetY();
-        int k = sourceblock.getZInt() + enumfacing.getFrontOffsetZ();
+        EnumFacing enumfacing = BlockDispenser.func_149937_b(source.getBlockMetadata());
+        World world = source.getWorld();
+        boolean hasInv = source.getBlockTileEntity() instanceof IInventory;
+        int i = source.getXInt() + enumfacing.getFrontOffsetX();
+        int j = source.getYInt() + enumfacing.getFrontOffsetY();
+        int k = source.getZInt() + enumfacing.getFrontOffsetZ();
 
         Block block = world.getBlock(i, j, k);
         if (block instanceof BlockCampfire)
@@ -36,32 +41,31 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
 
             if (cstate.matches(stack, cblock.getType(), cblock.isLit()) && cblock.toggleCampfireBlockState(world, i, j, k) == 1)
             {
-                if (cstate.getInput().getDataType() == 3)
-                    cstate.getInput().doFluidEmptying(stack);
+                if (world instanceof WorldServer)
+                {
+                    FakePlayer fakePlayer = CampfireBackportFakePlayer.getFakePlayer((WorldServer) world);
 
-                if (cstate.isUsageTypeDamageable())
-                {
-                    if (stack.attemptDamageItem(cstate.getInput().getInputSize(), world.rand))
-                        stack.stackSize = 0;
-                }
-                else if (cstate.isUsageTypeStackable())
-                {
-                    stack.stackSize -= cstate.getInput().getInputSize();
-                    if (stack.stackSize < 0)
-                        stack.stackSize = 0;
-                }
+                    stack = cstate.onUsingInput(stack, fakePlayer);
 
-                if (cstate.hasOutputs())
-                {
-                    ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!(sourceblock.getBlockTileEntity() instanceof IInventory
-                            && putStackInInventory((IInventory) sourceblock.getBlockTileEntity(), returned, false)))
-                        super.dispenseStack(sourceblock, returned);
+                    for (int slot = 0; slot < fakePlayer.inventory.getSizeInventory(); ++slot)
+                    {
+                        ItemStack fakePlayerStack = fakePlayer.inventory.getStackInSlotOnClosing(slot);
+                        if (fakePlayerStack != null)
+                            if (!(hasInv && putStackInInventory((IInventory) source.getBlockTileEntity(), fakePlayerStack, false)))
+                                super.dispenseStack(source, fakePlayerStack);
+                    }
+
+                    if (cstate.hasOutputs())
+                    {
+                        ItemStack returned = ItemStack.copyItemStack(cstate.getOutput());
+                        if (!(hasInv && putStackInInventory((IInventory) source.getBlockTileEntity(), returned, false)))
+                            super.dispenseStack(source, returned);
+                    }
                 }
             }
             return stack;
         }
-        return super.dispenseStack(sourceblock, stack);
+        return super.dispenseStack(source, stack);
     }
 
     /**

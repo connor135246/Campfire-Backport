@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -283,12 +284,14 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
         return null;
     }
 
+    private static final List<CampfireRecipe> EMPTY_CAMPFIRE_LIST = new ArrayList<CampfireRecipe>(0);
+
     /**
      * sends to {@link #findRecipe(ItemStack, String, boolean, List, int)} with an empty List<CampfireRecipe> and maxInputs = 4
      */
     public static CampfireRecipe findRecipe(ItemStack stack, String type, boolean signalFire)
     {
-        return findRecipe(stack, type, signalFire, new ArrayList<CampfireRecipe>(0), 4);
+        return findRecipe(stack, type, signalFire, EMPTY_CAMPFIRE_LIST, 4);
     }
 
     /**
@@ -324,6 +327,15 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
         return false;
     }
 
+    @Override
+    protected ItemStack use(CustomInput cinput, ItemStack stack, EntityPlayer player)
+    {
+        if (stack != null && stack.stackSize > 0)
+            stack.stackSize--;
+
+        return stack;
+    }
+
     // toString
     /**
      * for easy readin
@@ -347,7 +359,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     // Getters
 
     /**
-     * CampfireRecipes have only one output, so we have a shortcut.
+     * CampfireRecipes have only one output, so we have a shortcut for {@link #getOutputs()}.
      */
     public ItemStack getOutput()
     {
