@@ -3,10 +3,13 @@ You can find the most recent version of this information at https://github.com/c
 
 Table of Contents
 # Command
+# v1.9 Recipe Changes
 # Campfire Backport CraftTweaking
 	# [Campfire Cooking Recipes]
 	# [Campfire Extinguishers / Ignitors]
 	# [Burn Out Biome / Dimension Timers]
+	# [Working with NBT Tags in CraftTweaker]
+	# [Working with Fluid Containers in CraftTweaker]
 # Campfire Backport Config Settings in Detail
 	# Specific Formats
 		# [Campfire Cooking Recipes]
@@ -20,7 +23,7 @@ Table of Contents
 # Campfire Backport Mixin Config
 
 ---
-	
+
 # Command
 The command "/campfirebackport" has five subcommands:
 -/campfirebackport dumpinfo
@@ -34,16 +37,42 @@ Reloads the config from file. Sends the new config to all players on the server.
 -/campfirebackport help
 Displays this list of commands.
 
+
+# v1.9 Recipe Changes
+This section is for people who have used Campfire Backport before v1.9.
+There are a couple changes to recipes in this update that may require you to update your scripts.
+
+First, container items.
+Some items in minecraft have container items associated with them. 
+For example, filled buckets have their container items set as empty buckets. That's why when you craft a cake, you get back empty buckets while the milk is used up.
+As of v1.9, campfire recipes and campfire extinguishers/ignitors will take care of these for you.
+For example, in previous versions you might make a campfire extinguisher that has a water bucket as the input and an empty bucket as the output.
+If you used the same extinguisher in the current version, you would end up with 2 empty buckets.
+If you had any recipes that explicitly return empty buckets or bottles or similar items, chances are they'll now return 2 items and have to be changed.
+
+Second, water containers.
+One of the default extinguishers in the config now works dramatically differently.
+It allows items to extinguish campfires if they contain at least 1000 mB of water.
+Previously, it worked on some (but not all) items that can hold fluids as NBT. 
+As of v1.9, it works on all items that can hold fluids as NBT, as well as any bucket or bottle that holds a fluid.
+If you had any recipes that use an item that contains water, you may not need them anymore.
+For example, if another mod adds an alternative bucket such as a clay bucket which can also hold water, it will likely work with the default config extinguisher.
+
+Finally, there are some new CraftTweaker things you can do.
+Campfire Backport now supports Item Transformers (https://docs.blamejared.com/1.12/en/Vanilla/Items/Item_Transformers/). Previously, they weren't supported.
+You can also take a look at # [Working with NBT Tags in CraftTweaker] and # [Working with Fluid Containers in CraftTweaker].
+
 ---
 
 # Campfire Backport CraftTweaking
 Campfire cooking recipes, campfire extinguishers/ignitors, and burn out biome/dimension timers can be made with CraftTweaker.
-Note that you'll need at least CraftTweaker v3.1.0. Errors will occur with earlier versions.
+Note that you'll need at least CraftTweaker v3.1.0. Errors may occur with earlier versions.
 Tips:
 -Pressing the "uses" hotkey when hovering over a campfire in NEI will bring up all Recipes and Extinguishers / Ignitors.
 -When using a damageable item as an input, don't forget to set its damage as a wildcard. For example, <minecraft:iron_sword> only applies to undamaged iron swords, but <minecraft:iron_sword:*> applies to iron swords with any amount of damage.
--To make an input require specific NBT Tags, use .withTag(tag) AND .onlyWithTag(tag). If you only put .withTag(tag), it will be completely ignored. If you only put .onlyWithTag(tag), it won't show up as having the tag in NEI.
--To make an output have specific NBT Tags, use .withTag(tag).
+-Wildcard inputs will display in NEI as a written book.
+-If you want to use NBT tags in your recipe inputs, check out # [Working with NBT Tags in CraftTweaker].
+-If you want to use fluids in your recipe inputs, check out # [Working with Fluid Containers in CraftTweaker].
 
 
 # [Campfire Cooking Recipes]
@@ -137,13 +166,6 @@ If the dimension shouldn't matter for this rule, put null.
 -int timer
 The number of ticks until the campfire will burn out.
 Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
-Tips:
--Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
--If no timers apply, campfires will use the value from Burn Out Timers. 
--You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
--If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
--If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
-Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
 
 Some example timers:
 -Soul campfires never burn out in the nether
@@ -154,11 +176,118 @@ Some example timers:
 	mods.campfirebackport.addBurnOutTimer("both", 0, -1, 0);
 -Regular campfires burn out after around an hour in mushroom island biomes that are in the end
 	mods.campfirebackport.addBurnOutTimer("regular", 14, 1, 72000);
+	
+Tips:
+-Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
+-If no timers apply, campfires will use the value from Burn Out Timers. 
+-You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
+-If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
+-If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
+Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
 
+
+# [Working with NBT Tags in CraftTweaker]
+By default, CraftTweaker has two methods related to NBT tags. ".withTag(tag)" puts a tag on an item. ".onlyWithTag(tag)" puts a condition for an ingredient to have a tag.
+-To make an input require specific NBT, use ".withTag(tag)" AND ".onlyWithTag(tag)".
+".withTag(tag)" makes the item appear with those tags in NEI.
+".onlyWithTag(tag)" actually sets the condition.
+-To make an output have specific NBT, use ".withTag(tag)".
+
+These two commands are good enough for most people.
+But have you ever wanted your input to allow a range of NBT values? Or perhaps you want a recipe to use up the NBT of an item?
+Campfire Backport adds a method that lets you do this. This method isn't just for Campfire Backport either - it will also work for vanilla recipes!
+
+.onlyWithTagAdvanced(String tag, @Optional Boolean reuse)
+-String tag
+A string that can be parsed into NBT. It can also have some special modifiers.
+
+Here are the 4 modifiers, with examples:
+ -Minimum - (min)
+	<minecraft:diamond_sword:*>.onlyWithTagAdvanced("{ench: [{id: 20, lvl: 1 (min)}]}")
+	The "(min)" next to the "lvl" tag means the "lvl" can be greater than or equal to the value.
+	Enchantment ID 20 is Fire Aspect. This example matches any Diamond Sword that has Fire Aspect of level 1 or higher.
+ -Cost - (cost)
+	<ThermalExpansion:igniter>.onlyWithTagAdvanced("{Energy: 400 (cost)}")
+	The "(cost)" next to the "Energy" tag means the "Energy" can be greater than or equal to the value. It also uses up the value afterward.
+	This example matches any Flux Igniter that has at least 400 RF. Afterward, it removes 400 RF from the Flux Igniter.
+ -Maximum - (max)
+	<minecraft:diamond_pickaxe:*>.onlyWithTagAdvanced("{RepairCost: 4 (max)}")
+	The "(max)" next to the "RepairCost" tag means the "RepairCost" can be less than or equal to the value.
+	This example matches any Diamond Pickaxe that has been combined in an anvil, but not too many times.
+ -Anything - (any)
+	<ExampleMod:ExampleItem>.onlyWithTagAdvanced("{Coordinates: [300, 64 (any), -300]}")
+	The "(any)" next to the second value in the array means it can be any value.
+	ExampleItem has NBT that saves x,y,z coordinates in an array. This will match any ExampleItem that has saved the x value as 300 and the z value as -300, no matter what the saved y value is.
+
+You can have as much NBT with as many different modifiers as you want.
+Any NBT without a modifier must match exactly, just like how ".onlyWithTag(tag)" works.
+
+-@Optional Boolean reuse
+If true, and the tag has any Cost modifier, makes the ingredient reusable.
+If the tag doesn't have any Cost modifiers, this value doesn't matter.
+If not included, defaults to true. 
+
+Since Cost modifiers generally don't want the input item itself to be consumed, only the NBT, this option is on by default. 
+You shouldn't need to worry about this option at all for campfire recipes or extinguishers/ignitors, but it's here just in case.
+
+
+Some examples of this method:
+-Diamond Swords enchanted with Fire Aspect of at least level 1 will light campfires and will lose 1 durability
+	mods.campfirebackport.addCampfireIgnitor("both", <minecraft:diamond_sword:*>.onlyWithTagAdvanced("{ench: [{id: 20, lvl: 1 (min)}]}"), "damageable", 1);
+-Thermal Expansion Flux Igniters will light campfires at the cost of 400 RF
+	mods.campfirebackport.addCampfireIgnitor("both", <ThermalExpansion:igniter>.onlyWithTagAdvanced("{Energy: 400 (cost)}"), "none");
+-Enchanted Books named "Wowie!" that have Luck of the Sea of at least level 1 will extinguish campfires
+    mods.campfirebackport.addCampfireExtinguisher("both", <minecraft:enchanted_book>.onlyWithTagAdvanced("{StoredEnchantments: [{id: 61, lvl: 1 (min)}], display: {Name: \"Wowie!\"}}"), "none");
+-After 100 ticks, A Diamond Hoe named "Cook me" that is enchanted with Unbreaking of at least level 2 turns all of its remaining durability into Wheat
+	mods.campfirebackport.addCampfireRecipe("both", <minecraft:diamond_hoe:*>.onlyWithTagAdvanced("{ench: [{id: 34, lvl: 2 (min)}], display: {Name: \"Cook me\"}}").transformDamage(), <minecraft:wheat>, 100);
+-After 1000 ticks, any Thermal Expansion Capacitor on a campfire will turn all of its stored RF into diamonds one at a time
+	mods.campfirebackport.addCampfireRecipe("both", <ThermalExpansion:capacitor:*>.onlyWithTagAdvanced("{Energy: 1 (cost)}"), <minecraft:diamond>, 1000);
+-Thermal Expansion Flux Igniters can be crafted into Fire blocks for 400 RF each
+	recipes.addShapeless(<minecraft:fire>, [<ThermalExpansion:igniter>.onlyWithTagAdvanced("{Energy: 400 (cost)}")]);
+-A Diamond Sword enchanted with Fire Aspect of at least level 1 crafted with a Pig Spawn Egg will make 3 Cooked Porkchops, and the Diamond Sword will lose 1 durability
+	recipes.addShapeless(<minecraft:cooked_porkchop> * 3, [<minecraft:spawn_egg:90>, <minecraft:diamond_sword:*>.onlyWithTagAdvanced("{ench: [{id: 20, lvl: 1 (min)}]}").transformDamage()]);
+
+
+# [Working with Fluid Containers in CraftTweaker]
+Some items store fluids as NBT. Some items don't, such as buckets of fluids. And some mods add multiple kinds of buckets!
+If only there was some way to deal with all possibilities at the same time, instead of having to make a recipe for each one...
+
+That's right! Campfire Backport adds a method that does that!
+
+.transformFluid(String fluidName, int minAmount, @Optional Boolean reuse)
+-String fluidName
+The name of the fluid.
+-int minAmount
+The amount (in mB) of fluid.
+Can't be negative.
+-@Optional Boolean reuse
+If true, makes the ingredient reusable.
+If not included, defaults to true. 
+
+Since fluid containers generally don't want the container itself to be consumed, only the fluid, this option is on by default. 
+You shouldn't need to worry about this option at all for campfire recipes or extinguishers/ignitors, but it's here just in case.
+
+Tip:
+This method is especially useful when combined with wildcard IIngredients.
+For example, "<*>.transformFluid("water", 1000)" will match anything containing at least 1000 mB of water.
+This includes Water Buckets or Water Bottles or any fluid tank item with at least 1000 mB of water.
+It also automatically removes the water - Water Buckets will turn into empty Buckets, Water Bottles will turn into empty Bottles, and fluid tanks will have 1000 mB of water removed.
+
+
+Some examples of this method:
+-Right-clicking with anything with at least 1000 mB of water will extinguish campfires and use up the water
+    mods.campfirebackport.addCampfireExtinguisher("both", <*>.transformFluid("water", 1000), "none");
+-Right-clicking with any Thermal Expansion tank with at least 150 mB of lava will ignite campfires and use up the lava
+    mods.campfirebackport.addCampfireIgnitor("both", <ThermalExpansion:Tank:*>.transformFluid("lava", 150), "none");
+-After 600 ticks, 1000 mB of water and 1000 mB of lava are consumed from two items to make obsidian
+    mods.campfirebackport.addCampfireRecipe("both", [<*>.transformFluid("lava", 1000), <*>.transformFluid("water", 1000)], <minecraft:obsidian>, 600);
+-You can craft water blocks out of anything containing 1000 mB of water
+    recipes.addShapeless(<minecraft:water>, [<*>.transformFluid("water", 1000)]);
+     
 ---
 
 # Campfire Backport Config Settings in Detail
-In most cases, it'll be easier and cleaner to do these with CraftTweaker. But there are some things you can only do here.
+In most cases, it'll be easier and cleaner to do these with CraftTweaker.
 Tips:
 -Pressing the "uses" hotkey when hovering over a campfire in NEI will bring up all Recipes and Extinguishers / Ignitors.
 -Check the console for error messages if your input didn't parse! 
@@ -207,8 +336,8 @@ Some example recipes:
 	ore:logWood@4/minecraft:coal:1@5/600/notsignal
 -1 brown mushroom, 1 red mushroom, and 1 bowl turns into mushroom stew after 63 ticks, but only on signal fire campfires
 	minecraft:brown_mushroom&minecraft:red_mushroom&minecraft:bowl/minecraft:mushroom_stew/63/signal
--1 bucket of milk, 1 wheat, 1 sugar, and 1 egg turns into a cake, and returns a bucket
-	minecraft:milk_bucket&minecraft:wheat&minecraft:sugar&minecraft:egg/minecraft:cake/600/any/minecraft:bucket
+-1 bucket of milk, 1 wheat, 1 sugar, and 1 egg turns into a cake
+	minecraft:milk_bucket&minecraft:wheat&minecraft:sugar&minecraft:egg/minecraft:cake/600
 -1 carrot and 3 gold nuggets turns into a golden carrot
 	minecraft:carrot&minecraft:gold_nugget@3/minecraft:golden_carrot
 -An undamaged wooden sword is enchanted with fire aspect II after 5 seconds
@@ -248,7 +377,7 @@ Some example extinguishers/ignitors:
 -Right-clicking with a snow block turns into 2 snowballs and can be used from a dispenser
 	right+dispensable/minecraft:snow/stackable>minecraft:snowball@2
 -Right-clicking with a milk bucket turns into an empty bucket
-	right/minecraft:milk_bucket/stackable>minecraft:bucket
+	right/minecraft:milk_bucket/stackable
 -Left-clicking with any sword enchanted with fire aspect and can be used from a dispenser
 	left+dispensable/class:net.minecraft.item.ItemSword[ench:20,1]/damageable
 -Right-clicking with any shovel and can be used from a dispenser
@@ -259,8 +388,8 @@ Some example extinguishers/ignitors:
 	left+dispensable/ore:stickWood@5/stackable
 -Left-clicking with a bow enchanted with flame damages it by 10 points
 	left/minecraft:bow[ench:50,1]@10/damageable
--Right-clicking with immersive engineering's jerrycan with at least 1000 mB of water (uses the water)
-	right/ImmersiveEngineering:jerrycan[Fluid:"water",MinAmount:1000]/none
+-Right-clicking with a Thermal Expansion tank with at least 1000 mB of water (uses the water)
+	right/ThermalExpansion:Tank[Fluid:"water",MinAmount:1000]/none
 -Right-clicking with a wooden sword returns a wooden sword enchanted with fire aspect
 	right/minecraft:wooden_sword/stackable>minecraft:wooden_sword[ench:20,2]
 -Left-clicking with 3 of any stairs enchanted with fire aspect of at least level 3 returns a lit furnace named Oops
@@ -326,8 +455,8 @@ But this will refer to Golden Shovels whose only enchantment is Unbreaking at ex
 So some specific NBT things have been given a special format you can type it in to test in a more lenient way.
 For enchantments, that format is "[ench:id,minlevel]".
 For example, minecraft:golden_shovel[ench:34,1] refers to any Golden Shovel that has an Unbreaking enchantment of at least level 1, and may or may not have other NBT.
-Another special NBT format is the Fluid Container format, for items that hold fluids: "[Fluid:"fluidname",MinAmount:minamount]".
-For example, examplemod:fluidcontainer[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in the fluidcontainer item from the mod examplemod.
+Another special NBT format is the fluid format, for items that hold fluids: "[Fluid:"fluidname",MinAmount:minamount]".
+For example, ThermalExpansion:Tank[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in a fluid tank item from Thermal Expansion.
 The last NBT format is even more special than the others. This one can only exist on its own, without an Item/Ore/tool/Class.
 It's the Tinker's Construct Modifiers format. It allows you to check whether a Tinker's tool has specific modifiers on it.
 This one's rather complicated, so it gets its own section. See # [Tinker's Construct Modifiers Format].
