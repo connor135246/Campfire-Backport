@@ -250,11 +250,16 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     {
         for (CustomInput cinput : grecipe.getInputs())
         {
-            if (cinput.isDataInput() && CustomInput.matchesData(cinput, ingredient))
-                return true;
-            else if (cinput.isIIngredientInput() && ((ICraftTweakerIngredient) cinput.getInput()).isWildcard()
-                    && ((ICraftTweakerIngredient) cinput.getInput()).matches(ingredient, false))
-                return true;
+            if (cinput.isDataInput())
+            {
+                if (CustomInput.matchesData(cinput, ingredient))
+                    return true;
+            }
+            else if (cinput.isIIngredientInput() && ((ICraftTweakerIngredient) cinput.getInput()).isWildcard())
+            {
+                if (((ICraftTweakerIngredient) cinput.getInput()).matches(ingredient, false))
+                    return true;
+            }
             else
             {
                 for (ItemStack cinputStack : cinput.getInputList())

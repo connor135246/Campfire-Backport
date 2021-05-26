@@ -123,8 +123,8 @@ public class MiscUtil
         {
             if (stack.getItem() instanceof IFluidContainerItem)
             {
-                FluidStack result = ((IFluidContainerItem) stack.getItem()).drain(stack, fluidStack.amount, false);
-                return result != null && result.containsFluid(fluidStack);
+                FluidStack currentFluid = ((IFluidContainerItem) stack.getItem()).getFluid(stack);
+                return currentFluid != null && currentFluid.containsFluid(fluidStack);
             }
             else
                 return FluidContainerRegistry.containsFluid(stack, fluidStack);
@@ -159,7 +159,7 @@ public class MiscUtil
     }
 
     /**
-     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}.
+     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}. Null safe.
      */
     public static NBTTagCompound mergeNBT(final NBTTagCompound base, final NBTTagCompound merger)
     {
@@ -194,7 +194,8 @@ public class MiscUtil
     /**
      * Merges the merger into the base with the key. <br>
      * If the merger is a compound, its tags are recursively added to the base's compound. <br>
-     * If the merger is a list of the same type as the base's list, its tags are appended to the base's list. <br>
+     * If the merger is a list of the same type as the base's list, its tags are appended to the base's list. (There's a special case for enchantment lists, see
+     * {@link #mergeEnchNBTHigherLevel}) <br>
      * Otherwise, the merger replaces the value in the base.
      */
     public static NBTTagCompound mergeNBT(final NBTTagCompound base, final String key, final NBTBase merger) throws ClassCastException
@@ -220,6 +221,8 @@ public class MiscUtil
         {
             if (((NBTTagList) baseTag).func_150303_d() != ((NBTTagList) merger).func_150303_d())
                 base.setTag(key, merger);
+            else if (((NBTTagList) merger).func_150303_d() == 10 && (key.equals(StringParsers.KEY_ench) || key.equals(StringParsers.KEY_StoredEnchantments)))
+                base.setTag(key, mergeEnchNBTHigherLevel(((NBTTagList) baseTag), ((NBTTagList) merger)));
             else
             {
                 for (int i = 0; i < ((NBTTagList) merger).tagCount(); ++i)
@@ -228,6 +231,69 @@ public class MiscUtil
         }
 
         return base;
+    }
+
+    /**
+     * Merges two lists of enchantments. If there are IDs that are in both lists, the mergerList's enchantments take priority over the baseList's enchantments.
+     */
+    public static NBTTagList mergeEnchNBT(final NBTTagList baseList, final NBTTagList mergerList)
+    {
+        NBTTagList returnList = (NBTTagList) mergerList.copy();
+
+        for (int i = 0; i < baseList.tagCount(); ++i)
+        {
+            NBTTagCompound baseCompound = baseList.getCompoundTagAt(i);
+            if (!hasMatchingEnchID(returnList, baseCompound.getInteger(StringParsers.KEY_id)))
+                returnList.appendTag(baseCompound);
+        }
+
+        return returnList;
+    }
+
+    /**
+     * Merges two lists of enchantments. If there are IDs that are in both lists, the higher level one takes priority.
+     */
+    public static NBTTagList mergeEnchNBTHigherLevel(final NBTTagList list1, final NBTTagList list2)
+    {
+        NBTTagList returnList = (NBTTagList) list1.copy();
+
+        for (int i = 0; i < list2.tagCount(); ++i)
+        {
+            NBTTagCompound list2Compound = list2.getCompoundTagAt(i);
+            NBTTagCompound returnListCompound = getMatchingEnchID(returnList, list2Compound.getInteger(StringParsers.KEY_id));
+            if (returnListCompound == null)
+                returnList.appendTag(list2Compound);
+            else
+            {
+                int list2Level = list2Compound.getInteger(StringParsers.KEY_lvl);
+                if (list2Level > returnListCompound.getInteger(StringParsers.KEY_lvl))
+                    returnListCompound.setInteger(StringParsers.KEY_lvl, list2Level);
+            }
+        }
+
+        return returnList;
+    }
+
+    /**
+     * @return true if the list of enchantments has the enchantment with the given id, false otherwise
+     */
+    public static boolean hasMatchingEnchID(final NBTTagList enchList, final int id)
+    {
+        return getMatchingEnchID(enchList, id) != null;
+    }
+
+    /**
+     * @return the enchantment compound with the given id from the given list, or null if it didn't have one
+     */
+    public static NBTTagCompound getMatchingEnchID(final NBTTagList enchList, final int id)
+    {
+        for (int i = 0; i < enchList.tagCount(); ++i)
+        {
+            NBTTagCompound thisEnch = enchList.getCompoundTagAt(i);
+            if (thisEnch.getInteger(StringParsers.KEY_id) == id)
+                return thisEnch;
+        }
+        return null;
     }
 
 }

@@ -73,6 +73,7 @@ public class StringParsers
             KEY_ench = "ench",
             KEY_id = "id",
             KEY_lvl = "lvl",
+            KEY_StoredEnchantments = "StoredEnchantments",
             KEY_Fluid = "Fluid",
             KEY_fluid = "fluid",
             KEY_FluidName = "FluidName",
