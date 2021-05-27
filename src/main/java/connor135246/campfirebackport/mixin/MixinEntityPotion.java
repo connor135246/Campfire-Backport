@@ -9,6 +9,7 @@ import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import net.minecraft.block.Block;
 import net.minecraft.entity.projectile.EntityPotion;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
@@ -23,25 +24,26 @@ public abstract class MixinEntityPotion extends EntityThrowable
         super(p_i1776_1_);
     }
 
-    @Inject(method = "onImpact", at = @At(value = "INVOKE", ordinal = 0))
+    @Inject(method = "onImpact", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/projectile/EntityPotion;setDead()V", ordinal = 0))
     protected void onOnImpact(MovingObjectPosition mop, CallbackInfo ci)
     {
-        int x = mop.blockX;
-        int y = mop.blockY;
-        int z = mop.blockZ;
+        int x = MathHelper.floor_double(mop.hitVec.xCoord);
+        int y = MathHelper.floor_double(mop.hitVec.yCoord);
+        int z = MathHelper.floor_double(mop.hitVec.zCoord);
 
-        int[][] posArray = new int[][] { { x, y, z }, { x, y + 1, z }, { x + 1, y + 1, z }, { x - 1, y + 1, z }, { x, y + 1, z + 1 }, { x, y + 1, z - 1 } };
-
-        for (int[] check : posArray)
-        {
-            Block block = this.worldObj.getBlock(check[0], check[1], check[2]);
-            if (block instanceof BlockCampfire)
-            {
-                BlockCampfire cblock = (BlockCampfire) block;
-
-                if (cblock.isLit())
-                    cblock.toggleCampfireBlockState(this.worldObj, check[0], check[1], check[2]);
-            }
-        }
+        extinguishLitCampfireAt(x,     y,     z    );
+        extinguishLitCampfireAt(x,     y + 1, z    );
+        extinguishLitCampfireAt(x + 1, y + 1, z    );
+        extinguishLitCampfireAt(x - 1, y + 1, z    );
+        extinguishLitCampfireAt(x,     y + 1, z + 1);
+        extinguishLitCampfireAt(x,     y + 1, z - 1);
     }
+
+    protected void extinguishLitCampfireAt(int i, int j, int k)
+    {
+        Block block = this.worldObj.getBlock(i, j, k);
+        if (block instanceof BlockCampfire && ((BlockCampfire) block).isLit())
+            ((BlockCampfire) block).toggleCampfireBlockState(this.worldObj, i, j, k);
+    }
+
 }
