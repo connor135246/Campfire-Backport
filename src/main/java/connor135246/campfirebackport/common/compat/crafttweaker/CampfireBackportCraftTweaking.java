@@ -4,6 +4,7 @@ import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.recipes.CustomInput;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
@@ -57,13 +58,20 @@ public class CampfireBackportCraftTweaking
     }
 
     /**
-     * Ensures recipe lists are sorted after recipes were added.
+     * Refreshes {@link CampfireBackportConfig#autoRecipe Auto Recipe Discovery} recipes and ensures recipe lists are sorted.
      */
     public static class PostReloadEventHandler implements IEventHandler<ReloadEvent>
     {
         @Override
         public void handle(ReloadEvent event)
         {
+            if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)
+            {
+                CampfireRecipe.getFurnaceList().forEach(furnaceCrecipe -> CampfireRecipe.removeFromRecipeLists(furnaceCrecipe));
+                CampfireRecipe.getFurnaceList().clear();
+                CampfireBackportConfig.addFurnaceRecipes();
+            }
+
             CampfireRecipe.sortRecipeLists();
             CampfireStateChanger.sortStateChangerLists();
         }

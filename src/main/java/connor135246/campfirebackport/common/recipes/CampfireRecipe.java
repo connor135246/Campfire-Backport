@@ -36,6 +36,9 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     /** the list of recipes that work in the soul campfire. copied from the master list. */
     private static List<CampfireRecipe> soulRecipeList = new ArrayList<CampfireRecipe>();
 
+    /** the list of recipes created with {@link connor135246.campfirebackport.config.CampfireBackportConfig#autoRecipe Auto Recipe Discovery}. */
+    private static List<CampfireRecipe> furnaceRecipeList = new ArrayList<CampfireRecipe>();
+
     /** the list of recipes created with CraftTweaker. */
     private static List<CampfireRecipe> crafttweakerRecipeList = new ArrayList<CampfireRecipe>();
 
@@ -251,6 +254,11 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     public static List<CampfireRecipe> getRecipeList(String type)
     {
         return EnumCampfireType.option(type, regRecipeList, soulRecipeList);
+    }
+
+    public static List<CampfireRecipe> getFurnaceList()
+    {
+        return furnaceRecipeList;
     }
 
     public static List<CampfireRecipe> getCraftTweakerList()

@@ -359,6 +359,8 @@ public class CampfireBackportConfig
                     recipeListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY);
 
         // autoRecipe & autoBlacklistStrings
+        CampfireRecipe.getFurnaceList().clear();
+
         if (autoRecipe != EnumCampfireType.NEITHER)
         {
             if (autoBlacklistStrings.length != 0)
@@ -384,50 +386,7 @@ public class CampfireBackportConfig
                 }
             }
 
-            ConfigReference.logInfo("discovering_autos");
-
-            Iterator inputsit = FurnaceRecipes.smelting().getSmeltingList().keySet().iterator();
-            Iterator resultsit = FurnaceRecipes.smelting().getSmeltingList().values().iterator();
-
-            iteratorLoop: while (resultsit.hasNext())
-            {
-                ItemStack inputstack = (ItemStack) inputsit.next();
-                ItemStack resultstack = (ItemStack) resultsit.next();
-
-                if (resultstack.getItem() instanceof ItemFood)
-                {
-                    if (!autoBlacklistStacks.isEmpty() && autoBlacklistStacks.get(inputstack.getItem()) != null)
-                    {
-                        if (autoBlacklistStacks.get(inputstack.getItem()) == OreDictionary.WILDCARD_VALUE
-                                || autoBlacklistStacks.get(inputstack.getItem()) == inputstack.getItemDamage())
-                            continue iteratorLoop;
-                    }
-                    else if (!autoBlacklistOres.isEmpty())
-                    {
-                        for (int id : OreDictionary.getOreIDs(inputstack))
-                        {
-                            if (autoBlacklistOres.contains(id))
-                                continue iteratorLoop;
-                        }
-                    }
-
-                    CampfireRecipe furnaceRecipe = CampfireRecipe.createAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
-                    if (furnaceRecipe != null && furnaceRecipe.getInputs().length > 0 && furnaceRecipe.getInputs()[0] != null && furnaceRecipe.hasOutputs())
-                    {
-                        boolean addIt = true;
-                        for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
-                        {
-                            if (CampfireRecipe.doStackRecipesMatch(furnaceRecipe, masterCrecipe))
-                            {
-                                addIt = false;
-                                break;
-                            }
-                        }
-                        if (addIt)
-                            CampfireRecipe.addToRecipeLists(furnaceRecipe);
-                    }
-                }
-            }
+            addFurnaceRecipes();
         }
 
         for (CampfireRecipe crecipe : CampfireRecipe.getCraftTweakerList())
@@ -581,6 +540,61 @@ public class CampfireBackportConfig
         }
 
         initialLoad = false;
+    }
+
+    /**
+     * Discovers furnace recipes that result in an ItemFood, and adds them to the campfire types that were specified by autoRecipe. <br>
+     * It's also accessed from {@link connor135246.campfirebackport.common.compat.crafttweaker.CampfireBackportCraftTweaking.PostReloadEventHandler}.
+     */
+    public static void addFurnaceRecipes()
+    {
+        ConfigReference.logInfo("discovering_autos");
+
+        Iterator inputsit = FurnaceRecipes.smelting().getSmeltingList().keySet().iterator();
+        Iterator resultsit = FurnaceRecipes.smelting().getSmeltingList().values().iterator();
+
+        iteratorLoop: while (resultsit.hasNext())
+        {
+            ItemStack inputstack = (ItemStack) inputsit.next();
+            ItemStack resultstack = (ItemStack) resultsit.next();
+
+            if (resultstack.getItem() instanceof ItemFood)
+            {
+                if (!autoBlacklistStacks.isEmpty())
+                {
+                    Integer meta = autoBlacklistStacks.get(inputstack.getItem());
+                    if (meta == OreDictionary.WILDCARD_VALUE || meta == inputstack.getItemDamage())
+                        continue iteratorLoop;
+                }
+                else if (!autoBlacklistOres.isEmpty())
+                {
+                    for (int id : OreDictionary.getOreIDs(inputstack))
+                    {
+                        if (autoBlacklistOres.contains(id))
+                            continue iteratorLoop;
+                    }
+                }
+
+                CampfireRecipe furnaceCrecipe = CampfireRecipe.createAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
+                if (furnaceCrecipe != null && furnaceCrecipe.getInputs().length > 0 && furnaceCrecipe.getInputs()[0] != null && furnaceCrecipe.hasOutputs())
+                {
+                    boolean addIt = true;
+                    for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
+                    {
+                        if (CampfireRecipe.doStackRecipesMatch(furnaceCrecipe, masterCrecipe))
+                        {
+                            addIt = false;
+                            break;
+                        }
+                    }
+                    if (addIt)
+                    {
+                        CampfireRecipe.getFurnaceList().add(furnaceCrecipe);
+                        CampfireRecipe.addToRecipeLists(furnaceCrecipe);
+                    }
+                }
+            }
+        }
     }
 
     /**
