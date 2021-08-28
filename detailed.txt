@@ -25,11 +25,13 @@ Table of Contents
 ---
 
 # Command
-The command "/campfirebackport" has five subcommands:
+The command "/campfirebackport" has six subcommands:
 -/campfirebackport dumpinfo
 Dumps this text file to the config folder.
 -/campfirebackport nbt [player] OR /campfirebackport nbt <x> <y> <z>
 Prints out the NBT of the player's held item OR the NBT of the tile entity at the location.
+-/campfirebackport getcampfire <x> <y> <z>
+Creates an item copy of the campfire block at the location, including NBT.
 -/campfirebackport locationinfo [player] OR /campfirebackport locationinfo <x> <z>
 Prints out the IDs of the biome and the dimension at the location.
 -/campfirebackport reload
