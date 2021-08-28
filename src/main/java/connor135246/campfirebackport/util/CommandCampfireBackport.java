@@ -8,9 +8,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager;
 import connor135246.campfirebackport.config.ConfigReference;
+import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
@@ -33,13 +36,15 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
-/**
- * Reloads the config from file, prints the NBT of a held item / NBT of a tile entity at x y z, prints the biome and dimension IDs at x z, or dumps config info.
- */
 public class CommandCampfireBackport implements ICommand
 {
 
-    private static final String NBT = "nbt", LOCATIONINFO = "locationinfo", RELOAD = "reload", DUMPINFO = "dumpinfo", HELP = "help";
+    private static final String HELP = "help", // lists options
+            NBT = "nbt", // prints the NBT of a held item, or the NBT of a tile entity at x y z
+            LOCATIONINFO = "locationinfo", // prints the biome and dimension IDs at x z
+            RELOAD = "reload", // reloads the config from file
+            DUMPINFO = "dumpinfo", // dumps config info
+            GETCAMPFIRE = "getcampfire"; // creates an item copy of a campfire at x y z
 
     @Override
     public int compareTo(Object o)
@@ -190,12 +195,50 @@ public class CommandCampfireBackport implements ICommand
                             .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED)));
                 }
             }
+            else if (arguments[0].equals(GETCAMPFIRE))
+            {
+                if (arguments.length == 4)
+                {
+                    World world = sender.getEntityWorld();
+                    int x = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, arguments[1]));
+                    int y = MathHelper.floor_double(CommandBase.func_110665_a(sender, sender.getPlayerCoordinates().posY, arguments[2], 0, 256));
+                    int z = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, arguments[3]));
+
+                    if (world.blockExists(x, y, z))
+                    {
+                        Block block = world.getBlock(x, y, z);
+                        TileEntity tile = world.getTileEntity(x, y, z);
+
+                        if (block instanceof BlockCampfire && tile instanceof TileEntityCampfire)
+                        {
+                            ItemStack stack = new ItemStack(((BlockCampfire) block).getCampfireBlockItem());
+
+                            NBTTagCompound blockEntityTag = new NBTTagCompound();
+                            tile.writeToNBT(blockEntityTag);
+                            blockEntityTag.removeTag("x");
+                            blockEntityTag.removeTag("y");
+                            blockEntityTag.removeTag("z");
+                            blockEntityTag.removeTag("id");
+                            blockEntityTag.removeTag(TileEntityCampfire.KEY_SignalFire);
+                            stack.setTagInfo(TileEntityCampfire.KEY_BlockEntityTag, blockEntityTag);
+
+                            TileEntityCampfire.popItem(stack, world, x, y, z);
+                        }
+                        else
+                            throw new CommandException(Reference.MODID + ".command.get.not_campfire");
+                    }
+                    else
+                        throw new CommandException(Reference.MODID + ".command.nbt.block_out_of_world");
+                }
+                else
+                    throw new WrongUsageException(Reference.MODID + ".command.help.4");
+            }
             else if (arguments[0].equals(HELP))
             {
                 sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GOLD +
                         "--- " + StatCollector.translateToLocal(getCommandUsage(sender)) + " ---"));
 
-                for (int i = 0; i <= 7; ++i)
+                for (int i = 0; i <= 9; ++i)
                     sender.addChatMessage(new ChatComponentTranslation(Reference.MODID + ".command.help." + i)
                             .setChatStyle(new ChatStyle().setColor(i % 2 == 1 ? EnumChatFormatting.GRAY : EnumChatFormatting.WHITE)));
             }
@@ -229,7 +272,7 @@ public class CommandCampfireBackport implements ICommand
     public List addTabCompletionOptions(ICommandSender sender, String[] arguments)
     {
         if (arguments.length == 1)
-            return CommandBase.getListOfStringsMatchingLastWord(arguments, new String[] { NBT, LOCATIONINFO, RELOAD, DUMPINFO, HELP });
+            return CommandBase.getListOfStringsMatchingLastWord(arguments, new String[] { NBT, LOCATIONINFO, RELOAD, DUMPINFO, GETCAMPFIRE, HELP });
         else if (arguments.length == 2 && (arguments[0].equals(NBT) || arguments[0].equals(LOCATIONINFO)))
             return CommandBase.getListOfStringsMatchingLastWord(arguments, MinecraftServer.getServer().getAllUsernames());
         else
@@ -239,7 +282,7 @@ public class CommandCampfireBackport implements ICommand
     @Override
     public boolean isUsernameIndex(String[] arguments, int index)
     {
-        return arguments.length > 0 ? (index == 1 && (arguments[0].equals(NBT) || arguments[0].equals(LOCATIONINFO))) : false;
+        return arguments.length == 2 && index == 1 && (arguments[0].equals(NBT) || arguments[0].equals(LOCATIONINFO));
     }
 
 }

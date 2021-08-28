@@ -154,10 +154,10 @@ public class CampfireBackportConfig
     /**
      * Handles loading/saving config settings. <br>
      * Flags: <br>
-     * 1 - Loads config from file. <br>
-     * 2 - Gets config settings. <br>
-     * 4 - Applies config settings. <br>
-     * 8 - Saves config to file. <br>
+     * 1 - Loads Configuration object from file. <br>
+     * 2 - Gets settings from Configuration object. <br>
+     * 4 - Applies settings. <br>
+     * 8 - Saves Configuration object to file. <br>
      * Flags can be added together.
      * 
      * @param flag
@@ -351,12 +351,13 @@ public class CampfireBackportConfig
         if (regularRecipeList.length != 0 || soulRecipeList.length != 0)
             ConfigReference.logInfo("parsing_recipes");
 
+        boolean inheritanceBool = recipeListInheritance.equals(ConfigReference.SOUL_GETS_REG);
         for (String recipe : regularRecipeList)
-            CampfireRecipe.addToRecipeLists(recipe,
-                    recipeListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY);
+            CampfireRecipe.addToRecipeLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY);
+
+        inheritanceBool = recipeListInheritance.equals(ConfigReference.REG_GETS_SOUL);
         for (String recipe : soulRecipeList)
-            CampfireRecipe.addToRecipeLists(recipe,
-                    recipeListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY);
+            CampfireRecipe.addToRecipeLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY);
 
         // autoRecipe & autoBlacklistStrings
         CampfireRecipe.getFurnaceList().clear();
@@ -420,19 +421,21 @@ public class CampfireBackportConfig
         if (regularExtinguishersList.length != 0 || regularIgnitorsList.length != 0 || soulExtinguishersList.length != 0 || soulIgnitorsList.length != 0)
             ConfigReference.logInfo("parsing_state_changers");
 
+        inheritanceBool = extinguishersListInheritance.equals(ConfigReference.SOUL_GETS_REG);
         for (String recipe : regularExtinguishersList)
-            CampfireStateChanger.addToStateChangerLists(recipe,
-                    extinguishersListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, true);
-        for (String recipe : soulExtinguishersList)
-            CampfireStateChanger.addToStateChangerLists(recipe,
-                    extinguishersListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, true);
+            CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, true);
 
+        inheritanceBool = extinguishersListInheritance.equals(ConfigReference.REG_GETS_SOUL);
+        for (String recipe : soulExtinguishersList)
+            CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, true);
+
+        inheritanceBool = ignitorsListInheritance.equals(ConfigReference.SOUL_GETS_REG);
         for (String recipe : regularIgnitorsList)
-            CampfireStateChanger.addToStateChangerLists(recipe,
-                    ignitorsListInheritance.equals(ConfigReference.SOUL_GETS_REG) ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, false);
+            CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, false);
+
+        inheritanceBool = ignitorsListInheritance.equals(ConfigReference.REG_GETS_SOUL);
         for (String recipe : soulIgnitorsList)
-            CampfireStateChanger.addToStateChangerLists(recipe,
-                    ignitorsListInheritance.equals(ConfigReference.REG_GETS_SOUL) ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, false);
+            CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, false);
 
         for (CampfireStateChanger cstate : CampfireStateChanger.getCraftTweakerList())
             CampfireStateChanger.addToStateChangerLists(cstate);

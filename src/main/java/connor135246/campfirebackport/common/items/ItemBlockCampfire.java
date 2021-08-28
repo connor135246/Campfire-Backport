@@ -205,14 +205,7 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
     {
         super.addInformation(stack, player, list, advancedTooltips);
 
-        boolean burnOutTip = false;
-
-        if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this)
-                && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getType()).getTimer() != -1)
-        {
-            list.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".tooltip.burning_out"));
-            burnOutTip = true;
-        }
+        boolean invTip = false;
 
         if (stack.hasTagCompound())
         {
@@ -220,12 +213,20 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
 
             if (itemList.tagCount() != 0)
             {
-                if (burnOutTip)
-                    list.add("");
+                invTip = true;
 
                 for (int i = 0; i < itemList.tagCount(); ++i)
                     list.add(ItemStack.loadItemStackFromNBT(itemList.getCompoundTagAt(i)).getDisplayName());
             }
+        }
+
+        if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this)
+                && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getType()).getTimer() != -1)
+        {
+            if (invTip)
+                list.add("");
+
+            list.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".tooltip.burning_out"));
         }
     }
 
