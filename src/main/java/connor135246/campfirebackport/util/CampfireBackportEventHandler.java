@@ -71,7 +71,10 @@ public class CampfireBackportEventHandler
         {
             if (!CampfireBackportConfig.useDefaults)
             {
-                CampfireBackportConfig.doConfig(14, false);
+                if (event.isWorldRunning && !Minecraft.getMinecraft().isSingleplayer())
+                    CampfireBackportConfig.doConfig(10, false);
+                else
+                    CampfireBackportConfig.doConfig(14, false);
             }
             else
             {
