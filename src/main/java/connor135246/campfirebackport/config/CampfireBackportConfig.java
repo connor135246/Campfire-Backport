@@ -109,10 +109,10 @@ public class CampfireBackportConfig
 
     public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
 
-    public static Map<Item, Integer> autoBlacklistStacks = new HashMap<Item, Integer>();
+    public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
     public static Set<Integer> autoBlacklistOres = new HashSet<Integer>();
 
-    public static Map<Block, Integer> signalFireBlocks = new HashMap<Block, Integer>();
+    public static Map<Block, Set<Integer>> signalFireBlocks = new HashMap<Block, Set<Integer>>();
     public static Set<Integer> signalFireOres = new HashSet<Integer>();
 
     public static ItemStack[] campfireDropsStacks = new ItemStack[2];
@@ -374,12 +374,24 @@ public class CampfireBackportConfig
                 try
                 {
                     Object[] output = StringParsers.parseItemOrOreOrToolOrClass(input, 1, new NBTTagCompound(), true);
-                    if (output[0] == null)
-                        throw new Exception();
-                    else if (output[0] instanceof Integer)
+                    if (output[0] instanceof Integer)
                         autoBlacklistOres.add((Integer) output[0]);
-                    else if (!(autoBlacklistStacks.containsKey((Item) output[0]) && autoBlacklistStacks.get((Item) output[0]) == OreDictionary.WILDCARD_VALUE))
-                        autoBlacklistStacks.put((Item) output[0], (Integer) output[2]);
+                    else if (output[0] instanceof Item)
+                    {
+                        if (!autoBlacklistStacks.containsKey((Item) output[0]))
+                            autoBlacklistStacks.put((Item) output[0], new HashSet<Integer>());
+
+                        Set<Integer> metas = autoBlacklistStacks.get((Item) output[0]);
+
+                        if (!metas.contains(OreDictionary.WILDCARD_VALUE))
+                        {
+                            if (((Integer) output[2]) == OreDictionary.WILDCARD_VALUE)
+                                metas.clear();
+                            metas.add((Integer) output[2]);
+                        }
+                    }
+                    else
+                        throw new Exception();
                 }
                 catch (Exception excep)
                 {
@@ -454,12 +466,24 @@ public class CampfireBackportConfig
             try
             {
                 Object[] output = StringParsers.parseBlockOrOre(input, true);
-                if (output[0] == null)
-                    throw new Exception();
-                else if (output[0] instanceof Integer)
+                if (output[0] instanceof Integer)
                     signalFireOres.add((Integer) output[0]);
-                else if (!(signalFireBlocks.containsKey((Block) output[0]) && signalFireBlocks.get((Block) output[0]) == OreDictionary.WILDCARD_VALUE))
-                    signalFireBlocks.put((Block) output[0], (Integer) output[2]);
+                else if (output[0] instanceof Block)
+                {
+                    if (!signalFireBlocks.containsKey((Block) output[0]))
+                        signalFireBlocks.put((Block) output[0], new HashSet<Integer>());
+
+                    Set<Integer> metas = signalFireBlocks.get((Block) output[0]);
+
+                    if (!metas.contains(OreDictionary.WILDCARD_VALUE))
+                    {
+                        if (((Integer) output[2]) == OreDictionary.WILDCARD_VALUE)
+                            metas.clear();
+                        metas.add((Integer) output[2]);
+                    }
+                }
+                else
+                    throw new Exception();
             }
             catch (Exception excep)
             {
@@ -565,13 +589,16 @@ public class CampfireBackportConfig
             {
                 if (!autoBlacklistStacks.isEmpty())
                 {
-                    Integer meta = autoBlacklistStacks.get(inputstack.getItem());
-                    if (meta == OreDictionary.WILDCARD_VALUE || meta == inputstack.getItemDamage())
+                    Set<Integer> metas = autoBlacklistStacks.get(inputstack.getItem());
+                    if (metas != null && (inputstack.getItemDamage() == OreDictionary.WILDCARD_VALUE || metas.contains(OreDictionary.WILDCARD_VALUE)
+                            || metas.contains(inputstack.getItemDamage())))
                         continue iteratorLoop;
                 }
-                else if (!autoBlacklistOres.isEmpty())
+
+                if (!autoBlacklistOres.isEmpty())
                 {
-                    for (int id : OreDictionary.getOreIDs(inputstack))
+                    ItemStack oreStack = inputstack.getItemDamage() == OreDictionary.WILDCARD_VALUE ? new ItemStack(inputstack.getItem(), 1, 0) : inputstack;
+                    for (int id : OreDictionary.getOreIDs(oreStack))
                     {
                         if (autoBlacklistOres.contains(id))
                             continue iteratorLoop;

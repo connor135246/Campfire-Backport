@@ -3,6 +3,7 @@ package connor135246.campfirebackport.common.tileentity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.common.CommonProxy;
@@ -379,16 +380,17 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             int meta = getWorldObj().getBlockMetadata(xCoord, yCoord - 1, zCoord);
 
-            if (CampfireBackportConfig.signalFireBlocks.get(block) != null)
+            if (!CampfireBackportConfig.signalFireBlocks.isEmpty())
             {
-                Integer accepted = CampfireBackportConfig.signalFireBlocks.get(block);
-                if (accepted == OreDictionary.WILDCARD_VALUE || accepted == meta)
+                Set<Integer> metas = CampfireBackportConfig.signalFireBlocks.get(block);
+                if (metas != null && (metas.contains(OreDictionary.WILDCARD_VALUE) || metas.contains(meta)))
                 {
                     updateSignalFireState(true);
                     return;
                 }
             }
-            else
+
+            if (!CampfireBackportConfig.signalFireOres.isEmpty())
             {
                 for (int id : OreDictionary.getOreIDs(new ItemStack(block, 1, meta)))
                 {
