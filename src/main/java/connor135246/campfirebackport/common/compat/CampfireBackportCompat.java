@@ -162,6 +162,11 @@ public class CampfireBackportCompat
          */
         public boolean hasFunctions();
 
+        /**
+         * @return an int representing the IIngredient's sort order compared to other types of IIngredients. larger number = later in the list.
+         */
+        public int getSortOrder();
+
     }
 
     /**
@@ -221,6 +226,12 @@ public class CampfireBackportCompat
         public boolean hasFunctions()
         {
             return false;
+        }
+
+        @Override
+        public int getSortOrder()
+        {
+            return 0;
         }
 
     }

@@ -8,8 +8,10 @@ import java.util.List;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.util.StringParsers;
 import minetweaker.api.item.IIngredient;
+import minetweaker.api.item.IItemStack;
 import minetweaker.api.item.IngredientAny;
 import minetweaker.api.item.IngredientAnyAdvanced;
+import minetweaker.api.item.IngredientItem;
 import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.api.oredict.IOreDictEntry;
 import minetweaker.api.oredict.IngredientOreDict;
@@ -26,6 +28,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     public final IIngredient iingredient;
     public final boolean isWildcard;
     public final boolean hasFunctions;
+    public final int sortOrder;
 
     public ActiveCraftTweakerIngredient(IIngredient iingredient)
     {
@@ -33,6 +36,19 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 
         IIngredient internal = AbstractItemFunction.reflectIngredientStackInternal(iingredient);
         this.isWildcard = internal instanceof IngredientAny || internal instanceof IngredientAnyAdvanced;
+
+        if (internal instanceof IngredientItem)
+            sortOrder = 20;
+        else if (internal instanceof IItemStack)
+            sortOrder = 40;
+        else if (internal instanceof IngredientOreDict)
+            sortOrder = 60;
+        else if (internal instanceof IOreDictEntry)
+            sortOrder = 80;
+        else if (internal instanceof IngredientAnyAdvanced)
+            sortOrder = 100;
+        else
+            sortOrder = 200;
 
         this.hasFunctions = AbstractItemFunction.getFunctions(iingredient).length > 0;
     }
@@ -124,6 +140,12 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     public boolean hasFunctions()
     {
         return hasFunctions;
+    }
+
+    @Override
+    public int getSortOrder()
+    {
+        return sortOrder;
     }
 
 }

@@ -515,7 +515,7 @@ public class CustomInput implements Comparable<CustomInput>
      * If the stack is an IFluidContainerItem, drains the stack's fluid by the amount and returns it. <br>
      * If the stack has a container item, reduces the stack's size by 1 and returns it. (It's assumed that container items will be taken care of elsewhere) <br>
      * If the stack is in the FluidContainerRegistry, reduces the stack's size by 1, then if the stack's size is now zero, returns the empty container. If not, gives the player the
-     * emptyContainer.
+     * empty container to the player.
      */
     public static ItemStack doFluidEmptying(ItemStack stack, int amount, EntityPlayer player)
     {
@@ -717,17 +717,33 @@ public class CustomInput implements Comparable<CustomInput>
     }
 
     // Sorting
+    /**
+     * Note: this class has a natural ordering that is inconsistent with equals.
+     */
     @Override
     public int compareTo(CustomInput cinput)
     {
-        int value = 0;
-
-        // inputs with extra data (that aren't data inputs) should go MUCH closer to the start of the list.
-        value -= 2 * Boolean.compare(this.hasExtraData() && !this.isDataInput(), cinput.hasExtraData() && !cinput.isDataInput());
-        // inputs with doesMetaMatter = true should go closer to the start of the list.
-        value -= Boolean.compare(this.metaWasSpecified(), cinput.metaWasSpecified());
-        // inputs with a greater input type should go MUCH MUCH closer to the end of the list.
-        value += 4 * Integer.compare(this.getInputType(), cinput.getInputType());
+        // orders inputs by their input type, which generally speaking puts more specific inputs at the start.
+        int value = Integer.compare(this.getInputType(), cinput.getInputType());
+        if (value != 0)
+            return value;
+        // orders CraftTweaker IIngredients by their sort order, which generally speaking puts more specific inputs at the start.
+        if (this.getInput() instanceof ICraftTweakerIngredient && cinput.getInput() instanceof ICraftTweakerIngredient)
+        {
+            value = Integer.compare(((ICraftTweakerIngredient) this.getInput()).getSortOrder(), ((ICraftTweakerIngredient) cinput.getInput()).getSortOrder());
+            if (value != 0)
+                return value;
+        }
+        // inputs that have extra data come first.
+        value = Boolean.compare(cinput.hasExtraData() && !cinput.isDataInput(), this.hasExtraData() && !this.isDataInput());
+        if (value != 0)
+            return value;
+        // inputs that specify a meta come first.
+        value = Boolean.compare(cinput.metaWasSpecified(), this.metaWasSpecified());
+        // keeps items with the same id together.
+        if (value == 0 && this.getInput() instanceof ItemStack && cinput.getInput() instanceof ItemStack)
+            value = Integer.compare(Item.getIdFromItem(((ItemStack) this.getInput()).getItem()),
+                    Item.getIdFromItem(((ItemStack) cinput.getInput()).getItem()));
 
         return value;
     }

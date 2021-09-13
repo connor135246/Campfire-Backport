@@ -41,7 +41,8 @@ public class ConfigReference
 
     public static final int[] defaultRegRegen = new int[] { 0, 50, 5, 900 },
             defaultSoulRegen = new int[] { 1, 50, 10, 750 },
-            defaultBurnOuts = new int[] { -1, -1 };
+            defaultBurnOuts = new int[] { -1, -1 },
+            defaultDefaultCookingTimes = new int[] { 600, 600 };
 
     public static final double[] defaultBurnToNothingChances = new double[] { 0.0, 0.0 },
             defaultVisCosts = new double[] { 0.5, 0.5, 0.5, 0.5 };
@@ -84,6 +85,7 @@ public class ConfigReference
             regularRecipeList = "Custom Recipes (Regular)",
             soulRecipeList = "Custom Recipes (Soul)",
             recipeListInheritance = "Custom Recipe Inheritance",
+            defaultCookingTimes = "Default Cooking Times",
             spawnpointable = "Set Respawn Point",
             burnOutOnRespawn = "Burn Out on Respawn",
             automation = "Automation",
@@ -140,6 +142,7 @@ public class ConfigReference
         configOrder.add(burnOutAsItem);
         configOrder.add(autoRecipe);
         configOrder.add(autoBlacklistStrings);
+        configOrder.add(defaultCookingTimes);
         configOrder.add(regularRecipeList);
         configOrder.add(soulRecipeList);
         configOrder.add(recipeListInheritance);
@@ -153,4 +156,5 @@ public class ConfigReference
         configOrder.add(printCustomRecipes);
         configOrder.add(suppressInputErrors);
     }
+
 }

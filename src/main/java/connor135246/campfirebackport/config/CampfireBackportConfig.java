@@ -60,6 +60,7 @@ public class CampfireBackportConfig
     public static String[] regularRecipeList;
     public static String[] soulRecipeList;
     public static String recipeListInheritance;
+    public static int[] defaultCookingTimes;
 
     public static EnumCampfireType spawnpointable;
     public static EnumCampfireType burnOutOnRespawn;
@@ -234,6 +235,9 @@ public class CampfireBackportConfig
                 StringParsers.recipePat, "recipes", ConfigReference.soul);
 
         recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
+
+        defaultCookingTimes = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.defaultCookingTimes, ConfigReference.defaultDefaultCookingTimes,
+                StringParsers.translateComment("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).getIntList();
 
         spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
 
@@ -619,8 +623,11 @@ public class CampfireBackportConfig
                     }
                     if (addIt)
                     {
-                        CampfireRecipe.getFurnaceList().add(furnaceCrecipe);
-                        CampfireRecipe.addToRecipeLists(furnaceCrecipe);
+                        for (CampfireRecipe splitCrecipe : CampfireRecipe.splitRecipeIfNecessary(furnaceCrecipe, null))
+                        {
+                            CampfireRecipe.getFurnaceList().add(splitCrecipe);
+                            CampfireRecipe.addToRecipeLists(splitCrecipe);
+                        }
                     }
                 }
             }

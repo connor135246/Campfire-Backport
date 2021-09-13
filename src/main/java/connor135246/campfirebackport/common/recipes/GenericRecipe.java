@@ -19,20 +19,20 @@ public abstract class GenericRecipe
     protected final CustomInput[] inputs;
     /** the outputs! may not exist. */
     protected final ItemStack[] outputs;
-    /** an additional modifier to the sorting order. 100 is default. smaller numbers = less priority. */
-    protected final int sortPriority;
+    /** an additional modifier to the sorting order. larger number = later in the list. */
+    protected final int sortOrder;
 
     protected GenericRecipe(EnumCampfireType types, CustomInput[] inputs, @Nullable ItemStack[] outputs)
     {
-        this(types, inputs, outputs, 100);
+        this(types, inputs, outputs, 0);
     }
 
-    protected GenericRecipe(EnumCampfireType types, CustomInput[] inputs, @Nullable ItemStack[] outputs, int sortPriority)
+    protected GenericRecipe(EnumCampfireType types, CustomInput[] inputs, @Nullable ItemStack[] outputs, int sortOrder)
     {
         this.types = types;
         this.inputs = inputs;
         this.outputs = outputs;
-        this.sortPriority = sortPriority;
+        this.sortOrder = sortOrder;
     }
 
     /**
@@ -144,24 +144,31 @@ public abstract class GenericRecipe
         return types;
     }
 
-    public int getSortPriority()
+    public int getSortOrder()
     {
-        return sortPriority;
+        return sortOrder;
     }
 
     // Sorting
+    /**
+     * Note: this class has a natural ordering that is inconsistent with equals.
+     */
     public int compareTo(GenericRecipe grecipe)
     {
-        int value = 0;
-
-        // recipes with higher priority inputs should go closer to the start of the list.
-        value += this.getInputs()[0].compareTo(grecipe.getInputs()[0]);
-        // recipes with more inputs should go MUCH closer to the start of the list.
-        value -= 16 * Integer.compare(getInputs().length, grecipe.getInputs().length);
-        // recipes with a smaller sort priority should go MUCH MUCH closer to the end of the list.
-        value -= 100 * Integer.compare(this.getSortPriority(), grecipe.getSortPriority());
-
-        return value;
+        // recipes with a smaller sort order come first.
+        int value = Integer.compare(this.getSortOrder(), grecipe.getSortOrder());
+        if (value != 0)
+            return value;
+        // recipes with more inputs come first.
+        value = Integer.compare(grecipe.getInputs().length, this.getInputs().length);
+        if (value != 0)
+            return value;
+        // recipes compare the order of their first inputs.
+        value = this.getInputs()[0].compareTo(grecipe.getInputs()[0]);
+        if (value != 0)
+            return value;
+        // BOTH comes before REG_ONLY comes before SOUL_ONLY comes before NEITHER.
+        return this.getTypes().compareTo(grecipe.getTypes());
     }
 
 }

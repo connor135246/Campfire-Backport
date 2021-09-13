@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.StringParsers;
@@ -45,17 +46,17 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     /**
      * Converts a string into a CampfireRecipe.
      * 
-     * @param recipe
-     *            - a string in the proper format (see config explanation)
+     * @param segment
+     *            - the segments of the recipe in proper format (see config explanation)
      * @param types
      *            - the types of campfire this is being added to
+     * @param cookingTime
+     *            - the cooking time of the recipe, or null if it should use the default time
      */
-    public static CampfireRecipe createCustomRecipe(String recipe, EnumCampfireType types)
+    public static CampfireRecipe createCustomRecipe(String[] segment, EnumCampfireType types, @Nullable Integer cookingTime)
     {
         try
         {
-            String[] segment = recipe.split("/");
-
             // input
 
             String[] inputs = segment[0].split("&");
@@ -93,13 +94,6 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
                 outputStack.getTagCompound().removeTag(StringParsers.KEY_GCIDataType);
             }
 
-            // cooking time
-
-            int cookingTime = 600;
-
-            if (segment.length > 2)
-                cookingTime = Integer.parseInt(segment[2]);
-
             // signal fire setting
 
             byte signalFire = 0;
@@ -132,7 +126,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
             // done!
 
             return new CampfireRecipe(types, tempInputsList.toArray(new CustomInput[0]), new ItemStack[] { outputStack }, cookingTime, signalFire,
-                    byproductStack, byproductChance, 100);
+                    byproductStack, byproductChance, 0);
         }
         catch (Exception excep)
         {
@@ -141,7 +135,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     /**
-     * for creating recipes from Auto Recipe Discovery. {@link #sortPriority} is reduced. everything else is default.
+     * for creating recipes from Auto Recipe Discovery. {@link #sortOrder} is increased. everything else is default.
      */
     public static CampfireRecipe createAutoDiscoveryRecipe(ItemStack input, ItemStack output, EnumCampfireType types)
     {
@@ -157,11 +151,11 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     public CampfireRecipe(EnumCampfireType types, CustomInput[] inputs, ItemStack[] outputs, @Nullable Integer cookingTime, @Nullable Byte signalFire,
-            @Nullable ItemStack byproduct, @Nullable Double byproductChance, int sortPriority)
+            @Nullable ItemStack byproduct, @Nullable Double byproductChance, int sortOrder)
     {
-        super(types, inputs, outputs, sortPriority);
+        super(types, inputs, outputs, sortOrder);
 
-        this.cookingTime = cookingTime == null ? 600 : Math.max(1, cookingTime);
+        this.cookingTime = cookingTime == null ? (CampfireBackportConfig.defaultCookingTimes[EnumCampfireType.index(types)]) : Math.max(1, cookingTime);
         this.signalFire = (byte) (signalFire == null ? 0 : MathHelper.clamp_int(signalFire, -1, 1));
         this.byproduct = ItemStack.copyItemStack(byproduct);
         this.byproductChance = byproductChance == null ? 1.0 : MathHelper.clamp_double(byproductChance, 0.0, 1.0);
@@ -172,16 +166,27 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      * See {@link #createCustomRecipe}.
      * 
      * @param recipe
-     *            - the user-input string that represents a recipe
+     *            - the user-input string that represents a recipe (see config explanation)
      * @param types
      *            - the types of campfires this recipe should apply to
      * @return true if the recipe was added successfully, false if it wasn't
      */
     public static boolean addToRecipeLists(String recipe, EnumCampfireType types)
     {
-        CampfireRecipe crecipe = createCustomRecipe(recipe, types);
+        String[] segment = recipe.split("/");
 
-        boolean added = addToRecipeLists(crecipe);
+        Integer cookingTime = null;
+
+        if (segment.length > 2 && !segment[2].equals("*"))
+            cookingTime = Integer.valueOf(segment[2]);
+
+        CampfireRecipe crecipe = createCustomRecipe(segment, types, cookingTime);
+
+        boolean added = false;
+
+        for (CampfireRecipe splitCrecipe : splitRecipeIfNecessary(crecipe, cookingTime))
+            added = addToRecipeLists(splitCrecipe) || added;
+
         if (!added)
             ConfigReference.logError("invalid_recipe", recipe);
 
@@ -264,6 +269,35 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     public static List<CampfireRecipe> getCraftTweakerList()
     {
         return crafttweakerRecipeList;
+    }
+
+    /**
+     * If the given campfire recipe is using the default cooking time, is for both campfires, and the default cooking time for regular recipes is different than the one for soul
+     * recipes, it has to be separated into two different recipes. <br>
+     * This will do so and return the two new campfire recipes in an array. <br>
+     * Otherwise, just returns the given campfire recipe in an array.
+     */
+    public static CampfireRecipe[] splitRecipeIfNecessary(CampfireRecipe crecipe, @Nullable Integer cookingTime)
+    {
+        if (crecipe != null && shouldSplitRecipe(crecipe.getTypes(), cookingTime))
+        {
+            CampfireRecipe crecipeReg = new CampfireRecipe(EnumCampfireType.REG_ONLY, crecipe.getInputs(), crecipe.getOutputs(),
+                    CampfireBackportConfig.defaultCookingTimes[0], crecipe.getSignalFire(), crecipe.getByproduct(), crecipe.getByproductChance(),
+                    crecipe.getSortOrder());
+            CampfireRecipe crecipeSoul = new CampfireRecipe(EnumCampfireType.SOUL_ONLY, crecipe.getInputs(), crecipe.getOutputs(),
+                    CampfireBackportConfig.defaultCookingTimes[1], crecipe.getSignalFire(), crecipe.getByproduct(), crecipe.getByproductChance(),
+                    crecipe.getSortOrder());
+
+            return new CampfireRecipe[] { crecipeReg, crecipeSoul };
+        }
+        else
+            return new CampfireRecipe[] { crecipe };
+    }
+
+    public static boolean shouldSplitRecipe(EnumCampfireType types, @Nullable Integer cookingTime)
+    {
+        return cookingTime == null && types == EnumCampfireType.BOTH
+                && CampfireBackportConfig.defaultCookingTimes[0] != CampfireBackportConfig.defaultCookingTimes[1];
     }
 
     /**

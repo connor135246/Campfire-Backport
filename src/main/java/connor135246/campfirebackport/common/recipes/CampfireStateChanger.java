@@ -109,7 +109,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
             // done!
 
-            return new CampfireStateChanger(types, new CustomInput[] { cinput }, leftClick, extinguisher, usageType, outputs, dispensable, 100);
+            return new CampfireStateChanger(types, new CustomInput[] { cinput }, leftClick, extinguisher, usageType, outputs, dispensable, 0);
         }
         catch (Exception excep)
         {
@@ -118,9 +118,9 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     }
 
     public CampfireStateChanger(EnumCampfireType types, CustomInput[] inputs, boolean leftClick, boolean extinguisher, String usageType,
-            @Nullable ItemStack[] outputs, boolean dispensable, int sortPriority)
+            @Nullable ItemStack[] outputs, boolean dispensable, int sortOrder)
     {
-        super(types, inputs, outputs, sortPriority);
+        super(types, inputs, outputs, sortOrder);
 
         this.leftClick = leftClick;
         this.extinguisher = extinguisher;

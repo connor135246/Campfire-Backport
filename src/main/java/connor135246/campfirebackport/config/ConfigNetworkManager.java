@@ -18,7 +18,7 @@ public class ConfigNetworkManager
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
             LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
-            INTLISTS = new String[] { "burnOutTimer" }, DOUBLELISTS = new String[] { "visCosts" };
+            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCosts" };
 
     /**
      * packet that contains config settings to sync
@@ -31,7 +31,7 @@ public class ConfigNetworkManager
         public String recipeListInheritance, extinguishersListInheritance, ignitorsListInheritance;
         public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, campfireDropsStrings, dispenserBlacklistStrings,
                 regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
-        public int[] burnOutTimer;
+        public int[] burnOutTimer, defaultCookingTimes;
         public double[] visCosts;
 
         @Override

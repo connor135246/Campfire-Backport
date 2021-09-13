@@ -124,9 +124,10 @@ public class CampfireBackportCraftTweaking
         if (typesVerified != null && signalFireVerified != -2)
         {
             CampfireRecipe crecipe = new CampfireRecipe(typesVerified, cinputs, new ItemStack[] { MineTweakerMC.getItemStack(output) }, cookingTime,
-                    signalFireVerified, MineTweakerMC.getItemStack(byproduct), byproductChance, 100);
+                    signalFireVerified, MineTweakerMC.getItemStack(byproduct), byproductChance, 0);
 
-            MineTweakerAPI.apply(new AddCampfireRecipeAction(crecipe));
+            for (CampfireRecipe splitCrecipe : CampfireRecipe.splitRecipeIfNecessary(crecipe, cookingTime))
+                MineTweakerAPI.apply(new AddCampfireRecipeAction(splitCrecipe));
         }
     }
 
@@ -227,7 +228,7 @@ public class CampfireBackportCraftTweaking
                         !damageable, -1) };
                 ItemStack[] outputs = output == null ? null : new ItemStack[] { MineTweakerMC.getItemStack(output) };
 
-                CampfireStateChanger cstate = new CampfireStateChanger(typesVerified, cinputs, leftClick, extinguisher, usageType, outputs, false, 100);
+                CampfireStateChanger cstate = new CampfireStateChanger(typesVerified, cinputs, leftClick, extinguisher, usageType, outputs, false, 0);
 
                 MineTweakerAPI.apply(new AddCampfireStateChangerAction(cstate));
             }

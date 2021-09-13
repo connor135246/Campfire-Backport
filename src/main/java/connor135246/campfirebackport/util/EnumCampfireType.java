@@ -13,11 +13,11 @@ import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 public enum EnumCampfireType
 {
 
-    NEITHER(false, false, "neither"), REG_ONLY(true, false, "regular only"), SOUL_ONLY(false, true, "soul only"), BOTH(true, true, "both");
+    BOTH(true, true, "both"), REG_ONLY(true, false, "regular only"), SOUL_ONLY(false, true, "soul only"), NEITHER(false, false, "neither");
 
     // don't want to make a spelling mistake!
     public static final String regular = "regular", soul = "soul";
-    
+
     private final boolean acceptsRegular;
     private final boolean acceptsSoul;
     private final String stringForm;
@@ -27,10 +27,10 @@ public enum EnumCampfireType
 
     static
     {
-        FROM_NAME.put(NEITHER.stringForm, NEITHER);
+        FROM_NAME.put(BOTH.stringForm, BOTH);
         FROM_NAME.put(REG_ONLY.stringForm, REG_ONLY);
         FROM_NAME.put(SOUL_ONLY.stringForm, SOUL_ONLY);
-        FROM_NAME.put(BOTH.stringForm, BOTH);
+        FROM_NAME.put(NEITHER.stringForm, NEITHER);
         // alternate names
         FROM_NAME.put(regular, REG_ONLY);
         FROM_NAME.put(soul, SOUL_ONLY);
@@ -41,7 +41,7 @@ public enum EnumCampfireType
         this.acceptsRegular = acceptsRegular;
         this.acceptsSoul = acceptsSoul;
         this.stringForm = stringForm;
-        
+
         if (acceptsRegular && acceptsSoul)
             asArray = new String[] { regular, soul };
         else if (acceptsRegular)
@@ -114,6 +114,11 @@ public enum EnumCampfireType
     public static int index(String type)
     {
         return isSoul(type) ? 1 : 0;
+    }
+
+    public static int index(EnumCampfireType type)
+    {
+        return type == SOUL_ONLY ? 1 : 0;
     }
 
     /**
