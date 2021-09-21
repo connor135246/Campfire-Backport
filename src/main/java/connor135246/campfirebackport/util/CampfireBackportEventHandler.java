@@ -106,7 +106,8 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onPlayerRespawn(PlayerRespawnEvent event)
     {
-        if (!event.player.worldObj.isRemote && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER)
+        if (!event.player.worldObj.isRemote && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER
+                && CampfireBackportConfig.burnOutOnRespawn != EnumCampfireType.NEITHER)
         {
             ChunkCoordinates bedlocation = event.player.getBedLocation(event.player.dimension);
 

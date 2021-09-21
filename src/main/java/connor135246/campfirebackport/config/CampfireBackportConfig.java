@@ -652,6 +652,7 @@ public class CampfireBackportConfig
         regularRecipeList = ConfigReference.defaultRecipeList;
         soulRecipeList = ConfigReference.empty;
         recipeListInheritance = ConfigReference.SOUL_GETS_REG;
+        defaultCookingTimes = ConfigReference.defaultDefaultCookingTimes;
 
         spawnpointable = EnumCampfireType.NEITHER;
         burnOutOnRespawn = EnumCampfireType.NEITHER;

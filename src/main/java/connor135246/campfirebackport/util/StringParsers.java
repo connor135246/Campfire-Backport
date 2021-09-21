@@ -55,7 +55,7 @@ public class StringParsers
 
     public static final Pattern recipePat = Pattern.compile(itemMetaOreToolClassAnyDataSizeStart + itemMetaOreToolClassAnyDataSizeAnd
             + itemMetaOreToolClassAnyDataSizeAnd + itemMetaOreToolClassAnyDataSizeAnd + "\\/" + itemMetaAnyDataSize
-            + "(\\/\\d+)?(\\/((signal)|(notsignal)|(any)))?" + "(\\/(" + itemMetaAnyDataSize + "))?(\\/" + betweenZeroAndOne + ")?"),
+            + "(\\/((\\d+)|(\\*)))?(\\/((signal)|(notsignal)|(any)))?" + "(\\/(" + itemMetaAnyDataSize + "))?(\\/" + betweenZeroAndOne + ")?"),
             itemMetaOrePat = Pattern.compile(itemMetaOreStart),
             itemPat = Pattern.compile(item),
             itemMetaAnySimpleDataSizeOREmptyPat = Pattern.compile("(" + itemMetaAnyDataSize + ")|()"),

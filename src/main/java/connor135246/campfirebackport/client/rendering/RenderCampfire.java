@@ -103,6 +103,7 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                             && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem()).getRenderType());
 
                     GL11.glPushMatrix();
+                    GL11.glColor4f(1, 1, 1, 1);
                     RenderItem.renderInFrame = true;
 
                     GL11.glDisable(GL11.GL_BLEND);
