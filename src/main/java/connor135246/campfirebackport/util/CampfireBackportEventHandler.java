@@ -1,8 +1,5 @@
 package connor135246.campfirebackport.util;
 
-import org.lwjgl.opengl.GL11;
-
-import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigSmokeFXConstructingEvent;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
@@ -21,45 +18,16 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.profiler.Profiler;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public class CampfireBackportEventHandler
 {
-
-    /**
-     * Renders campfire smoke particles.
-     */
-    @SideOnly(Side.CLIENT)
-    @SubscribeEvent
-    public void onRenderWorldLast(RenderWorldLastEvent event)
-    {
-        // botania license attribution clause, etc etc
-        // damn you vazkii!!!!! but thanks
-
-        Profiler profiler = Minecraft.getMinecraft().mcProfiler;
-
-        GL11.glDepthMask(true);
-        GL11.glEnable(GL11.GL_BLEND);
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-        GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
-
-        profiler.startSection("cb_bigsmokeparticles");
-        EntityBigSmokeFX.dispatchQueuedRenders(Tessellator.instance);
-        profiler.endSection();
-
-        GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-        GL11.glDisable(GL11.GL_BLEND);
-    }
 
     /**
      * Applies changes when config is changed via in-game GUI.

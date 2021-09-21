@@ -1,6 +1,6 @@
 package connor135246.campfirebackport.client.particle;
 
-import java.util.ArrayDeque;
+import org.lwjgl.opengl.GL11;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.util.Reference;
@@ -8,7 +8,10 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
+import net.minecraft.client.renderer.ActiveRenderInfo;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
@@ -19,24 +22,11 @@ import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 public class EntityBigSmokeFX extends EntityFX
 {
 
-    // botania license attribution clause, etc etc
-    // damn you vazkii!!!!! but thanks
-
-    public static int bigSmokeCount = 0;
+    /** there are 24 smoke textures. the first 12 are the normal ones, the next 12 are brighter copies that look better when coloured. */
     public static final int TEXTURE_COUNT = 12;
-    public static final ResourceLocation[] TEXTURES = new ResourceLocation[TEXTURE_COUNT];
-    private static final ArrayDeque<EntityBigSmokeFX>[] queuedRenders = new ArrayDeque[TEXTURE_COUNT];
-    static
-    {
-        for (int i = 0; i < TEXTURE_COUNT; ++i)
-        {
-            TEXTURES[i] = new ResourceLocation(Reference.MODID + ":" + "textures/particle/big_smoke_" + i + ".png");
-            queuedRenders[i] = new ArrayDeque<EntityBigSmokeFX>();
-        }
-    }
+    public static final ResourceLocation TEXTURES = new ResourceLocation(Reference.MODID + ":" + "textures/particle/big_smokes.png");
 
-    protected final int texIndex = rand.nextInt(TEXTURE_COUNT);
-    protected float fScale, f2, f3, f4, f5, f6;
+    protected final int texIndex;
     protected boolean alphaFading = false;
     protected float alphaFadePerTick = -0.015F;
     protected boolean hasOxygen = true;
@@ -79,6 +69,7 @@ public class EntityBigSmokeFX extends EntityFX
         if (constructing.isCanceled())
         {
             this.setDead();
+            this.texIndex = 0;
             return;
         }
 
@@ -93,62 +84,78 @@ public class EntityBigSmokeFX extends EntityFX
         this.alphaFading = constructing.alphaFading;
         this.alphaFadePerTick = constructing.alphaFadePerTick;
         this.particleMaxAge = constructing.particleMaxAge;
+
+        this.texIndex = rand.nextInt(TEXTURE_COUNT) + (this.particleRed != 1.0F || this.particleGreen != 1.0F || this.particleBlue != 1.0F ? TEXTURE_COUNT : 0);
+        this.setParticleTextureIndex(this.texIndex);
     }
 
-    /**
-     * Saves rendering variables and queues a particle for rendering later.
-     */
     @Override
-    public void renderParticle(Tessellator tess, float fScale, float f2, float f3, float f4, float f5, float f6)
+    public void renderParticle(Tessellator tess, float partialTicks, float rotX, float rotXZ, float rotZ, float rotYZ, float rotXY)
     {
-        this.fScale = fScale;
-        this.f2 = f2;
-        this.f3 = f3;
-        this.f4 = f4;
-        this.f5 = f5;
-        this.f6 = f6;
+        rotX = ActiveRenderInfo.rotationX;
+        rotXZ = ActiveRenderInfo.rotationXZ;
+        rotZ = ActiveRenderInfo.rotationZ;
+        rotYZ = ActiveRenderInfo.rotationYZ;
+        rotXY = ActiveRenderInfo.rotationXY;
 
-        queuedRenders[this.texIndex].add(this);
-    }
+        EntityLivingBase view = Minecraft.getMinecraft().renderViewEntity;
+        double interpX = view.lastTickPosX + (view.posX - view.lastTickPosX) * partialTicks;
+        double interpY = view.lastTickPosY + (view.posY - view.lastTickPosY) * partialTicks;
+        double interpZ = view.lastTickPosZ + (view.posZ - view.lastTickPosZ) * partialTicks;
 
-    /**
-     * Goes through each queue of particles, setting the texture and rendering them.
-     */
-    public static void dispatchQueuedRenders(Tessellator tess)
-    {
-        bigSmokeCount = 0;
+        float partialPosX = (float) (prevPosX + (posX - prevPosX) * partialTicks - interpX);
+        float partialPosY = (float) (prevPosY + (posY - prevPosY) * partialTicks - interpY);
+        float partialPosZ = (float) (prevPosZ + (posZ - prevPosZ) * partialTicks - interpZ);
 
-        for (int i = 0; i < TEXTURE_COUNT; ++i)
-        {
-            Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURES[i]);
-            tess.startDrawingQuads();
+        float scale = 0.1F * particleScale;
 
-            EntityBigSmokeFX smoke;
-            while ((smoke = queuedRenders[i].poll()) != null)
-                smoke.renderQueued(tess);
+        double minU = this.particleTextureIndexX / 4.0;
+        double maxU = minU + 0.25;
+        double minV = this.particleTextureIndexY / 8.0;
+        double maxV = minV + 0.125;
 
-            tess.draw();
-        }
-    }
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glEnable(GL11.GL_BLEND);
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        GL11.glDepthMask(true);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
-    /**
-     * Actually renders the particle.
-     */
-    public void renderQueued(Tessellator tess)
-    {
-        ++bigSmokeCount;
+        Minecraft.getMinecraft().entityRenderer.disableLightmap((double) partialTicks);
 
-        float f10 = 0.1F * particleScale;
-        float f11 = (float) (prevPosX + (posX - prevPosX) * fScale - interpPosX);
-        float f12 = (float) (prevPosY + (posY - prevPosY) * fScale - interpPosY);
-        float f13 = (float) (prevPosZ + (posZ - prevPosZ) * fScale - interpPosZ);
+        Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURES);
+
+        tess.startDrawingQuads();
 
         tess.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
 
-        tess.addVertexWithUV(f11 - f2 * f10 - f5 * f10, f12 - f3 * f10, f13 - f4 * f10 - f6 * f10, 0, 1);
-        tess.addVertexWithUV(f11 - f2 * f10 + f5 * f10, f12 + f3 * f10, f13 - f4 * f10 + f6 * f10, 0, 0);
-        tess.addVertexWithUV(f11 + f2 * f10 + f5 * f10, f12 + f3 * f10, f13 + f4 * f10 + f6 * f10, 1, 0);
-        tess.addVertexWithUV(f11 + f2 * f10 - f5 * f10, f12 - f3 * f10, f13 + f4 * f10 - f6 * f10, 1, 1);
+        tess.addVertexWithUV(partialPosX - rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ - rotZ * scale - rotXY * scale, maxU, maxV);
+        tess.addVertexWithUV(partialPosX - rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ - rotZ * scale + rotXY * scale, maxU, minV);
+        tess.addVertexWithUV(partialPosX + rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ + rotZ * scale + rotXY * scale, minU, minV);
+        tess.addVertexWithUV(partialPosX + rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ + rotZ * scale - rotXY * scale, minU, maxV);
+
+        tess.draw();
+
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glDepthMask(false);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+
+        Minecraft.getMinecraft().entityRenderer.enableLightmap((double) partialTicks);
+    }
+
+    @Override
+    public int getFXLayer()
+    {
+        return 3;
+    }
+
+    @Override
+    public void setParticleTextureIndex(int texIndex)
+    {
+        boolean bright = texIndex >= TEXTURE_COUNT;
+        if (bright)
+            texIndex = texIndex % TEXTURE_COUNT;
+        this.particleTextureIndexX = texIndex / 8 + (bright ? 2 : 0);
+        this.particleTextureIndexY = texIndex % 8;
     }
 
     @Override
@@ -188,7 +195,6 @@ public class EntityBigSmokeFX extends EntityFX
 
             if (this.alphaFading)
                 this.particleAlpha = MathHelper.clamp_float(this.particleAlpha + this.alphaFadePerTick, 0.0F, 1.0F);
-
         }
         else
             this.setDead();
