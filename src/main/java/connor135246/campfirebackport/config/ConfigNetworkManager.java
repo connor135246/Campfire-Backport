@@ -13,8 +13,8 @@ public class ConfigNetworkManager
 {
 
     /** config settings that must be synced */
-    private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "signalFiresBurnOut",
-            "burnOutAsItem", "colourfulSmoke", "spawnpointable", "burnOutOnRespawn" },
+    private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "worksUnderwater",
+            "signalFiresBurnOut", "burnOutAsItem", "colourfulSmoke", "spawnpointable", "burnOutOnRespawn" },
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
             LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },

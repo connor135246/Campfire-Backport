@@ -126,16 +126,21 @@ public class CampfireBackportEventHandler
     }
 
     /**
-     * When a campfire is attempting to be ignited but there's no oxygen, it fails. Galacticraft / Advanced Rocketry compatibility.
+     * When a campfire is attempting to be ignited but there's water on top of it, it fails (if the config option is set). <br>
+     * Galacticraft / Advanced Rocketry compatibility: When a campfire is attempting to be ignited but there's no oxygen, it fails.
      */
     @SubscribeEvent
     public void onCampfireStateChange(CampfireStateChangeEvent event)
     {
-        if (!event.isCanceled() && !((BlockCampfire) event.block).isLit()
-                && !CampfireBackportCompat.hasOxygen(event.world, event.block, event.x, event.y, event.z))
+        if (!event.isCanceled() && !event.block.isLit())
         {
-            event.useGoods = false;
-            event.setCanceled(true);
+            if (event.block.waterCheck(event.world, event.x, event.y, event.z))
+                event.setCanceled(true);
+            else if (!CampfireBackportCompat.hasOxygen(event.world, event.block, event.x, event.y, event.z))
+            {
+                event.useGoods = false;
+                event.setCanceled(true);
+            }
         }
     }
 

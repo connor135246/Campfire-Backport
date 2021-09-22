@@ -72,6 +72,7 @@ public class CampfireBackportConfig
     public static EnumCampfireType silkNeeded;
 
     public static EnumCampfireType putOutByRain;
+    public static EnumCampfireType worksUnderwater;
 
     public static EnumCampfireType damaging;
 
@@ -252,6 +253,8 @@ public class CampfireBackportConfig
         silkNeeded = enumFromConfig(ConfigReference.silkNeeded, ConfigReference.BOTH, "silk");
 
         putOutByRain = enumFromConfig(ConfigReference.putOutByRain, ConfigReference.NEITHER, "rained_out");
+
+        worksUnderwater = enumFromConfig(ConfigReference.worksUnderwater, ConfigReference.NEITHER, "works_underwater");
 
         damaging = enumFromConfig(ConfigReference.damaging, ConfigReference.BOTH, "damaging");
 
@@ -664,6 +667,7 @@ public class CampfireBackportConfig
         silkNeeded = EnumCampfireType.BOTH;
 
         putOutByRain = EnumCampfireType.NEITHER;
+        worksUnderwater = EnumCampfireType.NEITHER;
 
         damaging = EnumCampfireType.BOTH;
 

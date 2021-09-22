@@ -5,6 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
@@ -12,6 +13,7 @@ import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -36,7 +38,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.world.BlockEvent;
 
 public class BlockCampfire extends BlockContainer
 {
@@ -103,7 +104,8 @@ public class BlockCampfire extends BlockContainer
                     ((TileEntityCampfire) tile).setCustomInventoryName(stack.getDisplayName());
             }
 
-            ((TileEntityCampfire) tile).burnOutDueToLackOfOxygen();
+            if (isLit() && (waterCheck(world, x, y, z) || !CampfireBackportCompat.hasOxygen(world, this, x, y, z)))
+                ((TileEntityCampfire) tile).burnOutOrToNothing();
         }
     }
 
@@ -113,6 +115,17 @@ public class BlockCampfire extends BlockContainer
         super.onNeighborBlockChange(world, x, y, z, block);
 
         TileEntityCampfire.checkSignal(world, x, y, z);
+
+        if (isLit() && waterCheck(world, x, y, z))
+            TileEntityCampfire.burnOutOrToNothing(world, x, y, z);
+    }
+
+    /**
+     * checks if the block above is a water block and the config option is set
+     */
+    public boolean waterCheck(World world, int x, int y, int z)
+    {
+        return !CampfireBackportConfig.worksUnderwater.matches(this) && world.getBlock(x, y + 1, z).getMaterial() == Material.water;
     }
 
     @Override
@@ -259,7 +272,7 @@ public class BlockCampfire extends BlockContainer
 
         int meta = world.getBlockMetadata(x, y, z);
 
-        CampfireStateChangeEvent event = new CampfireStateChangeEvent(x, y, z, world, oldCblock, meta, player);
+        CampfireStateChangeEvent event = new CampfireStateChangeEvent(x, y, z, world, (BlockCampfire) oldCblock, meta, player);
         MinecraftForge.EVENT_BUS.post(event);
 
         if (!event.isCanceled())
@@ -555,8 +568,8 @@ public class BlockCampfire extends BlockContainer
      * If canceled, the campfire's state won't change.<br>
      * The block given is the campfire block before it attempts to be changed.<br>
      * If the campfire's state is changing due to a player using state changer, {@link #player} is that player. Otherwise, it's null!<br>
-     * If the campfire's state is changing due to a state changer, you can set {@link #useGoods} to false to stop the state changer from being used up. You probably want to set
-     * this to false if you cancel the event!<br>
+     * If the campfire's state is changing due to a state changer, you can set {@link #useGoods} to false to stop the state changer from being used up. You may want to set this to
+     * false if you cancel the event.<br>
      * <br>
      * This event is posted from {@link BlockCampfire#updateCampfireBlockState} on the {@link MinecraftForge#EVENT_BUS}.<br>
      * Note that this event is posted to both the client and server sides if the campfire is changing due to a player using a state changer. At other times, it's only posted to the
@@ -564,14 +577,27 @@ public class BlockCampfire extends BlockContainer
      * This event is {@link Cancelable}.<br>
      */
     @Cancelable
-    public static class CampfireStateChangeEvent extends BlockEvent
+    public static class CampfireStateChangeEvent extends Event
     {
-        public final EntityPlayer player;
+        public final int x;
+        public final int y;
+        public final int z;
+        public final World world;
+        /** the campfire block BEFORE changing state */
+        public final BlockCampfire block;
+        public final int blockMetadata;
+        public final @Nullable EntityPlayer player;
+        /** whether to use up the state changer (e.g. the player's flint and steel) afterward */
         public boolean useGoods = true;
 
-        public CampfireStateChangeEvent(int x, int y, int z, World world, Block oldCblock, int blockMetadata, @Nullable EntityPlayer player)
+        public CampfireStateChangeEvent(int x, int y, int z, World world, BlockCampfire block, int blockMetadata, @Nullable EntityPlayer player)
         {
-            super(x, y, z, world, oldCblock, blockMetadata);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.world = world;
+            this.block = block;
+            this.blockMetadata = blockMetadata;
             this.player = player;
         }
 

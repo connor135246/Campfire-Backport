@@ -96,8 +96,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 burnOutFromRain();
                 burnOutOverTime();
 
-                if (!firstTick && getWorldObj().getTotalWorldTime() % 20L == 0L)
-                    burnOutDueToLackOfOxygen();
+                if (!firstTick && getWorldObj().getTotalWorldTime() % 20L == 0L
+                        && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
+                    burnOutOrToNothing();
             }
         }
         else
@@ -309,16 +310,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Burns out the campfire if it has no oxygen. Galacticraft / Advanced Rocketry compatibility.<br>
-     * It's called from {@link BlockCampfire#onBlockPlacedBy}, as well as the normal campfire update tick.
-     */
-    public void burnOutDueToLackOfOxygen()
-    {
-        if (isLit() && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
-            burnOutOrToNothing();
-    }
-
-    /**
      * Either burns out the campfire or burns it to nothing.
      */
     public void burnOutOrToNothing()
@@ -333,6 +324,19 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         }
         else
             BlockCampfire.updateCampfireBlockState(false, null, getWorldObj(), xCoord, yCoord, zCoord);
+    }
+
+    /**
+     * Does {@link #burnOutOrToNothing()} for the campfire at the world and block given.
+     */
+    public static void burnOutOrToNothing(World world, int x, int y, int z)
+    {
+        if (!world.isRemote)
+        {
+            TileEntity tile = world.getTileEntity(x, y, z);
+            if (tile instanceof TileEntityCampfire)
+                ((TileEntityCampfire) tile).burnOutOrToNothing();
+        }
     }
 
     /**

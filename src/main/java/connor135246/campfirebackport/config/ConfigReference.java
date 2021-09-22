@@ -93,6 +93,7 @@ public class ConfigReference
             rememberState = "Remember Lit/Unlit State",
             silkNeeded = "Silk Touch Needed",
             putOutByRain = "Put Out by Rain",
+            worksUnderwater = "Works Underwater",
             damaging = "Damage",
             visCosts = "Vis Costs",
             burnOutTimer = "Burn Out Timers",
@@ -125,6 +126,7 @@ public class ConfigReference
         configOrder.add(rememberState);
         configOrder.add(silkNeeded);
         configOrder.add(putOutByRain);
+        configOrder.add(worksUnderwater);
         configOrder.add(damaging);
         configOrder.add(spawnpointable);
         configOrder.add(burnOutOnRespawn);
