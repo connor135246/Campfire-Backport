@@ -135,7 +135,7 @@ If usageType is "stackable", the input is required to have at least this stack s
 If usageType is "none", the input won't be damaged or reduced in stack size. The input is still required to have this stack size to be used, however.
 If not included, defaults to 1.
 -@Optional IItemStack output
-The item that is returned after extinguishing / igniting. For example, a water bucket returning a bucket.
+A byproduct that is given to the player after extinguishing / igniting.
 If not included, defaults to null.
 -@Optional boolean leftClick
 If true, the extinguisher / ignitor is used by left clicking the campfire.
@@ -144,7 +144,9 @@ If not included, defaults to false.
 Since right clicking a campfire checks for cooking recipes first, you might want to set this to true if the input is also a cooking recipe input.
 
 Some example extinguishers/ignitors:
--Right-clicking with an iron hoe extinguishes soul campfires and is damaged by 6 points
+-Right-clicking with a milk bucket extinguishes campfires and gives the player back an empty bucket
+	mods.campfirebackport.addCampfireExtinguisher("both", <minecraft:milk_bucket>, "stackable");
+-Right-clicking with an iron hoe extinguishes soul campfires and damages the item by 6 points
 	mods.campfirebackport.addCampfireExtinguisher("soul", <minecraft:iron_hoe:*>, "damageable", 6);
 -Right-clicking with 3 of any glass block ignites campfires and gives the player 2 sand blocks named "Martha"
 	mods.campfirebackport.addCampfireIgnitor("both", <ore:blockGlass>, "stackable", 3, (<minecraft:sand> * 2).withTag({display: {Name:"Martha"}}));
@@ -376,10 +378,10 @@ In the same way, if you remove a dispensable recipe, it won't actually stop bein
 Additionally, you can specify an item to be added to the inventory afterward by putting a >, and then a # [Custom Output] (see below).
 
 Some example extinguishers/ignitors:
--Right-clicking with a snow block turns into 2 snowballs and can be used from a dispenser
-	right+dispensable/minecraft:snow/stackable>minecraft:snowball@2
 -Right-clicking with a milk bucket turns into an empty bucket
 	right/minecraft:milk_bucket/stackable
+-Right-clicking with a snow block turns into 2 snowballs and can be used from a dispenser
+	right+dispensable/minecraft:snow/stackable>minecraft:snowball@2
 -Left-clicking with any sword enchanted with fire aspect and can be used from a dispenser
 	left+dispensable/class:net.minecraft.item.ItemSword[ench:20,1]/damageable
 -Right-clicking with any shovel and can be used from a dispenser
