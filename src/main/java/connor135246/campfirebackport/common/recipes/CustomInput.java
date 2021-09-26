@@ -515,7 +515,7 @@ public class CustomInput implements Comparable<CustomInput>
      * If the stack is an IFluidContainerItem, drains the stack's fluid by the amount and returns it. <br>
      * If the stack has a container item, reduces the stack's size by 1 and returns it. (It's assumed that container items will be taken care of elsewhere) <br>
      * If the stack is in the FluidContainerRegistry, reduces the stack's size by 1, then if the stack's size is now zero, returns the empty container. If not, gives the player the
-     * empty container to the player.
+     * empty container.
      */
     public static ItemStack doFluidEmptying(ItemStack stack, int amount, EntityPlayer player)
     {
