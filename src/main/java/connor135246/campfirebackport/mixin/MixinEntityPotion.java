@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 @Mixin(EntityPotion.class)
 public abstract class MixinEntityPotion extends EntityThrowable
 {
+
     public MixinEntityPotion(World p_i1776_1_)
     {
         super(p_i1776_1_);
@@ -31,12 +32,11 @@ public abstract class MixinEntityPotion extends EntityThrowable
         int y = MathHelper.floor_double(mop.hitVec.yCoord);
         int z = MathHelper.floor_double(mop.hitVec.zCoord);
 
-        extinguishLitCampfireAt(x,     y,     z    );
-        extinguishLitCampfireAt(x,     y + 1, z    );
-        extinguishLitCampfireAt(x + 1, y + 1, z    );
-        extinguishLitCampfireAt(x - 1, y + 1, z    );
-        extinguishLitCampfireAt(x,     y + 1, z + 1);
-        extinguishLitCampfireAt(x,     y + 1, z - 1);
+        extinguishLitCampfireAt(x, y, z);
+        extinguishLitCampfireAt(x + 1, y, z);
+        extinguishLitCampfireAt(x - 1, y, z);
+        extinguishLitCampfireAt(x, y, z + 1);
+        extinguishLitCampfireAt(x, y, z - 1);
     }
 
     protected void extinguishLitCampfireAt(int i, int j, int k)
