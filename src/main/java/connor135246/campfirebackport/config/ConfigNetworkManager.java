@@ -28,11 +28,11 @@ public class ConfigNetworkManager
     public static class SendConfigMessage implements IMessage
     {
 
-        public EnumCampfireType autoRecipe, startUnlit, rememberState, silkNeeded, putOutByRain, signalFiresBurnOut, burnOutAsItem, colourfulSmoke,
-                spawnpointable, burnOutOnRespawn;
+        public EnumCampfireType autoRecipe, startUnlit, rememberState, silkNeeded, putOutByRain, worksUnderwater,
+                signalFiresBurnOut, burnOutAsItem, colourfulSmoke, spawnpointable, burnOutOnRespawn;
         public String recipeListInheritance, extinguishersListInheritance, ignitorsListInheritance;
-        public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, campfireDropsStrings, dispenserBlacklistStrings,
-                regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
+        public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, campfireDropsStrings,
+                dispenserBlacklistStrings, regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
         public int[] burnOutTimer, defaultCookingTimes;
         public double[] visCosts;
 
