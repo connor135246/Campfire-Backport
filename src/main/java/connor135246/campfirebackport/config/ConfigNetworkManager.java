@@ -2,12 +2,14 @@ package connor135246.campfirebackport.config;
 
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.util.ChatComponentText;
 
 public class ConfigNetworkManager
 {
@@ -146,8 +148,10 @@ public class ConfigNetworkManager
                 }
                 catch (Exception excep)
                 {
-                    CommonProxy.modlog.error(StringParsers.translatePacket("apply_error"));
+                    String apply_error = StringParsers.translatePacket("apply_error");
+                    CommonProxy.modlog.error(apply_error);
                     CommonProxy.modlog.catching(excep);
+                    ctx.getClientHandler().getNetworkManager().closeChannel(new ChatComponentText("[" + Reference.MODID + "] " + apply_error));
                 }
 
                 return null;

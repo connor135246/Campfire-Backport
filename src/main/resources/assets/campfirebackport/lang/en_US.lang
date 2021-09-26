@@ -167,9 +167,9 @@ campfirebackport.config.packets.send_config=Sending server config to client.
 campfirebackport.config.packets.send_config_to_all=Sending server config to all clients.
 campfirebackport.config.packets.receive_config=Receiving config from server.
 campfirebackport.config.packets.restore_config=Restoring client config.
-campfirebackport.config.packets.encode_error=Error occurred while creating config packet
-campfirebackport.config.packets.decode_error=Error occurred while receiving config packet
-campfirebackport.config.packets.apply_error=Error occurred while applying received config packet
+campfirebackport.config.packets.encode_error=Error occurred while creating config packet. Try reconnecting. If it still fails, report this bug.
+campfirebackport.config.packets.decode_error=Error occurred while receiving config packet. Try reconnecting. If it still fails, report this bug.
+campfirebackport.config.packets.apply_error=Error occurred while applying received config packet. Try reconnecting. If it still fails, report this bug.
 
 campfirebackport.config.comment.charcoal=If true, regular campfires can be crafted only using charcoal. In vanilla either coal or charcoal can be used, but breaking campfires always drops charcoal. If for some reason you don't want players to be able to turn coal into charcoal, turn this on.
 campfirebackport.config.comment.soul_soil=If true, soul campfires can be crafted only using soul soil from Netherlicious. In vanilla either soul sand or soul soil can be used, but breaking campfires always drops soul soil. If for some reason you don't want players to be able to turn soul sand into soul soil, turn this on. This won't do anything if Netherlicious isn't installed!
