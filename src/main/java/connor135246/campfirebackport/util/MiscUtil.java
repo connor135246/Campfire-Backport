@@ -164,7 +164,12 @@ public class MiscUtil
     public static NBTTagCompound mergeNBT(final NBTTagCompound base, final NBTTagCompound merger)
     {
         if (base == null)
-            return (NBTTagCompound) merger.copy();
+        {
+            if (merger == null)
+                return null;
+            else
+                return (NBTTagCompound) merger.copy();
+        }
 
         if (merger != null)
         {

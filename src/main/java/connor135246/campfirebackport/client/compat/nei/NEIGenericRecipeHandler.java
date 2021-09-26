@@ -15,6 +15,7 @@ import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraft
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -22,7 +23,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.oredict.OreDictionary;
 
 public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
@@ -196,7 +196,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
                 for (ItemStack metaStack : metaList)
                 {
                     if (cinput.isIIngredientInput() && cinputStack.hasTagCompound())
-                        metaStack.setTagCompound((NBTTagCompound) cinputStack.getTagCompound().copy());
+                        metaStack.setTagCompound(MiscUtil.mergeNBT(metaStack.getTagCompound(), cinputStack.getTagCompound()));
 
                     metaStack = cinput.modifyStackForDisplay(metaStack);
 
