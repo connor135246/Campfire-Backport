@@ -159,7 +159,8 @@ public class MiscUtil
     }
 
     /**
-     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}. Null safe.
+     * Returns a new tag that has merged the tags of the base with the merger using {@link #mergeNBT(NBTTagCompound, String, NBTBase)}. <br>
+     * If one of the compounds is null, simply returns a copy of the non-null one. If both are null, returns null.
      */
     public static NBTTagCompound mergeNBT(final NBTTagCompound base, final NBTTagCompound merger)
     {
