@@ -87,7 +87,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             super(null);
 
-            this.types = type.asArray();
+            this.types = type;
 
             this.specialID = specialID;
             this.extinguisher = extinguisher;
@@ -272,14 +272,14 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         CachedCampfireStateChanger cachedCstate = (CachedCampfireStateChanger) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCstate != null && cachedCstate.types.length != 0)
+        if (cachedCstate != null && cachedCstate.types != EnumCampfireType.NEITHER)
         {
             GL11.glTranslatef(12, 32, 100);
             GL11.glRotatef(-30, 1, 0, 0);
             GL11.glRotatef(45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderSimple(cachedCstate.extinguisher, cachedCstate.getType(), cycleticks);
+            RenderCampfire.INSTANCE.renderModelAt(cachedCstate.extinguisher, cachedCstate.getTypeStringForRender(), cycleticks);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
@@ -290,7 +290,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GL11.glRotatef(-45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderSimple(!cachedCstate.extinguisher, cachedCstate.getType(), cycleticks);
+            RenderCampfire.INSTANCE.renderModelAt(!cachedCstate.extinguisher, cachedCstate.getTypeStringForRender(), cycleticks);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();

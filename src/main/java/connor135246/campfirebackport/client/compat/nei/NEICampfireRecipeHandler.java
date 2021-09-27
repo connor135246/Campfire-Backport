@@ -12,6 +12,7 @@ import codechicken.nei.PositionedStack;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
+import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.client.renderer.entity.RenderItem;
@@ -172,7 +173,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
         CachedCampfireRecipe cachedCrecipe = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCrecipe != null && cachedCrecipe.types.length != 0)
+        if (cachedCrecipe != null && cachedCrecipe.types != EnumCampfireType.NEITHER)
         {
             GuiDraw.changeTexture(neiBackground);
             GuiDraw.drawTexturedModalRect(54, 7, 118, 2, 63, 41);
@@ -231,7 +232,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
             GL11.glRotatef(45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderSimple(true, cachedCrecipe.getType(), cycleticks);
+            RenderCampfire.INSTANCE.renderModelAt(true, cachedCrecipe.getTypeStringForRender(), cycleticks);
         }
 
         GL11.glPopMatrix();

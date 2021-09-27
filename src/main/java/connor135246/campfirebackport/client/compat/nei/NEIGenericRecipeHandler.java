@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
@@ -41,8 +43,8 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
     public abstract class CachedGenericRecipe extends CachedRecipe
     {
-        /** {@link GenericRecipe#types} as array */
-        public String[] types;
+        /** {@link GenericRecipe#types} */
+        public EnumCampfireType types;
         /** {@link GenericRecipe#inputs} */
         public List<PositionedStack> inputs;
         /** {@link GenericRecipe#outputs} */
@@ -60,7 +62,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         {
             if (grecipe != null)
             {
-                types = grecipe.getTypes().asArray();
+                types = grecipe.getTypes();
 
                 numInputs = grecipe.getInputs().length;
 
@@ -76,12 +78,17 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
             }
         }
 
-        public String getType()
+        /**
+         * see {@link connor135246.campfirebackport.client.rendering.RenderCampfire#renderModelAt}
+         */
+        public @Nullable String getTypeStringForRender()
         {
-            if (types.length == 0)
-                return EnumCampfireType.regular;
+            if (types == EnumCampfireType.BOTH)
+                return null;
+            else if (types == EnumCampfireType.SOUL_ONLY)
+                return EnumCampfireType.soul;
             else
-                return types[(cycleticks % (20 * types.length)) / 20];
+                return EnumCampfireType.regular;
         }
 
     }
@@ -122,7 +129,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     {
         CachedGenericRecipe cachedGrecipe = (CachedGenericRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedGrecipe != null && cachedGrecipe.types.length != 0)
+        if (cachedGrecipe != null && cachedGrecipe.types != EnumCampfireType.NEITHER)
         {
             Point mouse = GuiDraw.getMousePosition();
             Point offset = gui.getRecipePosition(recipe);
