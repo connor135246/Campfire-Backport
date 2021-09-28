@@ -162,14 +162,14 @@ addBurnOutTimer(String types, Integer biomeId, Integer dimensionId, int timer);
 -String types
 The campfire types this timer applies to. Must be "regular", "soul", or "both".
 -Integer biomeId
-The ID of the biome this rule should apply to.
-If the biome shouldn't matter for this rule, put null.
+The ID of the biome this timer should apply to.
+If the biome shouldn't matter for this timer, put null.
 -Integer dimensionId
-The ID of the dimension this rule should apply to.
-If the dimension shouldn't matter for this rule, put null.
+The ID of the dimension this timer should apply to.
+If the dimension shouldn't matter for this timer, put null.
 -int timer
 The number of ticks until the campfire will burn out.
-Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
+Like in the Burn Out Timers config option, setting it to -1 prevents the campfire from burning out.
 
 Some example timers:
 -Soul campfires never burn out in the nether
@@ -180,10 +180,10 @@ Some example timers:
 	mods.campfirebackport.addBurnOutTimer("both", 0, -1, 0);
 -Regular campfires burn out after around an hour in mushroom island biomes that are in the end
 	mods.campfirebackport.addBurnOutTimer("regular", 14, 1, 72000);
-	
+
 Tips:
--Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
--If no timers apply, campfires will use the value from Burn Out Timers. 
+-Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable timer to set their burn out timer. 
+-If no timers apply, campfires will use the value from the Burn Out Timers config option. 
 -You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
 -If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
 -If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
@@ -409,14 +409,7 @@ Type "biome:id" or "dimension:id".
 You can give both a biome and dimension ID at the same time, by putting an & between.
 For example, "biome:4&dimension:-1".
 -The third section is the number of ticks until the campfire will burn out.
-Like in the Burn Out Timers config, setting it to -1 prevents the campfire from burning out.
-Tips:
--Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable rule to set their burn out timer. 
--If no timers apply, campfires will use the value from Burn Out Timers. 
--You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
--If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
--If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
-Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
+Like in the Burn Out Timers config option, setting it to -1 prevents the campfire from burning out.
 
 Some example timers:
 -Soul campfires never burn out in the nether
@@ -427,6 +420,14 @@ Some example timers:
 	both/biome:0&dimension:-1/0
 -Regular campfires burn out after around an hour in mushroom island biomes that are in the end
 	regular/dimension:1&biome:14/72000
+
+Tips:
+-Make sure you put your timers in order of highest priority to lowest priority. Campfires will use the first applicable timer to set their burn out timer. 
+-If no timers apply, campfires will use the value from the Burn Out Timers config option. 
+-You'll be able to see the currently applicable burn out timer in NEI under Extinguishers / Ignitors.
+-If you change a burn out timer, campfires that are already in the world won't realize immediately. Break and place them again for them to update.
+-If you don't know your biome/dimension IDs, the command "/campfirebackport locationinfo" will tell you the IDs of your current dimension and biome. 
+Also, there are mods such as Tell Me that will output a complete list of biome IDs for you. Dimension IDs can be found in your saves. Note that some mods allow you to change biome or dimension IDs in their config.
 	
 	
 # [Campfire Drops]

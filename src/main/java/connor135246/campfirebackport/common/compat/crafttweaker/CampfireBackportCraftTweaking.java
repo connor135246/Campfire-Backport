@@ -297,6 +297,12 @@ public class CampfireBackportCraftTweaking
     {
         try
         {
+            if (timer < -1)
+            {
+                MineTweakerAPI.logError(StringParsers.translateCT("error.invalid_timer", timer));
+                return;
+            }
+
             EnumCampfireType typesVerified = getTypes(types);
             if (typesVerified != null && verifyIDs(biomeId, dimensionId))
             {
