@@ -173,7 +173,7 @@ public class BurnOutRule
     }
 
     /**
-     * Rounds doubles to ints and sends to {@link #findBurnOutRule(World, int, int, int, String)}
+     * Floors doubles to ints and sends to {@link #findBurnOutRule(World, int, int, int, String)}
      */
     public static BurnOutRule findBurnOutRule(World world, double x, double y, double z, String type)
     {
@@ -204,7 +204,7 @@ public class BurnOutRule
      */
     public boolean matches(int biomeId, int dimensionId, String type)
     {
-        return getTypes().matches(type) && (!hasBiomeId() || getBiomeId() == biomeId) && (!hasDimensionId() || getDimensionId() == dimensionId);
+        return (!hasBiomeId() || getBiomeId() == biomeId) && (!hasDimensionId() || getDimensionId() == dimensionId) && getTypes().matches(type);
     }
 
     /**
@@ -212,10 +212,7 @@ public class BurnOutRule
      */
     public static boolean checkBiomeId(int biomeId)
     {
-        if (biomeId >= BiomeGenBase.getBiomeGenArray().length || biomeId < 0  || BiomeGenBase.getBiomeGenArray()[biomeId] == null)
-            return false;
-        else
-            return true;
+        return !(biomeId >= BiomeGenBase.getBiomeGenArray().length || biomeId < 0 || BiomeGenBase.getBiomeGenArray()[biomeId] == null);
     }
 
     /**

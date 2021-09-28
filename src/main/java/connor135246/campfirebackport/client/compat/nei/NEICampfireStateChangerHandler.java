@@ -170,8 +170,6 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             arecipes.add(new CachedCampfireStateChanger(cstate));
 
         // creating non-recipe state changers
-        final String[] typeArray = EnumCampfireType.BOTH.asArray();
-        final boolean[] extinguisherArray = new boolean[] { true, false };
 
         // wand
         if (CampfireBackportCompat.isThaumcraftLoaded)
@@ -184,67 +182,92 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
                 if (!wandList.isEmpty())
                 {
-                    for (String type : typeArray)
-                        for (boolean extinguisher : extinguisherArray)
+                    boolean sameCosts = CampfireBackportConfig.visCosts[0] == CampfireBackportConfig.visCosts[1]
+                            && CampfireBackportConfig.visCosts[2] == CampfireBackportConfig.visCosts[3];
+
+                    for (boolean extinguisher : new boolean[] { true, false })
+                    {
+                        double regCost = CampfireBackportConfig.visCosts[extinguisher ? 0 : 2];
+                        double soulCost = CampfireBackportConfig.visCosts[extinguisher ? 1 : 3];
+
+                        if (regCost > 0.0)
                         {
-                            double cost = CampfireBackportConfig.visCosts[EnumCampfireType.index(type) + (extinguisher ? 0 : 2)];
-
-                            if (cost != 0.0)
-                            {
-                                LinkedList<String> tooltip = new LinkedList<String>();
-                                tooltip.add("");
-                                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("vis_cost")
-                                        + (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua"
-                                                : EnumChatFormatting.RED + " " + cost + " Ignis"));
-
-                                arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.FROM_NAME.get(type), extinguisher, tooltip, wandList));
-                            }
+                            arecipes.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
+                                    extinguisher, createWandTooltip(extinguisher, regCost), wandList));
                         }
+
+                        if (!sameCosts && soulCost > 0.0)
+                        {
+                            arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
+                                    extinguisher, createWandTooltip(extinguisher, soulCost), wandList));
+                        }
+                    }
                 }
             }
         }
 
         // burning out
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        for (String type : typeArray)
+        BurnOutRule bruleReg = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.regular);
+        BurnOutRule bruleSoul = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.soul);
+        if (bruleReg.getTimer() != -1 || bruleSoul.getTimer() != -1 || CampfireBackportConfig.putOutByRain != EnumCampfireType.NEITHER)
         {
-            BurnOutRule brule = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, type);
-            boolean bruledOut = brule.getTimer() != -1;
-            boolean rainedOut = CampfireBackportConfig.putOutByRain.matches(type);
-
-            if (bruledOut || rainedOut)
+            if ((bruleReg == bruleSoul || (bruleReg.isDefaultRule() && bruleSoul.isDefaultRule() && bruleReg.getTimer() == bruleSoul.getTimer()))
+                    && CampfireBackportConfig.putOutByRain.sameForBoth() && CampfireBackportConfig.signalFiresBurnOut.sameForBoth())
             {
-                LinkedList<String> tooltip = new LinkedList<String>();
+                addBurnoutStateChanger(bruleReg, EnumCampfireType.BOTH);
+            }
+            else
+            {
+                if (bruleReg.getTimer() != -1 || CampfireBackportConfig.putOutByRain.acceptsRegular())
+                    addBurnoutStateChanger(bruleReg, EnumCampfireType.REG_ONLY);
 
-                if (bruledOut)
-                {
-                    if (brule.isDefaultRule())
-                        tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out", brule.getTimer()));
-                    else
-                    {
-                        tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in", brule.getTimer()));
+                if (bruleSoul.getTimer() != -1 || CampfireBackportConfig.putOutByRain.acceptsSoul())
+                    addBurnoutStateChanger(bruleSoul, EnumCampfireType.SOUL_ONLY);
+            }
 
-                        if (brule.hasBiomeId())
-                            tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + brule.getBiomeName());
+        }
+    }
 
-                        if (brule.hasDimensionId())
-                            tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " " + brule.getDimensionName());
-                    }
-                }
+    protected static LinkedList<String> createWandTooltip(boolean extinguisher, double cost)
+    {
+        LinkedList<String> tooltip = new LinkedList<String>();
+        tooltip.add("");
+        tooltip.add(EnumChatFormatting.GOLD + "-" + StringParsers.translateNEI("vis_cost") +
+                (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua" : EnumChatFormatting.RED + " " + cost + " Ignis"));
+        return tooltip;
+    }
 
-                if (rainedOut)
-                    tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("rained_out"));
+    protected void addBurnoutStateChanger(BurnOutRule brule, EnumCampfireType types)
+    {
+        LinkedList<String> tooltip = new LinkedList<String>();
 
-                if (!CampfireBackportConfig.signalFiresBurnOut.matches(type))
-                {
-                    tooltip.add("");
-                    tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("signals_live"));
-                }
+        if (brule.getTimer() != -1)
+        {
+            if (brule.isDefaultRule())
+                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out", brule.getTimer()));
+            else
+            {
+                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in", brule.getTimer()));
 
-                arecipes.add(new CachedCampfireStateChanger("burnout", EnumCampfireType.FROM_NAME.get(type), true, tooltip,
-                        Lists.newArrayList(new ItemStack(Items.written_book))));
+                if (brule.hasBiomeId())
+                    tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + brule.getBiomeName());
+
+                if (brule.hasDimensionId())
+                    tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " " + brule.getDimensionName());
             }
         }
+
+        if (CampfireBackportConfig.putOutByRain.accepts(types))
+            tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("rained_out"));
+
+        if (!CampfireBackportConfig.signalFiresBurnOut.accepts(types))
+        {
+            tooltip.add("");
+            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("signals_live"));
+        }
+
+        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltip, Lists.newArrayList(new ItemStack(Items.written_book))));
     }
 
     @Override

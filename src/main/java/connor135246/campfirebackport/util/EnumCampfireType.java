@@ -69,6 +69,27 @@ public enum EnumCampfireType
     }
 
     /**
+     * @return true if this accepts the types that other accepts.
+     */
+    public boolean accepts(EnumCampfireType other)
+    {
+        if (other == EnumCampfireType.REG_ONLY)
+            return acceptsRegular;
+        else if (other == EnumCampfireType.SOUL_ONLY)
+            return acceptsSoul;
+        else
+            return this == other;
+    }
+
+    /**
+     * @return true if this is BOTH or NEITHER, false if this is REG_ONLY or SOUL_ONLY.
+     */
+    public boolean sameForBoth()
+    {
+        return acceptsRegular == acceptsSoul;
+    }
+
+    /**
      * @return an array containing the names of the types of campfires this enum accepts.
      */
     public String[] asArray()
