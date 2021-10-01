@@ -337,6 +337,32 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     /**
+     * Finds the lowest cooking time of all Campfire Recipes that match the stack and campfire. If none match, returns Integer.MAX_VALUE.
+     */
+    public static int findLowestCookingTime(ItemStack stack, String type, boolean signalFire)
+    {
+        int lowestCookingTime = Integer.MAX_VALUE;
+        if (stack != null)
+        {
+            for (CampfireRecipe crecipe : getRecipeList(type))
+            {
+                if (crecipe.getCookingTime() < lowestCookingTime && crecipe.matches(stack, signalFire))
+                    lowestCookingTime = crecipe.getCookingTime();
+            }
+        }
+        return lowestCookingTime;
+    }
+
+    /**
+     * Finds the lowest cooking time of all Campfire Recipes that match the stack and campfire. If none match, returns the default cooking time for the campfire type.
+     */
+    public static int findLowestCookingTimeOrDefault(ItemStack stack, String type, boolean signalFire)
+    {
+        int lowestCookingTime = findLowestCookingTime(stack, type, signalFire);
+        return lowestCookingTime == Integer.MAX_VALUE ? CampfireBackportConfig.defaultCookingTimes[EnumCampfireType.index(type)] : lowestCookingTime;
+    }
+
+    /**
      * Checks if the given ItemStack and signalFire state match this CampfireRecipe.
      */
     public boolean matches(ItemStack stack, boolean signalFire)

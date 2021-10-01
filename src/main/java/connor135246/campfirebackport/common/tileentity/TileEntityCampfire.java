@@ -1,6 +1,7 @@
 package connor135246.campfirebackport.common.tileentity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -139,28 +140,58 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             if (getWorldObj().getTotalWorldTime() % 50L == 0)
                 markForClient();
 
-            // if a multi-input recipe is found, only check for it once.
-            List<CampfireRecipe> skips = new ArrayList<CampfireRecipe>(4);
+            // if a multi-input recipe is incomplete, we don't want to end up checking it multiple times.
+            // we want to search again for recipes, but exclude the failed recipe from the search.
+            List<CampfireRecipe> incomplete = new ArrayList<CampfireRecipe>(8);
+
+            // if a multi-input recipe is complete but isn't finished cooking, we don't want to exclude it from the search.
+            // we want to cook this one - but just not right now.
+            List<CampfireRecipe> completeButRaw = new ArrayList<CampfireRecipe>(4);
 
             for (int slot = 0; slot < getSizeInventory(); ++slot)
             {
                 ItemStack stack = getStackInSlot(slot);
                 if (stack != null && getCookingTimeInSlot(slot) >= getCookingTotalTimeInSlot(slot))
                 {
-                    CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire(), skips, invCount);
+                    CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire(), incomplete, invCount);
+
                     if (crecipe != null)
                     {
-                        if (crecipe.isMultiInput())
+                        if (completeButRaw.contains(crecipe))
+                            continue;
+                        else if (crecipe.isMultiInput())
                         {
-                            skips.add(crecipe);
-                            doMultiInputCooking(crecipe);
+                            switch (doMultiInputCooking(crecipe))
+                            {
+                            case 0:
+                            {
+                                incomplete.add(crecipe);
+                                --slot;
+                                break;
+                            }
+                            case 1:
+                            {
+                                completeButRaw.add(crecipe);
+                                break;
+                            }
+                            case 2:
+                            {
+                                incomplete.clear();
+                                completeButRaw.clear();
+                                break;
+                            }
+                            }
                         }
                         else
                         {
-                            int[] slotToCinput = new int[] { -1, -1, -1, -1 };
+                            int[] slotToCinput = new int[getSizeInventory()];
+                            Arrays.fill(slotToCinput, -1);
                             slotToCinput[slot] = 0;
                             useInputs(crecipe, slotToCinput);
                             drop(crecipe);
+
+                            incomplete.clear();
+                            completeButRaw.clear();
                         }
                     }
                 }
@@ -169,13 +200,19 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Finds matching stacks for multi-input recipes.
+     * Finds matching stacks for multi-input recipes. <br>
+     * Result: <br>
+     * 0 = crecipe is incomplete <br>
+     * 1 = crecipe is complete, but cooking times are not done yet <br>
+     * 2 = crecipe was completed
      */
-    protected void doMultiInputCooking(CampfireRecipe crecipe)
+    protected int doMultiInputCooking(CampfireRecipe crecipe)
     {
         int target = crecipe.getInputs().length;
-        int[] cinputToSlot = new int[] { -1, -1, -1, -1 };
-        int[] slotToCinput = new int[] { -1, -1, -1, -1 };
+        int[] cinputToSlot = new int[getSizeInventory()];
+        Arrays.fill(cinputToSlot, -1);
+        int[] slotToCinput = new int[getSizeInventory()];
+        Arrays.fill(slotToCinput, -1);
         int matchCount = 0;
 
         invLoop: for (int slot = 0; slot < getSizeInventory(); ++slot)
@@ -187,7 +224,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 {
                     if (cinputToSlot[cinputIndex] != -1)
                         continue;
-                    else if (crecipe.getInputs()[cinputIndex].matches(stack) && getCookingTimeInSlot(slot) >= crecipe.getCookingTime())
+                    else if (crecipe.getInputs()[cinputIndex].matches(stack))
                     {
                         cinputToSlot[cinputIndex] = slot;
                         slotToCinput[slot] = cinputIndex;
@@ -195,9 +232,14 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
                         if (matchCount == target)
                         {
+                            for (int slot2 = 0; slot2 < getSizeInventory(); ++slot2)
+                            {
+                                if (slotToCinput[slot2] != -1 && getCookingTimeInSlot(slot2) < crecipe.getCookingTime())
+                                    return 1;
+                            }
                             useInputs(crecipe, slotToCinput);
                             drop(crecipe);
-                            return;
+                            return 2;
                         }
 
                         continue invLoop;
@@ -205,6 +247,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 }
             }
         }
+
+        return 0;
     }
 
     /**
@@ -213,7 +257,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      * 
      * @param crecipe
      * @param slotToCinput
-     *            - an array of length 4, of inventory slot indexes to CustomInput indexes (or -1).
+     *            - an array the size of the inventory, of inventory slot indexes to CustomInput indexes (or -1).
      */
     protected void useInputs(CampfireRecipe crecipe, int[] slotToCinput)
     {
@@ -528,10 +572,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     if (hasCookingTotalTimes)
                         setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
                     else
-                    {
-                        CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), signalFire);
-                        setCookingTotalTimeInSlot(slot, crecipe == null ? 600 : crecipe.getCookingTime());
-                    }
+                        setCookingTotalTimeInSlot(slot, CampfireRecipe.findLowestCookingTimeOrDefault(stack, getType(), signalFire));
                 }
             }
         }
@@ -718,15 +759,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public void setInventorySlotContents(int slot, ItemStack stack)
     {
         ItemStack invStack = null;
-        int cookingTotalTime = 600;
+        int cookingTotalTime = CampfireBackportConfig.defaultCookingTimes[getTypeIndex()];
 
         if (stack != null)
         {
             invStack = stack.splitStack(getInventoryStackLimit());
-
-            CampfireRecipe crecipe = CampfireRecipe.findRecipe(invStack, getType(), isSignalFire());
-            if (crecipe != null)
-                cookingTotalTime = crecipe.getCookingTime();
+            cookingTotalTime = CampfireRecipe.findLowestCookingTimeOrDefault(invStack, getType(), isSignalFire());
         }
 
         setStackInSlot(slot, invStack);
@@ -748,14 +786,14 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (stack != null)
         {
-            CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire());
-            if (crecipe != null)
-                setCookingTotalTimeInSlot(slot, crecipe.getCookingTime());
+            int lowestCookingTime = CampfireRecipe.findLowestCookingTime(stack, getType(), isSignalFire());
+            if (lowestCookingTime != Integer.MAX_VALUE)
+                setCookingTotalTimeInSlot(slot, lowestCookingTime);
         }
         else
         {
             resetCookingTimeInSlot(slot);
-            setCookingTotalTimeInSlot(slot, 600);
+            setCookingTotalTimeInSlot(slot, CampfireBackportConfig.defaultCookingTimes[getTypeIndex()]);
         }
 
         setStackInSlot(slot, stack);
@@ -970,7 +1008,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public int getCookingTotalTimeInSlot(int slot)
     {
-        return isSlotNumber(slot) ? cookingTotalTimes[slot] : 600;
+        return isSlotNumber(slot) ? cookingTotalTimes[slot] : CampfireBackportConfig.defaultCookingTimes[getTypeIndex()];
     }
 
     public void setCookingTotalTimeInSlot(int slot, int time)
