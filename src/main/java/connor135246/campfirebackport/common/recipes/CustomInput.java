@@ -740,10 +740,13 @@ public class CustomInput implements Comparable<CustomInput>
             return value;
         // inputs that specify a meta come first.
         value = Boolean.compare(cinput.metaWasSpecified(), this.metaWasSpecified());
-        // keeps items with the same id together.
+        // keeps items with the same id and damage together.
         if (value == 0 && this.getInput() instanceof ItemStack && cinput.getInput() instanceof ItemStack)
-            value = Integer.compare(Item.getIdFromItem(((ItemStack) this.getInput()).getItem()),
-                    Item.getIdFromItem(((ItemStack) cinput.getInput()).getItem()));
+        {
+            value = Integer.compare(Item.getIdFromItem(((ItemStack) this.getInput()).getItem()), Item.getIdFromItem(((ItemStack) cinput.getInput()).getItem()));
+            if (value == 0)
+                value = Integer.compare(((ItemStack) this.getInput()).getItemDamage(), ((ItemStack) cinput.getInput()).getItemDamage());
+        }
 
         return value;
     }
