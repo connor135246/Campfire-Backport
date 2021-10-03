@@ -88,8 +88,10 @@ If it's just 1 input, you don't have to put it in an array.
 -IItemStack output
 The output.
 -@Optional Integer cookingTime
-It's the number of ticks until the item cooks. 
-If not included, defaults to 600.
+It's the number of ticks until the item cooks.
+For inputs that are more than one item, all items must have reached this cooking time.
+If not included, or set to null, the recipe will use the default cooking time.
+The default cooking time is 600 ticks (30 seconds), but it can be changed in the config.
 -@Optional String signalFire
 If "signal", the campfire must be a signal fire to cook this recipe.
 If "notsignal", the campfire must NOT be a signal fire to cook this recipe.
@@ -109,6 +111,8 @@ Some example recipes:
 	mods.campfirebackport.addCampfireRecipe("regular", [<ore:ingotIron>, <ore:ingotGold>], <minecraft:emerald>);
 -A diamond axe turns into two full stacks of redstone after 2 ticks on a soul campfire that isn't a signal fire
 	mods.campfirebackport.addCampfireRecipe("soul", <minecraft:diamond_axe:*>, <minecraft:redstone> * 64, 2, "notsignal", <minecraft:redstone> * 64);
+-1 brown mushroom, 1 red mushroom, and 1 bowl turns into mushroom stew, but only on signal fire campfires
+	mods.campfirebackport.addCampfireRecipe("both", [<minecraft:brown_mushroom>, <minecraft:red_mushroom>, <minecraft:bowl>], <minecraft:mushroom_stew>, null, "signal");
 -4 of any planks turn into 3 diamonds after 4821 ticks on a soul campfire that is a signal fire
 	mods.campfirebackport.addCampfireRecipe("soul", [<ore:plankWood>, <ore:plankWood>, <ore:plankWood>, <ore:plankWood>], <minecraft:diamond> * 3, 4821, "signal");
 -Make an iron ingot with the lore "wibbly wobbly" and have a 50% chance of a gold ingot after 221 ticks by putting a sand (or a red sand) and a dirt (or a podzol) on any campfire
@@ -168,7 +172,7 @@ If the biome shouldn't matter for this timer, put null.
 The ID of the dimension this timer should apply to.
 If the dimension shouldn't matter for this timer, put null.
 -int timer
-The number of ticks until the campfire will burn out.
+The number of ticks until the campfire will burn out. 20 ticks is 1 second.
 Like in the Burn Out Timers config option, setting it to -1 prevents the campfire from burning out.
 
 Some example timers:
@@ -311,7 +315,8 @@ Check the order of your recipes by setting the config option #Debug: Print Campf
 -The second section is the output # [Custom Output] (see below).
 -The third section is the cooking time, which is optional. It's the number of ticks until the item cooks. 
 For inputs that are more than one item, all items must have reached this cooking time. 
-If cooking time is not given, it defaults to 600. 
+If not included, or set to *, the recipe will use the default cooking time.
+The default cooking time is 600 ticks (30 seconds), but it can be changed in the config.
 -The fourth section is the signal fire setting, which is optional.
 It can be "signal" or "notsignal" or "any".
 "signal" means the campfire must be a signal fire to cook the item.
@@ -332,15 +337,15 @@ Some example recipes:
 	minecraft:sand/minecraft:glass
 -A birch log turns into 2 charcoal after 1 minute
 	minecraft:log:2/minecraft:coal:1@2/1200
--4 rotten flesh turns into 2 leather after 600 ticks
+-4 rotten flesh turns into 2 leather
 	minecraft:rotten_flesh@4/minecraft:leather@2
 -Any music disc turns into a diamond after 4321 ticks, but only on signal fire campfires
 	ore:record/minecraft:diamond/4321/signal
--4 items in the logWood ore dictionary turns into 5 charcoal after 30 seconds, but only on campfires that aren't signal fires
-	ore:logWood@4/minecraft:coal:1@5/600/notsignal
--1 brown mushroom, 1 red mushroom, and 1 bowl turns into mushroom stew after 63 ticks, but only on signal fire campfires
-	minecraft:brown_mushroom&minecraft:red_mushroom&minecraft:bowl/minecraft:mushroom_stew/63/signal
--1 bucket of milk, 1 wheat, 1 sugar, and 1 egg turns into a cake
+-4 items in the logWood ore dictionary turns into 5 charcoal, but only on campfires that aren't signal fires
+	ore:logWood@4/minecraft:coal:1@5/*/notsignal
+-1 brown mushroom, 1 red mushroom, and 1 bowl turns into mushroom stew, but only on signal fire campfires
+	minecraft:brown_mushroom&minecraft:red_mushroom&minecraft:bowl/minecraft:mushroom_stew/*/signal
+-1 bucket of milk, 1 wheat, 1 sugar, and 1 egg turns into a cake after 30 seconds
 	minecraft:milk_bucket&minecraft:wheat&minecraft:sugar&minecraft:egg/minecraft:cake/600
 -1 carrot and 3 gold nuggets turns into a golden carrot
 	minecraft:carrot&minecraft:gold_nugget@3/minecraft:golden_carrot
@@ -408,7 +413,7 @@ Must be "regular", "soul", or "both".
 Type "biome:id" or "dimension:id". 
 You can give both a biome and dimension ID at the same time, by putting an & between.
 For example, "biome:4&dimension:-1".
--The third section is the number of ticks until the campfire will burn out.
+-The third section is the number of ticks until the campfire will burn out. 20 ticks is 1 second.
 Like in the Burn Out Timers config option, setting it to -1 prevents the campfire from burning out.
 
 Some example timers:

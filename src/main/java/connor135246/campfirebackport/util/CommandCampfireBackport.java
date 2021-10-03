@@ -183,7 +183,7 @@ public class CommandCampfireBackport implements ICommand
 
                     PrintWriter explanationWriter = new PrintWriter(new FileWriter(explanation));
                     explanationWriter.println("--- " + Reference.MODID + "-" + Reference.VERSION + " ---");
-                    for (int i = 0; i <= 548; ++i)
+                    for (int i = 0; i <= 556; ++i)
                         explanationWriter.println(StatCollector.translateToLocal(Reference.MODID + ".config.explanation." + i));
                     explanationWriter.close();
                 }
