@@ -273,7 +273,23 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     if (transformedStack != null && transformedStack.stackSize <= 0)
                         transformedStack = null;
                     if (transformedStack != stack)
-                        setInventorySlotContentsForced(slot, transformedStack);
+                    {
+                        int newCookingTime = CampfireRecipe.findLowestCookingTime(transformedStack, getType(), isSignalFire());
+                        if (newCookingTime != Integer.MAX_VALUE)
+                        {
+                            setCookingTotalTimeInSlot(slot, newCookingTime);
+                            setStackInSlot(slot, transformedStack);
+
+                            markDirty();
+                            markForClient();
+                            markForNeighbours();
+                        }
+                        else
+                        {
+                            setInventorySlotContents(slot, null);
+                            popStackedItem(transformedStack, getWorldObj(), xCoord, yCoord, zCoord);
+                        }
+                    }
                 }
 
             for (int slot = 0; slot < fakePlayer.inventory.getSizeInventory(); ++slot)
@@ -770,33 +786,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         setStackInSlot(slot, invStack);
         setCookingTotalTimeInSlot(slot, cookingTotalTime);
         resetCookingTimeInSlot(slot);
-
-        markDirty();
-        markForClient();
-        markForNeighbours();
-    }
-
-    /**
-     * Unlike {@link #setInventorySlotContents}, the stack given is exactly the stack that is placed in the campfire; it doesn't split the stack to fit
-     * {@link #getInventoryStackLimit}. <br>
-     * Also, {@link #cookingTimes} is only reset if the stack is null. And {@link #cookingTotalTimes} is only updated if the stack is null or actually has a recipe. <br>
-     * In other words, this method behaves exactly the same as {@link #setInventorySlotContents} if the stack is null.
-     */
-    public void setInventorySlotContentsForced(int slot, ItemStack stack)
-    {
-        if (stack != null)
-        {
-            int lowestCookingTime = CampfireRecipe.findLowestCookingTime(stack, getType(), isSignalFire());
-            if (lowestCookingTime != Integer.MAX_VALUE)
-                setCookingTotalTimeInSlot(slot, lowestCookingTime);
-        }
-        else
-        {
-            resetCookingTimeInSlot(slot);
-            setCookingTotalTimeInSlot(slot, CampfireBackportConfig.defaultCookingTimes[getTypeIndex()]);
-        }
-
-        setStackInSlot(slot, stack);
 
         markDirty();
         markForClient();
