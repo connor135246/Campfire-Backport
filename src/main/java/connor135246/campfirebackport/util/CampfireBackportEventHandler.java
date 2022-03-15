@@ -3,6 +3,7 @@ package connor135246.campfirebackport.util;
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigSmokeFXConstructingEvent;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.blocks.BlockCampfire.CampfireStateChangeEvent;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
@@ -91,7 +92,7 @@ public class CampfireBackportEventHandler
         {
             Block block = event.entityPlayer.worldObj.getBlock(event.x, event.y, event.z);
 
-            if (block instanceof BlockCampfire && ((BlockCampfire) block).isLit() && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block))
+            if (CampfireBackportBlocks.isLitCampfire(block) && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block))
             {
                 event.entityPlayer.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
                 event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false);

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import com.emoniph.witchery.blocks.TileEntityBase;
 import com.emoniph.witchery.brewing.TileEntityCauldron;
 
-import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
@@ -25,7 +25,7 @@ public abstract class MixinTileEntityCauldron extends TileEntityBase implements 
     public Block getBlockProxy(World world, int x, int y, int z)
     {
         Block block = world.getBlock(x, y, z);
-        if (block instanceof BlockCampfire && ((BlockCampfire) block).isLit())
+        if (CampfireBackportBlocks.isLitCampfire(block))
             return Blocks.fire;
         else
             return block;

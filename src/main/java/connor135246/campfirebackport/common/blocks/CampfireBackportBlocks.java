@@ -73,4 +73,20 @@ public class CampfireBackportBlocks
         return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
     }
 
+    /**
+     * @return true if and only if the given block is a lit campfire
+     */
+    public static boolean isLitCampfire(Block block)
+    {
+        return block instanceof BlockCampfire ? ((BlockCampfire) block).isLit() : false;
+    }
+
+    /**
+     * @return true if and only if the given block is an unlit campfire
+     */
+    public static boolean isUnlitCampfire(Block block)
+    {
+        return block instanceof BlockCampfire ? !((BlockCampfire) block).isLit() : false;
+    }
+
 }

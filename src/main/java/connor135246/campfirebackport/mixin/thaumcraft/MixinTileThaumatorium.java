@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.inventory.ISidedInventory;
@@ -25,7 +25,7 @@ public abstract class MixinTileThaumatorium extends TileThaumcraft implements IA
     @Inject(method = "checkHeat", at = @At(value = "INVOKE", ordinal = 3), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     void onCheckHeat(CallbackInfoReturnable<Boolean> cir, Material mat, Block bi)
     {
-        if (bi instanceof BlockCampfire && ((BlockCampfire) bi).isLit())
+        if (CampfireBackportBlocks.isLitCampfire(bi))
             cir.setReturnValue(true);
     }
 

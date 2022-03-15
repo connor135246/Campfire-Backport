@@ -82,7 +82,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     @Override
     public void updateEntity()
     {
-        if (isLit() && getWorldObj().getTotalWorldTime() % 100L == 0L && (getWorldObj().isRemote || RAND.nextInt(6) == 0))
+        if (isLit() && distributedInterval(100L) && (getWorldObj().isRemote || RAND.nextInt(6) == 0))
         {
             rainAndSky = getWorldObj().isRaining() && getWorldObj().getPrecipitationHeight(xCoord, zCoord) <= yCoord + 1
                     && getWorldObj().getBiomeGenForCoords(xCoord, zCoord).canSpawnLightningBolt();
@@ -97,8 +97,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 burnOutFromRain();
                 burnOutOverTime();
 
-                if (!firstTick && getWorldObj().getTotalWorldTime() % 20L == 0L
-                        && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
+                if (!firstTick && distributedInterval(20L) && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
                     burnOutOrToNothing();
             }
         }
@@ -137,7 +136,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             markDirty();
 
             // for updating the cooking waila display
-            if (getWorldObj().getTotalWorldTime() % 50L == 0)
+            if (distributedInterval(50L))
                 markForClient();
 
             // if a multi-input recipe is incomplete, we don't want to end up checking it multiple times.
@@ -1093,6 +1092,17 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     // etc
+
+    /**
+     * distribute the timing
+     */
+    public boolean distributedInterval(long interval)
+    {
+        if (hasWorldObj())
+            return (xCoord + yCoord + zCoord + getWorldObj().getTotalWorldTime()) % interval == 0L;
+        else
+            return false;
+    }
 
     /**
      * @return base +/- 10%

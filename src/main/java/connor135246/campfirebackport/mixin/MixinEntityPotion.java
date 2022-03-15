@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.entity.projectile.EntityPotion;
 import net.minecraft.entity.projectile.EntityThrowable;
@@ -42,7 +43,7 @@ public abstract class MixinEntityPotion extends EntityThrowable
     protected void extinguishLitCampfireAt(int i, int j, int k)
     {
         Block block = this.worldObj.getBlock(i, j, k);
-        if (block instanceof BlockCampfire && ((BlockCampfire) block).isLit())
+        if (CampfireBackportBlocks.isLitCampfire(block))
             ((BlockCampfire) block).toggleCampfireBlockState(this.worldObj, i, j, k);
     }
 

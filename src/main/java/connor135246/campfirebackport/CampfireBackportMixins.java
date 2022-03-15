@@ -40,6 +40,8 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
 
     public CampfireBackportMixins()
     {
+        mcDir = (File) FMLInjectionData.data()[6];
+
         doConfig();
 
         if (mixins && (vanillaMixins || witcheryMixins || thaumcraftMixins))
@@ -49,7 +51,6 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
             if (vanillaMixins)
                 Mixins.addConfiguration("campfirebackport.mixin.json");
 
-            mcDir = (File) FMLInjectionData.data()[6];
             modsDir = new File(mcDir, "mods");
 
             if (modsDir.isDirectory())
