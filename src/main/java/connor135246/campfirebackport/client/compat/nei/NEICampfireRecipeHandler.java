@@ -7,6 +7,7 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
@@ -187,8 +188,12 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
             GL11.glTranslatef(0, 0, 300);
 
-            String ticks = StringParsers.translateNEI("num_ticks", cachedCrecipe.cookingTime);
-            fonty.drawString(ticks, 82 - fonty.getStringWidth(ticks) / 2, 1, 0x777777);
+            String timeString;
+            if (NEIClientUtils.shiftKey())
+                timeString = StringParsers.translateTime("ticks", cachedCrecipe.cookingTime + "");
+            else
+                timeString = StringParsers.translateTimeHumanReadable(cachedCrecipe.cookingTime);
+            fonty.drawString(timeString, 82 - fonty.getStringWidth(timeString) / 2, 1, 0x777777);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();

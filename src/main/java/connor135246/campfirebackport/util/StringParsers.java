@@ -348,6 +348,59 @@ public class StringParsers
     // Making Things Look Nice
 
     /**
+     * Turns some number of ticks into a human-readable amount of seconds or minutes or hours.
+     */
+    public static String translateTimeHumanReadable(int ticks)
+    {
+        boolean negative = ticks < 0;
+        if (negative)
+            ticks = Math.abs(ticks);
+
+        double converted;
+        String unit;
+
+        if (ticks >= 71400) // 1 hour - 0.5 minutes
+        {
+            converted = ticks / 72000.0;
+            unit = "hours";
+        }
+        else if (ticks >= 1190) // 1 minute - 0.5 seconds
+        {
+            converted = ticks / 1200.0;
+            unit = "mins";
+        }
+        else
+        {
+            if (ticks == 0) // no zero. this way the minimum is 0.1 seconds.
+                ticks = 1;
+            converted = ticks / 20.0;
+            unit = "secs";
+        }
+
+        String formatted = negative ? "-" : "";
+        if (converted < 10)
+        {
+            formatted += Math.round(converted * 10) / 10.0;
+            if (formatted.endsWith(".0"))
+                formatted = formatted.substring(0, formatted.length() - 2);
+        }
+        else
+            formatted += Math.round(converted);
+
+        return translateTime(unit, formatted);
+    }
+
+    /**
+     * @param unit
+     *            - can be "hours", "mins", "secs", or "ticks"
+     * @param amount
+     */
+    public static String translateTime(String unit, String amount)
+    {
+        return translateNEI("num_" + unit, amount);
+    }
+
+    /**
      * Separates a long string into lines after each lineEnder. Tries to join short lines together while staying under lineLength. Puts prefixes in front of each line.
      * 
      * @param string

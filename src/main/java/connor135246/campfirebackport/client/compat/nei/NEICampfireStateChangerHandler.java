@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.collect.Lists;
 
 import codechicken.lib.gui.GuiDraw;
+import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
@@ -82,7 +83,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         /**
          * constructor for non-recipe state changers
          */
-        public CachedCampfireStateChanger(String specialID, EnumCampfireType type, boolean extinguisher, LinkedList<String> tooltip,
+        public CachedCampfireStateChanger(String specialID, EnumCampfireType type, boolean extinguisher, ArrayList<LinkedList<String>> tooltips,
                 List<ItemStack> inputStacks)
         {
             super(null);
@@ -92,8 +93,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             this.specialID = specialID;
             this.extinguisher = extinguisher;
 
-            this.tooltips = new ArrayList<LinkedList<String>>(1);
-            this.tooltips.add(tooltip);
+            this.tooltips = tooltips;
 
             numInputs = 1;
             inputs = new ArrayList<PositionedStack>(1);
@@ -193,13 +193,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         if (regCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
-                                    extinguisher, createWandTooltip(extinguisher, regCost), wandList));
+                                    extinguisher, createWandTooltips(extinguisher, regCost), wandList));
                         }
 
                         if (!sameCosts && soulCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
-                                    extinguisher, createWandTooltip(extinguisher, soulCost), wandList));
+                                    extinguisher, createWandTooltips(extinguisher, soulCost), wandList));
                         }
                     }
                 }
@@ -229,45 +229,80 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         }
     }
 
-    protected static LinkedList<String> createWandTooltip(boolean extinguisher, double cost)
+    protected static ArrayList<LinkedList<String>> createWandTooltips(boolean extinguisher, double cost)
     {
+        ArrayList<LinkedList<String>> tooltips = new ArrayList<LinkedList<String>>();
         LinkedList<String> tooltip = new LinkedList<String>();
         tooltip.add("");
         tooltip.add(EnumChatFormatting.GOLD + "-" + StringParsers.translateNEI("vis_cost") +
                 (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua" : EnumChatFormatting.RED + " " + cost + " Ignis"));
-        return tooltip;
+        tooltips.add(tooltip);
+        return tooltips;
     }
 
     protected void addBurnoutStateChanger(BurnOutRule brule, EnumCampfireType types)
     {
-        LinkedList<String> tooltip = new LinkedList<String>();
+        ArrayList<LinkedList<String>> tooltips = new ArrayList<LinkedList<String>>();
+
+        // there are different versions of the tooltips. one with the burn out in human readable time, the other with it in exact ticks. the rest is identical.
+        LinkedList<String> tooltipReadable = new LinkedList<String>();
+        LinkedList<String> tooltipTicks = new LinkedList<String>();
 
         if (brule.getTimer() != -1)
         {
             if (brule.isDefaultRule())
-                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out", brule.getTimer()));
+            {
+                // human readable
+                tooltipReadable.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out",
+                        StringParsers.translateTimeHumanReadable(brule.getTimer())));
+                // ticks
+                tooltipTicks.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out",
+                        StringParsers.translateTime("ticks", brule.getTimer() + "")));
+            }
             else
             {
-                tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in", brule.getTimer()));
+                // human readable
+                tooltipReadable.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in",
+                        StringParsers.translateTimeHumanReadable(brule.getTimer())));
+                // ticks
+                tooltipTicks.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("approx_burn_out_in",
+                        StringParsers.translateTime("ticks", brule.getTimer() + "")));
 
                 if (brule.hasBiomeId())
-                    tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + brule.getBiomeName());
+                {
+                    String biomeId = EnumChatFormatting.GRAY + StringParsers.translateNEI("biome") + " " + brule.getBiomeName();
+                    tooltipReadable.add(biomeId);
+                    tooltipTicks.add(biomeId);
+                }
 
                 if (brule.hasDimensionId())
-                    tooltip.add(EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " " + brule.getDimensionName());
+                {
+                    String dimId = EnumChatFormatting.GRAY + StringParsers.translateNEI("dimension") + " " + brule.getDimensionName();
+                    tooltipReadable.add(dimId);
+                    tooltipTicks.add(dimId);
+                }
             }
         }
 
         if (CampfireBackportConfig.putOutByRain.accepts(types))
-            tooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("rained_out"));
+        {
+            String rain = EnumChatFormatting.GOLD + StringParsers.translateNEI("rained_out");
+            tooltipReadable.add(rain);
+            tooltipTicks.add(rain);
+        }
 
         if (!CampfireBackportConfig.signalFiresBurnOut.accepts(types))
         {
-            tooltip.add("");
-            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("signals_live"));
+            String signal = EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("signals_live");
+            tooltipReadable.add("");
+            tooltipTicks.add("");
+            tooltipReadable.add(signal);
+            tooltipTicks.add(signal);
         }
 
-        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltip, Lists.newArrayList(new ItemStack(Items.written_book))));
+        tooltips.add(tooltipReadable);
+        tooltips.add(tooltipTicks);
+        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltips, Lists.newArrayList(new ItemStack(Items.written_book))));
     }
 
     @Override
@@ -277,7 +312,10 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         if (!tooltip.isEmpty() && cachedCstate.specialID != null && cachedCstate.specialID.equals("burnout") && cachedCstate.inputRects[0].contains(relMouse))
         {
             tooltip.remove(0);
-            tooltip.addAll(cachedCstate.tooltips.get(0));
+            if (NEIClientUtils.shiftKey())
+                tooltip.addAll(cachedCstate.tooltips.get(1)); // ticks
+            else
+                tooltip.addAll(cachedCstate.tooltips.get(0)); // human readable
         }
         else if (!tooltip.isEmpty() && cachedCstate.dispensable && dispenserRect.contains(relMouse))
             tooltip.set(0, EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("dispensable"));
