@@ -5,6 +5,11 @@ tile.soul_campfire.name=Soul Campfire
 tile.campfire.inventory.name=Campfire Cooking
 
 campfirebackport.tooltip.burning_out=It's burning out.
+campfirebackport.tooltip.burning_out.0=It'll take some time, but it will eventually burn out.
+campfirebackport.tooltip.burning_out.1=It will burn out in a while.
+campfirebackport.tooltip.burning_out.2=It will burn out soon...
+campfirebackport.tooltip.burning_out.3=It's about to burn out!
+campfirebackport.tooltip.rained_out=It will burn out if it stays in the rain!
 
 campfirebackport.set_spawn=Respawn point set
 
@@ -61,6 +66,9 @@ campfirebackport.waila.south=South
 campfirebackport.waila.north=North
 campfirebackport.waila.east=East
 campfirebackport.waila.west=West
+campfirebackport.waila.signal_fire=Signal Fire:
+campfirebackport.waila.yes=Yes
+campfirebackport.waila.no=No
 
 
 campfirebackport.crafttweaker.version_warning=[campfirebackport] CraftTweaker version may be out of date! If you're using a version earlier than 3.1.0, you may encounter errors.

@@ -2,8 +2,11 @@ package connor135246.campfirebackport.client.compat.waila;
 
 import java.util.List;
 
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.Reference;
+import connor135246.campfirebackport.util.StringParsers;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
 import mcp.mobius.waila.api.IWailaDataProvider;
@@ -11,7 +14,6 @@ import mcp.mobius.waila.api.IWailaRegistrar;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
@@ -32,14 +34,16 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
     }
 
     @Override
-    public List<String> getWailaBody(ItemStack stack, List<String> tooltip, IWailaDataAccessor accessor, IWailaConfigHandler arg3)
+    public List<String> getWailaBody(ItemStack wailaStack, List<String> tooltip, IWailaDataAccessor accessor, IWailaConfigHandler arg3)
     {
         if (accessor.getTileEntity() instanceof TileEntityCampfire)
         {
+            TileEntityCampfire ctile = (TileEntityCampfire) accessor.getTileEntity();
+
             if (accessor.getPlayer().isSneaking())
             {
-                if (((TileEntityCampfire) accessor.getTileEntity()).hasCustomInventoryName())
-                    tooltip.add(" \"" + ((TileEntityCampfire) accessor.getTileEntity()).getInventoryName() + "\"");
+                if (ctile.hasCustomInventoryName())
+                    tooltip.add(" \"" + ctile.getInventoryName() + "\"");
 
                 String direction;
                 switch (accessor.getMetadata())
@@ -57,35 +61,37 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                     direction = "west";
                     break;
                 }
+                tooltip.add("  " + StringParsers.translateWAILA("facing") + " " + EnumChatFormatting.WHITE + StringParsers.translateWAILA(direction));
 
-                tooltip.add("  " + StatCollector.translateToLocal(Reference.MODID + ".waila.facing") + " "
-                        + StatCollector.translateToLocal(Reference.MODID + ".waila." + direction));
+                tooltip.add("  " + StringParsers.translateWAILA("signal_fire") + " "
+                        + (ctile.isSignalFire() ? EnumChatFormatting.GREEN + StringParsers.translateWAILA("yes")
+                                : EnumChatFormatting.RED + StringParsers.translateWAILA("no")));
             }
 
-            NBTTagCompound data = accessor.getNBTData();
-            NBTTagList itemList = data.getTagList(TileEntityCampfire.KEY_Items, 10);
-
-            if (itemList.tagCount() == 0)
-                tooltip.add(EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".waila.empty"));
-            else
+            for (int slot = 0; slot < ctile.getSizeInventory(); ++slot)
             {
-                int[] cookTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
-                int[] cookTotalTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTotalTimes);
-
-                for (int i = 0; i < itemList.tagCount(); ++i)
+                ItemStack stack = ctile.getStackInSlot(slot);
+                if (stack != null)
                 {
-                    NBTTagCompound itemCompound = itemList.getCompoundTagAt(i);
-                    byte slot = itemCompound.getByte(TileEntityCampfire.KEY_Slot);
-                    if (slot >= 0 && slot < ((TileEntityCampfire) accessor.getTileEntity()).getSizeInventory())
-                    {
-                        ItemStack invStack = ItemStack.loadItemStackFromNBT(itemCompound);
-                        int percentCooked = Math.min(Math.round((((float) cookTimes[slot]) / ((float) cookTotalTimes[slot])) * 100F), 100);
-                        tooltip.add(invStack.getDisplayName() + " (" + (cookTimes[slot] > cookTotalTimes[slot] ? EnumChatFormatting.ITALIC : "")
-                                + percentCooked + "%" + EnumChatFormatting.RESET + ")");
-                    }
+                    int cookTime = ctile.getCookingTimeInSlot(slot);
+                    int cookTotalTime = ctile.getCookingTotalTimeInSlot(slot);
+
+                    int percentCooked = Math.min(Math.round((((float) cookTime) / ((float) cookTotalTime)) * 100F), 100);
+                    tooltip.add("-" + stack.getDisplayName() + " (" + (cookTime > cookTotalTime ? EnumChatFormatting.ITALIC : "")
+                            + percentCooked + "%" + EnumChatFormatting.RESET + ")");
                 }
             }
+
+            if (CampfireBackportBlocks.isLitCampfire(accessor.getBlock()) && ctile.canBurnOut())
+            {
+                if (ctile.getBaseBurnOutTimer() > -1)
+                    tooltip.add(TileEntityCampfire.getBurnOutTip(ctile.getLife(), ctile.getStartingLife()));
+                if (ctile.getRainAndSky() && CampfireBackportConfig.putOutByRain.matches(ctile))
+                    tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC
+                            + StatCollector.translateToLocal(Reference.MODID + ".tooltip.rained_out"));
+            }
         }
+
         return tooltip;
     }
 

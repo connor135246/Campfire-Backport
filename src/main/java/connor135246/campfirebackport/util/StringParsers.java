@@ -787,5 +787,21 @@ public class StringParsers
     {
         return StatCollector.translateToLocalFormatted(Reference.MODID + ".crafttweaker." + key, args);
     }
+    
+    /**
+     * @return the key translated using the "waila" prefix
+     */
+    public static String translateWAILA(String key)
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".waila." + key);
+    }
+
+    /**
+     * @return the key/args translated using the "waila" prefix
+     */
+    public static String translateWAILA(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".waila." + key, args);
+    }
 
 }

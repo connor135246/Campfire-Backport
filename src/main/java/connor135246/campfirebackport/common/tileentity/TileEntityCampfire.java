@@ -33,6 +33,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
@@ -92,7 +93,23 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         {
             if (isLit())
             {
-                cook();
+                int invCount = 0;
+                for (int slot = 0; slot < getSizeInventory(); ++slot)
+                    if (getStackInSlot(slot) != null)
+                    {
+                        incrementCookingTimeInSlot(slot);
+                        ++invCount;
+                    }
+
+                // updates waila display for client every 2.5 sec, if there are items cooking or the campfire is burning out over time
+                if (distributedInterval(50L) && (invCount > 0 || (getBaseBurnOutTimer() > -1 && canBurnOut())))
+                    markForClient();
+
+                if (invCount > 0)
+                {
+                    markDirty();
+                    cook(invCount);
+                }
                 heal();
                 burnOutFromRain();
                 burnOutOverTime();
@@ -120,78 +137,60 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     /**
      * Cooks inventory items...
      */
-    protected void cook()
+    protected void cook(int invCount)
     {
-        int invCount = 0;
+        // if a multi-input recipe is incomplete, we don't want to end up checking it multiple times.
+        // we want to search again for recipes, but exclude the failed recipe from the search.
+        List<CampfireRecipe> incomplete = new ArrayList<CampfireRecipe>(8);
+
+        // if a multi-input recipe is complete but isn't finished cooking, we don't want to exclude it from the search.
+        // we want to cook this one - but just not right now.
+        List<CampfireRecipe> completeButRaw = new ArrayList<CampfireRecipe>(4);
 
         for (int slot = 0; slot < getSizeInventory(); ++slot)
-            if (getStackInSlot(slot) != null)
-            {
-                incrementCookingTimeInSlot(slot);
-                ++invCount;
-            }
-
-        if (invCount > 0)
         {
-            markDirty();
-
-            // for updating the cooking waila display
-            if (distributedInterval(50L))
-                markForClient();
-
-            // if a multi-input recipe is incomplete, we don't want to end up checking it multiple times.
-            // we want to search again for recipes, but exclude the failed recipe from the search.
-            List<CampfireRecipe> incomplete = new ArrayList<CampfireRecipe>(8);
-
-            // if a multi-input recipe is complete but isn't finished cooking, we don't want to exclude it from the search.
-            // we want to cook this one - but just not right now.
-            List<CampfireRecipe> completeButRaw = new ArrayList<CampfireRecipe>(4);
-
-            for (int slot = 0; slot < getSizeInventory(); ++slot)
+            ItemStack stack = getStackInSlot(slot);
+            if (stack != null && getCookingTimeInSlot(slot) >= getCookingTotalTimeInSlot(slot))
             {
-                ItemStack stack = getStackInSlot(slot);
-                if (stack != null && getCookingTimeInSlot(slot) >= getCookingTotalTimeInSlot(slot))
+                CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire(), incomplete, invCount);
+
+                if (crecipe != null)
                 {
-                    CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire(), incomplete, invCount);
-
-                    if (crecipe != null)
+                    if (completeButRaw.contains(crecipe))
+                        continue;
+                    else if (crecipe.isMultiInput())
                     {
-                        if (completeButRaw.contains(crecipe))
-                            continue;
-                        else if (crecipe.isMultiInput())
+                        switch (doMultiInputCooking(crecipe))
                         {
-                            switch (doMultiInputCooking(crecipe))
-                            {
-                            case 0:
-                            {
-                                incomplete.add(crecipe);
-                                --slot;
-                                break;
-                            }
-                            case 1:
-                            {
-                                completeButRaw.add(crecipe);
-                                break;
-                            }
-                            case 2:
-                            {
-                                incomplete.clear();
-                                completeButRaw.clear();
-                                break;
-                            }
-                            }
+                        case 0:
+                        {
+                            incomplete.add(crecipe);
+                            --slot;
+                            break;
                         }
-                        else
+                        case 1:
                         {
-                            int[] slotToCinput = new int[getSizeInventory()];
-                            Arrays.fill(slotToCinput, -1);
-                            slotToCinput[slot] = 0;
-                            useInputs(crecipe, slotToCinput);
-                            drop(crecipe);
-
+                            completeButRaw.add(crecipe);
+                            break;
+                        }
+                        case 2:
+                        {
                             incomplete.clear();
                             completeButRaw.clear();
+                            break;
                         }
+                        }
+                    }
+                    else
+                    {
+                        int[] slotToCinput = new int[getSizeInventory()];
+                        Arrays.fill(slotToCinput, -1);
+                        slotToCinput[slot] = 0;
+                        useInputs(crecipe, slotToCinput);
+                        drop(crecipe);
+
+                        incomplete.clear();
+                        completeButRaw.clear();
                     }
                 }
             }
@@ -354,7 +353,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     protected void burnOutOverTime()
     {
-        if (getBaseBurnOutTimer() != -1 && canBurnOut())
+        if (getBaseBurnOutTimer() > -1 && canBurnOut())
         {
             if (getLife() < 0)
                 resetLife();
@@ -1048,9 +1047,13 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         return startingLife;
     }
 
+    /**
+     * -1 means this campfire isn't burning out. -2 means the timer has not been initialized yet, however this method will initialize the timer if that's the case, so this method
+     * will never return -2. But if the value isn't negative, the campfire isn't necessarily burning out right now - check if it's lit and if it {@link #canBurnOut()}.
+     */
     public int getBaseBurnOutTimer()
     {
-        if (baseBurnOutTimer == -2)
+        if (baseBurnOutTimer <= -2)
             resetBaseBurnOutTimer();
 
         return baseBurnOutTimer;
@@ -1059,6 +1062,47 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public void resetBaseBurnOutTimer()
     {
         baseBurnOutTimer = BurnOutRule.findBurnOutRule(getWorldObj(), xCoord, yCoord, zCoord, getType()).getTimer();
+    }
+
+    /**
+     * on the client, rainAndSky is updated every 5 seconds. if true, the campfire is being rained on. <br>
+     * on the server, rainAndSky can only be true temporarily in the middle of {@link #updateEntity()}, and will never be true outside of that method.
+     */
+    public boolean getRainAndSky()
+    {
+        return rainAndSky;
+    }
+
+    public static String getBurnOutTip(int life, int startingLife)
+    {
+        String key;
+        EnumChatFormatting color;
+        if (life <= -1)
+        {
+            key = Reference.MODID + ".tooltip.burning_out";
+            color = EnumChatFormatting.GRAY;
+        }
+        else if (life < 1200) // 1 minute
+        {
+            key = Reference.MODID + ".tooltip.burning_out.3";
+            color = EnumChatFormatting.DARK_RED;
+        }
+        else if (life < 6000) // 5 minutes
+        {
+            key = Reference.MODID + ".tooltip.burning_out.2";
+            color = EnumChatFormatting.RED;
+        }
+        else if (life < 36000) // 30 minutes
+        {
+            key = Reference.MODID + ".tooltip.burning_out.1";
+            color = EnumChatFormatting.YELLOW;
+        }
+        else
+        {
+            key = Reference.MODID + ".tooltip.burning_out.0";
+            color = EnumChatFormatting.GRAY;
+        }
+        return color + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(key);
     }
 
     // signalFire

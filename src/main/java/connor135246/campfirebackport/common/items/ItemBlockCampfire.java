@@ -22,9 +22,7 @@ import net.minecraft.item.ItemBlockWithMetadata;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
 public class ItemBlockCampfire extends ItemBlockWithMetadata
@@ -89,23 +87,23 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
                 if (!stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag, 10))
                     stack.getTagCompound().setTag(TileEntityCampfire.KEY_BlockEntityTag, new NBTTagCompound());
 
-                NBTTagCompound tilenbt = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
+                NBTTagCompound tiletag = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
 
-                final boolean hasLife = tilenbt.hasKey(TileEntityCampfire.KEY_Life, 99);
-                final boolean hasStartingLife = tilenbt.hasKey(TileEntityCampfire.KEY_StartingLife, 99);
+                final boolean hasLife = tiletag.hasKey(TileEntityCampfire.KEY_Life, 99);
+                final boolean hasStartingLife = tiletag.hasKey(TileEntityCampfire.KEY_StartingLife, 99);
 
                 int life;
                 final long timestamp = world.getTotalWorldTime();
 
                 if (hasLife || hasStartingLife)
                 {
-                    life = hasLife ? tilenbt.getInteger(TileEntityCampfire.KEY_Life) : tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
+                    life = hasLife ? tiletag.getInteger(TileEntityCampfire.KEY_Life) : tiletag.getInteger(TileEntityCampfire.KEY_StartingLife);
 
                     if (!hasStartingLife)
-                        tilenbt.setInteger(TileEntityCampfire.KEY_StartingLife, life);
+                        tiletag.setInteger(TileEntityCampfire.KEY_StartingLife, life);
 
-                    long previousTimestamp = tilenbt.hasKey(TileEntityCampfire.KEY_PreviousTimestamp, 99)
-                            ? tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp)
+                    long previousTimestamp = tiletag.hasKey(TileEntityCampfire.KEY_PreviousTimestamp, 99)
+                            ? tiletag.getLong(TileEntityCampfire.KEY_PreviousTimestamp)
                             : timestamp;
 
                     life -= (int) (timestamp - previousTimestamp);
@@ -113,7 +111,7 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
                 else
                 {
                     life = TileEntityCampfire.natureRange(baseBurnOut);
-                    tilenbt.setInteger(TileEntityCampfire.KEY_StartingLife, life);
+                    tiletag.setInteger(TileEntityCampfire.KEY_StartingLife, life);
                 }
 
                 if (life <= 0)
@@ -123,8 +121,8 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
                 }
                 else
                 {
-                    tilenbt.setInteger(TileEntityCampfire.KEY_Life, life);
-                    tilenbt.setLong(TileEntityCampfire.KEY_PreviousTimestamp, timestamp);
+                    tiletag.setInteger(TileEntityCampfire.KEY_Life, life);
+                    tiletag.setLong(TileEntityCampfire.KEY_PreviousTimestamp, timestamp);
                 }
             }
         }
@@ -205,16 +203,14 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
     {
         super.addInformation(stack, player, list, advancedTooltips);
 
-        boolean invTip = false;
+        NBTTagCompound tiletag = stack.hasTagCompound() ? stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag) : null;
 
-        if (stack.hasTagCompound())
+        if (tiletag != null)
         {
-            NBTTagList itemList = stack.getTagCompound().getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag).getTagList(TileEntityCampfire.KEY_Items, 10);
+            NBTTagList itemList = tiletag.getTagList(TileEntityCampfire.KEY_Items, 10);
 
             if (itemList.tagCount() != 0)
             {
-                invTip = true;
-
                 for (int i = 0; i < itemList.tagCount(); ++i)
                     list.add(ItemStack.loadItemStackFromNBT(itemList.getCompoundTagAt(i)).getDisplayName());
             }
@@ -223,10 +219,14 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
         if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this)
                 && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getType()).getTimer() != -1)
         {
-            if (invTip)
-                list.add("");
+            int life = -1, startingLife = -1;
+            if (tiletag != null && tiletag.hasKey(TileEntityCampfire.KEY_Life, 99) && tiletag.hasKey(TileEntityCampfire.KEY_StartingLife, 99))
+            {
+                life = tiletag.getInteger(TileEntityCampfire.KEY_Life);
+                startingLife = tiletag.getInteger(TileEntityCampfire.KEY_StartingLife);
+            }
 
-            list.add(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(Reference.MODID + ".tooltip.burning_out"));
+            list.add(TileEntityCampfire.getBurnOutTip(life, startingLife));
         }
     }
 

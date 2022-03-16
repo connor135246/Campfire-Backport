@@ -46,7 +46,7 @@ public class RenderItemBlockCampfire implements IItemRenderer
             float timePassed = Minecraft.getMinecraft().thePlayer.worldObj.getTotalWorldTime() - tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp);
             float starting = tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
 
-            size = MathHelper.clamp_float((life - timePassed) / starting, 0.01F, 1.0F);
+            size = MathHelper.clamp_float(((life - timePassed) / starting), 0.0F, 1.0F) * 0.9F + 0.1F;
         }
 
         Tessellator tess = Tessellator.instance;
