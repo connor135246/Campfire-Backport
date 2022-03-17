@@ -2,11 +2,12 @@ package connor135246.campfirebackport.common.compat.handlers;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.Reference;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 import thaumcraft.api.ThaumcraftApi;
@@ -43,28 +44,33 @@ public class ThaumcraftHandler
         @Override
         public boolean performTrigger(World world, ItemStack wand, EntityPlayer player, int x, int y, int z, int side, int event)
         {
-            if (!world.isRemote && event == 0)
+            if (!world.isRemote && event == 0) // if this returns true on the client, apparently nothing will happen on the server.
             {
-                Block block = world.getBlock(x, y, z);
-                if (block instanceof BlockCampfire)
+                TileEntity tile = world.getTileEntity(x, y, z);
+                if (tile instanceof TileEntityCampfire)
                 {
-                    BlockCampfire cblock = (BlockCampfire) block;
+                    TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-                    AspectList list;
-                    double visCost;
-                    if (cblock.isLit())
+                    double igniteCost = CampfireBackportConfig.visCosts[ctile.getTypeIndex() + 2];
+                    double extinguishCost = CampfireBackportConfig.visCosts[ctile.getTypeIndex()];
+                    boolean extinguisher;
+                    AspectList list = null;
+
+                    if (igniteCost > 0.0 && (!ctile.isLit() || ctile.canBeReignited()))
                     {
-                        visCost = CampfireBackportConfig.visCosts[cblock.getTypeIndex()];
-                        list = new AspectList().add(Aspect.WATER, (int) (visCost * 100));
+                        extinguisher = false;
+                        list = new AspectList().add(Aspect.FIRE, (int) (igniteCost * 100));
+                    }
+                    else if (extinguishCost > 0.0 && ctile.isLit())
+                    {
+                        extinguisher = true;
+                        list = new AspectList().add(Aspect.WATER, (int) (extinguishCost * 100));
                     }
                     else
-                    {
-                        visCost = CampfireBackportConfig.visCosts[cblock.getTypeIndex() + 2];
-                        list = new AspectList().add(Aspect.FIRE, (int) (visCost * 100));
-                    }
+                        return false;
 
-                    if (visCost > 0.0 && ThaumcraftApiHelper.consumeVisFromWand(wand, player, list, false, false)
-                            && BlockCampfire.updateCampfireBlockState(!cblock.isLit(), player, world, x, y, z) == 1)
+                    if (ThaumcraftApiHelper.consumeVisFromWand(wand, player, list, false, false)
+                            && BlockCampfire.updateCampfireBlockState(extinguisher, player, ctile) == 1)
                     {
                         ThaumcraftApiHelper.consumeVisFromWand(wand, player, list, true, false);
                         return true;

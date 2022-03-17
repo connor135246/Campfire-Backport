@@ -10,6 +10,7 @@ campfirebackport.tooltip.burning_out.1=It will burn out in a while.
 campfirebackport.tooltip.burning_out.2=It will burn out soon...
 campfirebackport.tooltip.burning_out.3=It's about to burn out!
 campfirebackport.tooltip.rained_out=It will burn out if it stays in the rain!
+campfirebackport.tooltip.reignite=Reignited the campfire!
 
 campfirebackport.set_spawn=Respawn point set
 

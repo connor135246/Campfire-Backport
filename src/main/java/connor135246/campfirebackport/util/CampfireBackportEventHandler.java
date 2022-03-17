@@ -133,7 +133,7 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onCampfireStateChange(CampfireStateChangeEvent event)
     {
-        if (!event.isCanceled() && !event.block.isLit())
+        if (!event.isCanceled() && event.mode == 1)
         {
             if (event.block.waterCheck(event.world, event.x, event.y, event.z))
                 event.setCanceled(true);

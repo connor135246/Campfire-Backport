@@ -141,9 +141,9 @@ public class BlockCampfire extends BlockContainer
 
         if (!world.isRemote)
         {
-            if (!isLit() && entity.isBurning())
+            if (entity.isBurning())
             {
-                toggleCampfireBlockState(world, x, y, z);
+                igniteOrReigniteCampfire(null, world, x, y, z);
             }
             else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
@@ -157,9 +157,9 @@ public class BlockCampfire extends BlockContainer
     public void onBlockClicked(World world, int x, int y, int z, EntityPlayer player)
     {
         ItemStack stack = player.getCurrentEquippedItem();
-
-        if (stack != null)
-            doStateChangers(!player.capabilities.isCreativeMode, stack, true, world, x, y, z, player);
+        TileEntity tile;
+        if (stack != null && (tile = world.getTileEntity(x, y, z)) instanceof TileEntityCampfire)
+            doStateChangers(!player.capabilities.isCreativeMode, stack, true, (TileEntityCampfire) tile, player);
     }
 
     @Override
@@ -172,16 +172,19 @@ public class BlockCampfire extends BlockContainer
             boolean survival = !player.capabilities.isCreativeMode;
 
             TileEntity tile = world.getTileEntity(x, y, z);
-            if (tile instanceof TileEntityCampfire && ((TileEntityCampfire) tile).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
-                return true;
-
-            return doStateChangers(survival, stack, false, world, x, y, z, player);
+            if (tile instanceof TileEntityCampfire)
+            {
+                if (((TileEntityCampfire) tile).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
+                    return true;
+                else
+                    return doStateChangers(survival, stack, false, (TileEntityCampfire) tile, player);
+            }
         }
         return false;
     }
 
     /**
-     * Finds state changers that match the given ItemStack and this campfire block, and executes them.
+     * Finds state changers that match the given ItemStack and campfire, and executes them.
      * 
      * @param survival
      *            - is the player in survival mode
@@ -191,13 +194,13 @@ public class BlockCampfire extends BlockContainer
      *            - is this being called from {@link #onBlockClicked}? or is it from {@link #onBlockActivated}?
      * @return true if a state changer was found and executed, false otherwise
      */
-    protected boolean doStateChangers(boolean survival, ItemStack stack, boolean leftClick, World world, int x, int y, int z, EntityPlayer player)
+    protected static boolean doStateChangers(boolean survival, ItemStack stack, boolean leftClick, TileEntityCampfire ctile, EntityPlayer player)
     {
-        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, getType(), isLit());
+        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, ctile.getType(), ctile.isLit(), ctile.canBeReignited());
 
         if (cstate != null)
         {
-            int result = updateCampfireBlockState(!isLit(), player, world, x, y, z);
+            int result = updateCampfireBlockState(cstate.isExtinguisher(), player, ctile);
 
             if (result == 1)
             {
@@ -250,55 +253,65 @@ public class BlockCampfire extends BlockContainer
 
     /**
      * Updates a campfire's block between the lit and unlit ("base") version. Posts a {@link CampfireStateChangeEvent} before it does so. If there isn't a campfire there, or the
-     * campfire is already in that state, nothing happens.
+     * campfire can't accept the state change, nothing happens.
      * 
-     * @param light
-     *            - true to update to lit, false to update to unlit
+     * @param mode
+     *            - 0 to extinguish the campfire. 1 to ignite the campfire. 2 to reignite the campfire.
      * @param player
      *            - may be null
+     * @param ctile
+     *            - the campfire tile entity
      * @return returns 0 if the block wasn't a valid target to state change. otherwise, returns 1 if the state changer should be used up and 2 if it shouldn't be.
      */
-    public static int updateCampfireBlockState(boolean light, @Nullable EntityPlayer player, World world, int x, int y, int z)
+    public static int updateCampfireBlockState(int mode, @Nullable EntityPlayer player, TileEntityCampfire ctile)
     {
-        Block oldCblock = world.getBlock(x, y, z);
-        TileEntity tile = world.getTileEntity(x, y, z);
-        TileEntityCampfire ctile;
+        World world = ctile.getWorldObj();
+        int x = ctile.xCoord;
+        int y = ctile.yCoord;
+        int z = ctile.zCoord;
+        Block oldBlock = world.getBlock(x, y, z);
 
         // verify that this state change should happen
-        if (oldCblock instanceof BlockCampfire && ((BlockCampfire) oldCblock).isLit() != light && tile instanceof TileEntityCampfire)
-            ctile = (TileEntityCampfire) tile;
-        else
+        if (mode < 0 || mode > 2 || !(oldBlock instanceof BlockCampfire) || (ctile.isLit() == (mode == 1)))
             return 0;
 
         int meta = world.getBlockMetadata(x, y, z);
 
-        CampfireStateChangeEvent event = new CampfireStateChangeEvent(x, y, z, world, (BlockCampfire) oldCblock, meta, player);
+        CampfireStateChangeEvent event = new CampfireStateChangeEvent(x, y, z, world, (BlockCampfire) oldBlock, meta, mode, player);
         MinecraftForge.EVENT_BUS.post(event);
 
         if (!event.isCanceled())
         {
-            BlockCampfire newCblock = (BlockCampfire) CampfireBackportBlocks.getBlockFromLitAndType(light, ((BlockCampfire) oldCblock).getType());
-
             stateChanging = true;
 
-            world.setBlock(x, y, z, newCblock, meta, 3);
+            Block newBlock = CampfireBackportBlocks.getBlockFromLitAndType(mode != 0, ((BlockCampfire) oldBlock).getType());
+
+            if (mode != 2)
+                world.setBlock(x, y, z, newBlock, meta, 3);
 
             if (!world.isRemote)
             {
-                if (light)
+                switch (mode)
                 {
-                    world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
-                    ctile.checkSignal();
-                    ctile.resetLife();
+                case 1:
                     ctile.resetRegenWaitTimer();
+                case 2: // fallthrough
+                {
+                    ctile.checkSignal();
+                    ctile.resetLife(true);
+                    world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
+                    break;
                 }
-                else
+                default:
                 {
                     ctile.playFizzAndAddSmokeServerSide(20, 0.45);
                     ctile.popItems();
+                    break;
+                }
                 }
             }
 
+            ctile.markDirty();
             ctile.updateContainingBlockInfo();
             ctile.validate();
 
@@ -308,7 +321,7 @@ public class BlockCampfire extends BlockContainer
         {
             if (!world.isRemote)
             {
-                if (light)
+                if (mode != 0)
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
                 else
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, RAND.nextFloat() * 0.4F + 0.8F);
@@ -319,11 +332,43 @@ public class BlockCampfire extends BlockContainer
     }
 
     /**
-     * Helper function that does {@link #updateCampfireBlockState} for this block, with a null player.
+     * Attempts to either extinguish, ignite, or reignite the campfire. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     * 
+     * @param extinguisher
+     *            - if true, will try to extinguish the campfire. if false, will try to either ignite or reignite the campfire.
      */
-    public int toggleCampfireBlockState(World world, int x, int y, int z)
+    public static int updateCampfireBlockState(boolean extinguisher, @Nullable EntityPlayer player, TileEntityCampfire ctile)
     {
-        return updateCampfireBlockState(!isLit(), null, world, x, y, z);
+        return updateCampfireBlockState(extinguisher ? 0 : (ctile.isLit() ? 2 : 1), player, ctile);
+    }
+
+    /**
+     * Attempts to ignite or reignite the campfire at the position. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     */
+    public static int igniteOrReigniteCampfire(@Nullable EntityPlayer player, World world, int x, int y, int z)
+    {
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (tile instanceof TileEntityCampfire)
+        {
+            TileEntityCampfire ctile = (TileEntityCampfire) tile;
+            if (!ctile.isLit())
+                return updateCampfireBlockState(1, player, ctile);
+            else if (ctile.canBeReignited())
+                return updateCampfireBlockState(2, player, ctile);
+        }
+        return 0;
+    }
+
+    /**
+     * Attempts to extinguish the campfire at the position. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     */
+    public static int extinguishCampfire(@Nullable EntityPlayer player, World world, int x, int y, int z)
+    {
+        TileEntity tile = world.getTileEntity(x, y, z);
+        if (tile instanceof TileEntityCampfire && ((TileEntityCampfire) tile).isLit())
+            return updateCampfireBlockState(0, player, (TileEntityCampfire) tile);
+        else
+            return 0;
     }
 
     @Override
@@ -566,7 +611,8 @@ public class BlockCampfire extends BlockContainer
     /**
      * Allows you to control what happens when a campfire's state attempts to be changed.<br>
      * If canceled, the campfire's state won't change.<br>
-     * The block given is the campfire block before it attempts to be changed.<br>
+     * {@link #block} is the campfire block before it attempts to be changed.<br>
+     * {@link #mode} is how the campfire's state is changing. 0 means extinguish, 1 means ignite, 2 means reignite.<br>
      * If the campfire's state is changing due to a player using state changer, {@link #player} is that player. Otherwise, it's null!<br>
      * If the campfire's state is changing due to a state changer, you can set {@link #useGoods} to false to stop the state changer from being used up. You may want to set this to
      * false if you cancel the event.<br>
@@ -586,11 +632,13 @@ public class BlockCampfire extends BlockContainer
         /** the campfire block BEFORE changing state */
         public final BlockCampfire block;
         public final int blockMetadata;
+        /** 0 means extinguish, 1 means ignite, 2 means reignite. */
+        public final int mode;
         public final @Nullable EntityPlayer player;
         /** if true, the state changer (e.g. the player's flint and steel) will be used up afterward, whether the event is canceled or not */
         public boolean useGoods = true;
 
-        public CampfireStateChangeEvent(int x, int y, int z, World world, BlockCampfire block, int blockMetadata, @Nullable EntityPlayer player)
+        public CampfireStateChangeEvent(int x, int y, int z, World world, BlockCampfire block, int blockMetadata, int mode, @Nullable EntityPlayer player)
         {
             this.x = x;
             this.y = y;
@@ -598,6 +646,7 @@ public class BlockCampfire extends BlockContainer
             this.world = world;
             this.block = block;
             this.blockMetadata = blockMetadata;
+            this.mode = mode;
             this.player = player;
         }
 

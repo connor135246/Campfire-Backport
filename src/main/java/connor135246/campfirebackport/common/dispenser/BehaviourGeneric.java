@@ -2,14 +2,15 @@ package connor135246.campfirebackport.common.dispenser;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
+import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.util.CampfireBackportFakePlayer;
 import connor135246.campfirebackport.util.MiscUtil;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
 import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -35,12 +36,13 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
         int j = source.getYInt() + enumfacing.getFrontOffsetY();
         int k = source.getZInt() + enumfacing.getFrontOffsetZ();
 
-        Block block = world.getBlock(i, j, k);
-        if (block instanceof BlockCampfire)
+        TileEntity tile = world.getTileEntity(i, j, k);
+        if (tile instanceof TileEntityCampfire)
         {
-            BlockCampfire cblock = (BlockCampfire) block;
+            TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-            if (cstate.matches(stack, cblock.getType(), cblock.isLit()) && cblock.toggleCampfireBlockState(world, i, j, k) == 1)
+            if (cstate.matches(stack, ctile.getType(), ctile.isLit(), ctile.canBeReignited())
+                    && BlockCampfire.updateCampfireBlockState(cstate.isExtinguisher(), null, ctile) == 1)
             {
                 if (world instanceof WorldServer)
                 {

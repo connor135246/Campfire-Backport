@@ -347,7 +347,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         if (distributedInterval(100L) && RAND.nextInt(6) == 0)
             isBeingRainedOn = isBeingRainedOn();
 
-        if (isBeingRainedOn && CampfireBackportConfig.putOutByRain.matches(this) && canBurnOut())
+        if (isBeingRainedOn && !isOnReignitionCooldown() && CampfireBackportConfig.putOutByRain.matches(this) && canBurnOut())
             burnOutOrToNothing();
     }
 
@@ -361,22 +361,44 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Burns out the campfire once its life timer runs out.
+     * Counts down the campfire's life timer or reignition cooldown.
      */
     protected void burnOutOverTime()
     {
-        if (getBaseBurnOutTimer() > -1 && canBurnOut())
+        boolean onReignitionCooldown = isOnReignitionCooldown();
+        boolean burningOut = getBaseBurnOutTimer() > -1;
+        if (onReignitionCooldown || (burningOut && canBurnOut()))
         {
             if (getLife() < 0)
-                resetLife();
+                resetLife(false);
 
-            if (getLife() == 0)
+            if (burningOut && getLife() == 0)
                 burnOutOrToNothing();
 
             decrementLife();
 
             markDirty();
+            if (onReignitionCooldown && !isOnReignitionCooldown())
+                markForClient(); // refresh waila tips when reignition cooldown ends
         }
+    }
+
+    /**
+     * @return whether or not the campfire is allowed to burn out. in other words it's not a signal fire, or it is but the config option is set. note that it doesn't indicate
+     *         whether the campfire is currently lit or not.
+     */
+    public boolean canBurnOut()
+    {
+        return !isSignalFire() || CampfireBackportConfig.signalFiresBurnOut.matches(this);
+    }
+
+    /**
+     * @return whether the campfire is currently a suitable target to be reignited.
+     */
+    public boolean canBeReignited()
+    {
+        return isLit() && !isOnReignitionCooldown() && canBurnOut()
+                && (getBaseBurnOutTimer() > -1 || (CampfireBackportConfig.putOutByRain.matches(this) && isBeingRainedOn()));
     }
 
     /**
@@ -384,16 +406,19 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public void burnOutOrToNothing()
     {
-        if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
+        if (isLit())
         {
-            popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
+            if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
+            {
+                popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
 
-            playFizzAndAddSmokeServerSide(65, 0.25);
+                playFizzAndAddSmokeServerSide(65, 0.25);
 
-            getWorldObj().setBlock(xCoord, yCoord, zCoord, Blocks.air);
+                getWorldObj().setBlock(xCoord, yCoord, zCoord, Blocks.air);
+            }
+            else
+                BlockCampfire.updateCampfireBlockState(0, null, this);
         }
-        else
-            BlockCampfire.updateCampfireBlockState(false, null, getWorldObj(), xCoord, yCoord, zCoord);
     }
 
     /**
@@ -504,15 +529,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             markDirty();
             markForClient();
         }
-    }
-
-    /**
-     * @return whether or not the campfire is allowed to burn out. in other words it's not a signal fire, or it is but the config option is set. note that it doesn't indicate
-     *         whether the campfire is currently lit or not.
-     */
-    public boolean canBurnOut()
-    {
-        return !isSignalFire() || CampfireBackportConfig.signalFiresBurnOut.matches(this);
     }
 
     /**
@@ -1048,15 +1064,28 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             --life;
     }
 
-    public void resetLife()
+    public void resetLife(boolean startReignitionCooldown)
     {
         resetBaseBurnOutTimer();
-        life = startingLife = natureRange(getBaseBurnOutTimer());
+        if (getBaseBurnOutTimer() > -1)
+            life = startingLife = natureRange(getBaseBurnOutTimer());
+        else
+            life = startingLife = -1;
+
+        if (startReignitionCooldown)
+            life += 40; // 2 seconds
+
+        markForClient(); // refresh waila tips
     }
 
     public int getStartingLife()
     {
         return startingLife;
+    }
+
+    public boolean isOnReignitionCooldown()
+    {
+        return life > startingLife;
     }
 
     /**
@@ -1084,6 +1113,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         {
             key = Reference.MODID + ".tooltip.burning_out";
             color = EnumChatFormatting.GRAY;
+        }
+        else if (life > startingLife)
+        {
+            key = Reference.MODID + ".tooltip.reignite";
+            color = EnumChatFormatting.GREEN;
         }
         else if (life < 1200) // 1 minute
         {

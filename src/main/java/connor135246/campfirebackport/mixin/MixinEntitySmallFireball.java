@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
-import net.minecraft.block.Block;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.util.MovingObjectPosition;
@@ -37,17 +36,10 @@ public abstract class MixinEntitySmallFireball extends EntityFireball
             int y = mop.blockY;
             int z = mop.blockZ;
 
-            Block block = this.worldObj.getBlock(x, y, z);
-            if (block instanceof BlockCampfire)
+            if (BlockCampfire.igniteOrReigniteCampfire(null, this.worldObj, x, y, z) != 0)
             {
-                BlockCampfire cblock = (BlockCampfire) block;
-
-                if (!cblock.isLit())
-                {
-                    cblock.toggleCampfireBlockState(this.worldObj, x, y, z);
-                    this.setDead();
-                    ci.cancel();
-                }
+                this.setDead();
+                ci.cancel();
             }
         }
 

@@ -20,13 +20,8 @@ public class BlockCampfireBotania extends BlockCampfire implements IManaTrigger
     @Override
     public void onBurstCollision(IManaBurst burst, World world, int x, int y, int z)
     {
-        if (!burst.isFake() && !isLit() && shouldLensLightCampfire(burst.getSourceLens()))
-        {
-            if (!world.isRemote)
-                toggleCampfireBlockState(world, x, y, z);
-
+        if (!world.isRemote && !burst.isFake() && shouldLensLightCampfire(burst.getSourceLens()) && igniteOrReigniteCampfire(null, world, x, y, z) != 0)
             burst.setFake(true); // to stop the burst from creating a fire block afterwards
-        }
     }
 
     /**

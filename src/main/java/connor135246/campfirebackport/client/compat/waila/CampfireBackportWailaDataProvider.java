@@ -82,11 +82,13 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                 }
             }
 
-            if (CampfireBackportBlocks.isLitCampfire(accessor.getBlock()) && ctile.canBurnOut())
+            if (CampfireBackportBlocks.isLitCampfire(accessor.getBlock()))
             {
-                if (ctile.getBaseBurnOutTimer() > -1)
+                boolean canBurnOut = ctile.canBurnOut();
+                boolean canRainOut = canBurnOut && ctile.getRainAndSky() && CampfireBackportConfig.putOutByRain.matches(ctile);
+                if ((canBurnOut && ctile.getBaseBurnOutTimer() > -1) || (canRainOut && ctile.isOnReignitionCooldown()))
                     tooltip.add(TileEntityCampfire.getBurnOutTip(ctile.getLife(), ctile.getStartingLife()));
-                if (ctile.getRainAndSky() && CampfireBackportConfig.putOutByRain.matches(ctile))
+                if (canRainOut && !ctile.isOnReignitionCooldown())
                     tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC
                             + StatCollector.translateToLocal(Reference.MODID + ".tooltip.rained_out"));
             }
