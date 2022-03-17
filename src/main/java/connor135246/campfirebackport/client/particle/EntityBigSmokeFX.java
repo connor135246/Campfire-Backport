@@ -109,9 +109,9 @@ public class EntityBigSmokeFX extends EntityFX
 
         float scale = 0.1F * particleScale;
 
-        double minU = this.particleTextureIndexX / 4.0;
+        double minU = this.particleTextureIndexX * 0.25;
         double maxU = minU + 0.25;
-        double minV = this.particleTextureIndexY / 8.0;
+        double minV = this.particleTextureIndexY * 0.125;
         double maxV = minV + 0.125;
 
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

@@ -147,7 +147,7 @@ public class BlockCampfire extends BlockContainer
             }
             else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
-                if (entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.option(getType(), 1.0F, 2.0F)))
+                if (entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.isSoul(getType()) ? 2.0F : 1.0F))
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, 2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
             }
         }
@@ -311,7 +311,7 @@ public class BlockCampfire extends BlockContainer
                 if (light)
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
                 else
-                    world.playSoundEffect(x, y, z, "random.fizz", 0.5F, RAND.nextFloat() * 0.4F + 0.8F);
+                    world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, RAND.nextFloat() * 0.4F + 0.8F);
             }
         }
 
@@ -587,7 +587,7 @@ public class BlockCampfire extends BlockContainer
         public final BlockCampfire block;
         public final int blockMetadata;
         public final @Nullable EntityPlayer player;
-        /** whether to use up the state changer (e.g. the player's flint and steel) afterward */
+        /** if true, the state changer (e.g. the player's flint and steel) will be used up afterward, whether the event is canceled or not */
         public boolean useGoods = true;
 
         public CampfireStateChangeEvent(int x, int y, int z, World world, BlockCampfire block, int blockMetadata, @Nullable EntityPlayer player)

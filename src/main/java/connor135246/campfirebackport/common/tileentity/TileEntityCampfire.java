@@ -74,21 +74,15 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     protected int baseBurnOutTimer = -2;
 
     // variables that don't need to be saved to NBT
-    protected boolean rainAndSky = false;
     protected boolean firstTick = true;
 
     // only used client side
+    protected boolean rainAndSky = false;
     protected int animTimer = RAND.nextInt(32);
 
     @Override
     public void updateEntity()
     {
-        if (isLit() && distributedInterval(100L) && (getWorldObj().isRemote || RAND.nextInt(6) == 0))
-        {
-            rainAndSky = getWorldObj().isRaining() && getWorldObj().getPrecipitationHeight(xCoord, zCoord) <= yCoord + 1
-                    && getWorldObj().getBiomeGenForCoords(xCoord, zCoord).canSpawnLightningBolt();
-        }
-
         if (!getWorldObj().isRemote)
         {
             if (isLit())
@@ -110,8 +104,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     markDirty();
                     cook(invCount);
                 }
+
                 heal();
+
                 burnOutFromRain();
+
                 burnOutOverTime();
 
                 if (!firstTick && distributedInterval(20L) && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
@@ -122,6 +119,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         {
             if (isLit())
             {
+                if (distributedInterval(50L))
+                    rainAndSky = isBeingRainedOn();
+
                 addParticles();
 
                 // fixes the animation looking a little weird right when placed
@@ -342,10 +342,22 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     protected void burnOutFromRain()
     {
-        if (rainAndSky && CampfireBackportConfig.putOutByRain.matches(this) && canBurnOut())
-            burnOutOrToNothing();
+        boolean isBeingRainedOn = false;
 
-        rainAndSky = false;
+        if (distributedInterval(100L) && RAND.nextInt(6) == 0)
+            isBeingRainedOn = isBeingRainedOn();
+
+        if (isBeingRainedOn && CampfireBackportConfig.putOutByRain.matches(this) && canBurnOut())
+            burnOutOrToNothing();
+    }
+
+    /**
+     * @return true if this campfire is being rained on.
+     */
+    public boolean isBeingRainedOn()
+    {
+        return getWorldObj().isRaining() && getWorldObj().getPrecipitationHeight(xCoord, zCoord) <= yCoord + 1
+                && getWorldObj().getBiomeGenForCoords(xCoord, zCoord).canSpawnLightningBolt();
     }
 
     /**
@@ -410,7 +422,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (!world.isRemote)
         {
-            world.playSoundEffect(x, y, z, "random.fizz", 0.5F, RAND.nextFloat() * 0.4F + 0.8F);
+            world.playSoundEffect(x, y + height, z, "random.fizz", 0.5F, RAND.nextFloat() * 0.4F + 0.8F);
 
             ((WorldServer) world).func_147487_a("smoke", x, y + height, z,
                     MathHelper.getRandomIntegerInRange(RAND, particles - 5, particles + 5), 0.3, 0.1, 0.3, 0.005);
@@ -767,7 +779,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     }
 
     /**
-     * Puts the ItemStack into the campfire, updates {@link #cookingTimes} and {@link #cookingTotalTimes}, and marks the tile entity as changed.
+     * Splits the ItemStack into the campfire, updates {@link #cookingTimes} and {@link #cookingTotalTimes}, and marks the tile entity as changed.
      */
     @Override
     public void setInventorySlotContents(int slot, ItemStack stack)
@@ -1064,15 +1076,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         baseBurnOutTimer = BurnOutRule.findBurnOutRule(getWorldObj(), xCoord, yCoord, zCoord, getType()).getTimer();
     }
 
-    /**
-     * on the client, rainAndSky is updated every 5 seconds. if true, the campfire is being rained on. <br>
-     * on the server, rainAndSky can only be true temporarily in the middle of {@link #updateEntity()}, and will never be true outside of that method.
-     */
-    public boolean getRainAndSky()
-    {
-        return rainAndSky;
-    }
-
     public static String getBurnOutTip(int life, int startingLife)
     {
         String key;
@@ -1103,6 +1106,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             color = EnumChatFormatting.GRAY;
         }
         return color + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(key);
+    }
+
+    public boolean getRainAndSky()
+    {
+        return rainAndSky;
     }
 
     // signalFire
@@ -1143,7 +1151,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public boolean distributedInterval(long interval)
     {
         if (hasWorldObj())
-            return (xCoord + yCoord + zCoord + getWorldObj().getTotalWorldTime()) % interval == 0L;
+            return (getWorldObj().getTotalWorldTime() + xCoord + yCoord + zCoord) % interval == 0L;
         else
             return false;
     }

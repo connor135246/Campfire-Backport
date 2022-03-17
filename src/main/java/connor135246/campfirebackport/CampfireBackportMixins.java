@@ -46,10 +46,15 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
 
         if (mixins && (vanillaMixins || witcheryMixins || thaumcraftMixins))
         {
+            coreLog.info("Mixins are enabled!");
+
             MixinBootstrap.init();
 
             if (vanillaMixins)
+            {
+                coreLog.info("Vanilla mixins will be applied.");
                 Mixins.addConfiguration("campfirebackport.mixin.json");
+            }
 
             modsDir = new File(mcDir, "mods");
 
