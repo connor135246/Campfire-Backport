@@ -18,14 +18,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemBlockWithMetadata;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
-public class ItemBlockCampfire extends ItemBlockWithMetadata
+public class ItemBlockCampfire extends ItemBlock
 {
     @SideOnly(Side.CLIENT)
     protected IIcon overlay;
@@ -35,7 +35,7 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
 
     public ItemBlockCampfire(Block block)
     {
-        super(block, block);
+        super(block);
         this.lit = ((BlockCampfire) block).isLit();
         this.type = ((BlockCampfire) block).getType();
     }
@@ -242,6 +242,20 @@ public class ItemBlockCampfire extends ItemBlockWithMetadata
     public IIcon getIconFromDamageForRenderPass(int damage, int pass)
     {
         return pass == 0 ? this.itemIcon : this.overlay;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public IIcon getIconFromDamage(int damage)
+    {
+        return this.itemIcon;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public int getSpriteNumber()
+    {
+        return 1;
     }
 
     @SideOnly(Side.CLIENT)

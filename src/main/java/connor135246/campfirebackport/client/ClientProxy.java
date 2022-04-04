@@ -3,13 +3,16 @@ package connor135246.campfirebackport.client;
 import java.util.Random;
 
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
+import connor135246.campfirebackport.client.rendering.RenderBlockCampfire;
 import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.client.rendering.RenderItemBlockCampfire;
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -33,6 +36,9 @@ public class ClientProxy extends CommonProxy
 
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.campfire), RenderItemBlockCampfire.INSTANCE);
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire), RenderItemBlockCampfire.INSTANCE);
+
+        BlockCampfire.renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(new RenderBlockCampfire());
     }
 
     @Override

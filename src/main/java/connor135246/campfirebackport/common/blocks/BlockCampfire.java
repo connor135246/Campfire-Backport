@@ -19,6 +19,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -32,6 +33,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -45,6 +47,14 @@ public class BlockCampfire extends BlockContainer
 
     protected final boolean lit;
     protected final String type;
+
+    @SideOnly(Side.CLIENT)
+    protected IIcon litLog;
+    @SideOnly(Side.CLIENT)
+    protected IIcon fire;
+
+    /** set to the next render id in client init */
+    public static int renderId = -1;
 
     protected static boolean stateChanging = false;
 
@@ -444,6 +454,47 @@ public class BlockCampfire extends BlockContainer
 
     @SideOnly(Side.CLIENT)
     @Override
+    public void registerBlockIcons(IIconRegister iconreg)
+    {
+        this.blockIcon = iconreg.registerIcon(Reference.MODID + ":" + "campfire_log");
+
+        if (EnumCampfireType.isRegular(getType()))
+            this.fire = iconreg.registerIcon(Reference.MODID + ":" + "campfire_fire");
+        else
+            this.fire = iconreg.registerIcon(Reference.MODID + ":" + "soul_campfire_fire");
+    }
+
+    /**
+     * The lit log icon is registered from {@link connor135246.campfirebackport.util.CampfireBackportEventHandler#onTextureStitchPre}.
+     */
+    @SideOnly(Side.CLIENT)
+    public void setLitLogIcon(IIcon litLog)
+    {
+        this.litLog = litLog;
+    }
+    
+    /**
+     * if meta is -2, returns the lit log icon. if meta is -3, return the fire icon. otherwise, returns the normal icon.
+     */
+    @SideOnly(Side.CLIENT)
+    @Override
+    public IIcon getIcon(int side, int meta)
+    {
+        return meta == -2 ? this.litLog : (meta == -3 ? this.fire : this.blockIcon);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public String getItemIconName()
+    {
+        if (EnumCampfireType.isRegular(getType()))
+            return Reference.MODID + ":" + "campfire_base";
+        else
+            return Reference.MODID + ":" + "soul_campfire_base";
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
     public Item getItem(World world, int x, int y, int z)
     {
         return getCampfireBlockItem();
@@ -586,7 +637,7 @@ public class BlockCampfire extends BlockContainer
     @Override
     public int getRenderType()
     {
-        return -1;
+        return -1; // TODO renderId;
     }
 
     // Getters
