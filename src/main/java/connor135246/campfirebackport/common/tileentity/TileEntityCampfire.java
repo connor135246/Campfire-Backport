@@ -280,7 +280,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
                             markDirty();
                             markForClient();
-                            markForNeighbours();
+                            notifyNeighbours();
                         }
                         else
                         {
@@ -677,7 +677,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     /**
      * Notifies neighbours of the tile entity changing. In vanilla, all this is used for is the comparator.
      */
-    public void markForNeighbours()
+    public void notifyNeighbours()
     {
         if (hasWorldObj())
             getWorldObj().func_147453_f(xCoord, yCoord, zCoord, getBlockType());
@@ -770,7 +770,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                 {
                     markDirty();
                     markForClient();
-                    markForNeighbours();
+                    notifyNeighbours();
                 }
 
                 return returnStack;
@@ -815,7 +815,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
         markDirty();
         markForClient();
-        markForNeighbours();
+        notifyNeighbours();
     }
 
     @Override
