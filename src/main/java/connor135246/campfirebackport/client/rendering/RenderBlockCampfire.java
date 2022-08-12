@@ -1,8 +1,11 @@
 package connor135246.campfirebackport.client.rendering;
 
+import javax.annotation.Nullable;
+
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
+import connor135246.campfirebackport.util.EnumCampfireType;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -15,141 +18,20 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 
     // TODO:
     // - render items in tesr.
-    // - inventory render for nei.
-    // - mixed fire for nei.
+
+    public static final RenderBlockCampfire INSTANCE = new RenderBlockCampfire();
 
     @Override
     public boolean renderWorldBlock(IBlockAccess access, int x, int y, int z, Block block, int modelId, RenderBlocks renderer)
     {
-        block = CampfireBackportBlocks.campfire_base; // TODO
-
-        Tessellator tess = Tessellator.instance;
-        boolean enableAO = renderer.enableAO;
-        renderer.enableAO = false; // TODO
-
-        int color = block.colorMultiplier(renderer.blockAccess, x, y, z);
-        float r = (float) (color >> 16 & 255) / 255.0F;
-        float g = (float) (color >> 8 & 255) / 255.0F;
-        float b = (float) (color & 255) / 255.0F;
-
-        if (EntityRenderer.anaglyphEnable)
-        {
-            float f3 = (r * 30.0F + g * 59.0F + b * 11.0F) / 100.0F;
-            float f4 = (r * 30.0F + g * 70.0F) / 100.0F;
-            float f5 = (r * 30.0F + b * 70.0F) / 100.0F;
-            r = f3;
-            g = f4;
-            b = f5;
-        }
-
-        tess.setBrightness(block.getMixedBrightnessForBlock(renderer.blockAccess, x, y, z));
-
-        boolean isLit = CampfireBackportBlocks.isLitCampfire(block);
-        int meta = access.getBlockMetadata(x, y - 9, z);
-        boolean northSouth = !(meta == 4 || meta == 5);
-        double sideLogY = 0.1875, logY1 = 0.25, logY2 = 0.4375, firepitO = 0.3125, logO1 = 0.0625, logO2 = 0.6875;
-        float colorYNeg = 0.5F, colorYPos = 1.0F, colorZ = 0.8F, colorX = 0.6F;
-
-        tess.setColorOpaque_F(r * colorYNeg, g * colorYNeg, b * colorYNeg);
-
-        // upper log bottoms
-        renderLogTopOrBot(access, northSouth ? x : (x + logO1), y + sideLogY, northSouth ? (z + logO1) : z, block, renderer, 0,
-                meta == 3 ? 0 : (meta == 4 ? 2 : (meta == 5 ? 1 : 3)), isLit);
-        renderLogTopOrBot(access, northSouth ? x : (x + logO2), y + sideLogY, northSouth ? (z + logO2) : z, block, renderer, 0,
-                meta == 3 ? 0 : (meta == 4 ? 2 : (meta == 5 ? 1 : 3)), isLit);
-
-        // bottom sides
-        if (renderer.renderAllFaces || block.shouldSideBeRendered(access, x, y - 1, z, 0))
-        {
-            int rotateFromMeta = meta == 3 ? 2 : (meta == 4 ? 3 : (meta == 5 ? 0 : 1));
-
-            renderLogTopOrBot(access, northSouth ? (x + logO1) : x, y, northSouth ? z : (z + logO1), block, renderer, 0, rotateFromMeta, false);
-            renderLogTopOrBot(access, northSouth ? (x + logO2) : x, y, northSouth ? z : (z + logO2), block, renderer, 0, rotateFromMeta, false);
-            renderFirepitTopOrBot(access, northSouth ? (x + firepitO) : x, y, northSouth ? z : (z + firepitO), block, renderer, 0, rotateFromMeta, isLit);
-        }
-
-        tess.setColorOpaque_F(r * colorYPos, g * colorYPos, b * colorYPos);
-
-        // north-south log tops
-        renderLogTopOrBot(access, x + logO1, northSouth ? (y - 1 + logY1) : (y - 1 + logY2), z, block, renderer, 1, meta == 3 || meta == 5 ? 2 : 1, false);
-        renderLogTopOrBot(access, x + logO2, northSouth ? (y - 1 + logY1) : (y - 1 + logY2), z, block, renderer, 1, meta == 3 || meta == 5 ? 2 : 1, false);
-
-        // east-west log tops
-        renderLogTopOrBot(access, x, northSouth ? (y - 1 + logY2) : (y - 1 + logY1), z + logO1, block, renderer, 1, meta == 3 || meta == 5 ? 0 : 3, false);
-        renderLogTopOrBot(access, x, northSouth ? (y - 1 + logY2) : (y - 1 + logY1), z + logO2, block, renderer, 1, meta == 3 || meta == 5 ? 0 : 3, false);
-
-        // firepit top
-        renderFirepitTopOrBot(access, northSouth ? (x + firepitO) : x, y - 0.9375, northSouth ? z : (z + firepitO), block, renderer, 1,
-                meta == 3 ? 2 : (meta == 4 ? 0 : (meta == 5 ? 3 : 1)), isLit);
-
-        tess.setColorOpaque_F(r * colorZ, g * colorZ, b * colorZ);
-
-        // north log sides
-        renderLogSide(access, x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 2, northSouth ? isLit : false, false);
-        renderLogSide(access, x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 2, isLit, !northSouth);
-
-        // south log sides
-        renderLogSide(access, x, northSouth ? (y + sideLogY) : y, z - logO1, block, renderer, 3, northSouth ? isLit : false, false);
-        renderLogSide(access, x, northSouth ? (y + sideLogY) : y, z - logO2, block, renderer, 3, isLit, !northSouth);
-
-        // north side faces
-        if (renderer.renderAllFaces || block.shouldSideBeRendered(access, x, y, z - 1, 2))
-        {
-            renderLogEnd(access, x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
-            renderLogEnd(access, x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
-            if (northSouth)
-                renderFirepitSide(access, x + firepitO, y, z, block, renderer, 2, meta == 2);
-        }
-
-        // south side faces
-        if (renderer.renderAllFaces || block.shouldSideBeRendered(access, x, y, z + 1, 3))
-        {
-            renderLogEnd(access, x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 3);
-            renderLogEnd(access, x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 3);
-            if (northSouth)
-                renderFirepitSide(access, x + firepitO, y, z, block, renderer, 3, meta == 3);
-        }
-
-        tess.setColorOpaque_F(r * colorX, g * colorX, b * colorX);
-
-        // west log sides
-        renderLogSide(access, x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 4, northSouth ? false : isLit, false);
-        renderLogSide(access, x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 4, isLit, northSouth);
-
-        // east log sides
-        renderLogSide(access, x - logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 5, northSouth ? false : isLit, false);
-        renderLogSide(access, x - logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 5, isLit, northSouth);
-
-        // west side faces
-        if (renderer.renderAllFaces || block.shouldSideBeRendered(access, x - 1, y, z, 4))
-        {
-            renderLogEnd(access, x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 4);
-            renderLogEnd(access, x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 4);
-            if (!northSouth)
-                renderFirepitSide(access, x, y, z + firepitO, block, renderer, 4, meta == 4);
-        }
-
-        // east side faces
-        if (renderer.renderAllFaces || block.shouldSideBeRendered(access, x + 1, y, z, 5))
-        {
-            renderLogEnd(access, x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 5);
-            renderLogEnd(access, x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 5);
-            if (!northSouth)
-                renderFirepitSide(access, x, y, z + firepitO, block, renderer, 5, meta == 5);
-        }
-
-        // fire
-        if (isLit)
-            renderFire(access, x, y, z, block, renderer);
-
-        renderer.enableAO = enableAO;
+        renderCampfire(access, x, y, z, CampfireBackportBlocks.soul_campfire, access.getBlockMetadata(x, y - 9, z), renderer, true); // TODO
         return true;
     }
 
     @Override
-    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer)
+    public void renderInventoryBlock(Block block, int meta, int modelId, RenderBlocks renderer)
     {
-        // TODO for nei
+        renderInventoryCampfire(block, meta, renderer, false);
     }
 
     @Override
@@ -164,17 +46,172 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         return BlockCampfire.renderId;
     }
 
-    // {"DOWN", "UP", "NORTH", "SOUTH", "WEST", "EAST"};
-
-    /*
-     * public void drawCrossedSquaresTwoIcons(IIcon icon1, IIcon icon2, double x, double y, double z, float scale) { }
+    /**
+     * Draws the campfire given by lit and type, with a null IBlockAccess.
      */
+    public static void renderInventoryCampfire(EnumCampfireType type, boolean lit, RenderBlocks renderer)
+    {
+        renderInventoryCampfire(CampfireBackportBlocks.getBlockFromLitAndType(lit, type), 2, renderer, type == EnumCampfireType.BOTH);
+    }
+
+    /**
+     * Draws the campfire block with a null IBlockAccess.
+     */
+    public static void renderInventoryCampfire(Block block, int meta, RenderBlocks renderer, boolean mixedFire)
+    {
+        Tessellator tess = Tessellator.instance;
+        tess.startDrawingQuads();
+        renderCampfire(null, 0, 0, 0, block, meta, renderer, mixedFire);
+        tess.draw();
+    }
+
+    /**
+     * Actually renders the campfire.
+     */
+    public static void renderCampfire(@Nullable IBlockAccess access, final int x, final int y, final int z, final Block block, final int meta,
+            final RenderBlocks renderer, boolean mixedFire)
+    {
+        Tessellator tess = Tessellator.instance;
+
+        final boolean enableAO = renderer.enableAO;
+        renderer.enableAO = false;
+
+        // 16777215 is the default return of Block.colorMultiplier
+        int color = access == null ? 16777215 : block.colorMultiplier(access, x, y, z);
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+
+        if (EntityRenderer.anaglyphEnable)
+        {
+            float f3 = (r * 30.0F + g * 59.0F + b * 11.0F) / 100.0F;
+            float f4 = (r * 30.0F + g * 70.0F) / 100.0F;
+            float f5 = (r * 30.0F + b * 70.0F) / 100.0F;
+            r = f3;
+            g = f4;
+            b = f5;
+        }
+
+        // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
+        tess.setBrightness(access == null ? 15728880 : block.getMixedBrightnessForBlock(access, x, y, z));
+
+        final boolean isLit = CampfireBackportBlocks.isLitCampfire(block);
+        final boolean northSouth = !(meta == 4 || meta == 5);
+        final double sideLogY = 0.1875, logY1 = 0.25, logY2 = 0.4375, firepitO = 0.3125, logO1 = 0.0625, logO2 = 0.6875;
+        final float colorYNeg, colorYPos, colorZ, colorX;
+        if (access == null)
+            colorYNeg = colorYPos = colorZ = colorX = 1.0F;
+        else
+        {
+            colorYNeg = 0.5F;
+            colorYPos = 1.0F;
+            colorZ = northSouth ? 0.6F : 0.8F; // TODO
+            colorX = northSouth ? 0.8F : 0.6F;
+        }
+
+        tess.setColorOpaque_F(r * colorYNeg, g * colorYNeg, b * colorYNeg);
+
+        // upper log bottoms
+        renderLogTopOrBot(northSouth ? x : (x + logO1), y + sideLogY, northSouth ? (z + logO1) : z, block, renderer, 0,
+                meta == 3 ? 0 : (meta == 4 ? 2 : (meta == 5 ? 1 : 3)), isLit);
+        renderLogTopOrBot(northSouth ? x : (x + logO2), y + sideLogY, northSouth ? (z + logO2) : z, block, renderer, 0,
+                meta == 3 ? 0 : (meta == 4 ? 2 : (meta == 5 ? 1 : 3)), isLit);
+
+        // bottom sides
+        if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x, y - 1, z, 0))
+        {
+            final int rotateFromMeta = meta == 3 ? 2 : (meta == 4 ? 3 : (meta == 5 ? 0 : 1));
+
+            renderLogTopOrBot(northSouth ? (x + logO1) : x, y, northSouth ? z : (z + logO1), block, renderer, 0, rotateFromMeta, false);
+            renderLogTopOrBot(northSouth ? (x + logO2) : x, y, northSouth ? z : (z + logO2), block, renderer, 0, rotateFromMeta, false);
+            renderFirepitTopOrBot(northSouth ? (x + firepitO) : x, y, northSouth ? z : (z + firepitO), block, renderer, 0, rotateFromMeta, isLit);
+        }
+
+        tess.setColorOpaque_F(r * colorYPos, g * colorYPos, b * colorYPos);
+
+        // north-south log tops
+        renderLogTopOrBot(x + logO1, northSouth ? (y - 1 + logY1) : (y - 1 + logY2), z, block, renderer, 1, meta == 3 || meta == 5 ? 2 : 1, false);
+        renderLogTopOrBot(x + logO2, northSouth ? (y - 1 + logY1) : (y - 1 + logY2), z, block, renderer, 1, meta == 3 || meta == 5 ? 2 : 1, false);
+
+        // east-west log tops
+        renderLogTopOrBot(x, northSouth ? (y - 1 + logY2) : (y - 1 + logY1), z + logO1, block, renderer, 1, meta == 3 || meta == 5 ? 0 : 3, false);
+        renderLogTopOrBot(x, northSouth ? (y - 1 + logY2) : (y - 1 + logY1), z + logO2, block, renderer, 1, meta == 3 || meta == 5 ? 0 : 3, false);
+
+        // firepit top
+        renderFirepitTopOrBot(northSouth ? (x + firepitO) : x, y - 0.9375, northSouth ? z : (z + firepitO), block, renderer, 1,
+                meta == 3 ? 2 : (meta == 4 ? 0 : (meta == 5 ? 3 : 1)), isLit);
+
+        tess.setColorOpaque_F(r * colorZ, g * colorZ, b * colorZ);
+
+        // north log sides
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 2, northSouth ? isLit : false, false);
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 2, isLit, !northSouth);
+
+        // south log sides
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO1, block, renderer, 3, northSouth ? isLit : false, false);
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO2, block, renderer, 3, isLit, !northSouth);
+
+        // north side faces
+        if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x, y, z - 1, 2))
+        {
+            renderLogEnd(x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
+            renderLogEnd(x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
+            if (northSouth)
+                renderFirepitSide(x + firepitO, y, z, block, renderer, 2, meta == 2);
+        }
+
+        // south side faces
+        if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x, y, z + 1, 3))
+        {
+            renderLogEnd(x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 3);
+            renderLogEnd(x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 3);
+            if (northSouth)
+                renderFirepitSide(x + firepitO, y, z, block, renderer, 3, meta == 3);
+        }
+
+        tess.setColorOpaque_F(r * colorX, g * colorX, b * colorX);
+
+        // west log sides
+        renderLogSide(x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 4, northSouth ? false : isLit, false);
+        renderLogSide(x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 4, isLit, northSouth);
+
+        // east log sides
+        renderLogSide(x - logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 5, northSouth ? false : isLit, false);
+        renderLogSide(x - logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 5, isLit, northSouth);
+
+        // west side faces
+        if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x - 1, y, z, 4))
+        {
+            renderLogEnd(x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 4);
+            renderLogEnd(x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 4);
+            if (!northSouth)
+                renderFirepitSide(x, y, z + firepitO, block, renderer, 4, meta == 4);
+        }
+
+        // east side faces
+        if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x + 1, y, z, 5))
+        {
+            renderLogEnd(x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 5);
+            renderLogEnd(x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 5);
+            if (!northSouth)
+                renderFirepitSide(x, y, z + firepitO, block, renderer, 5, meta == 5);
+        }
+
+        // fire
+        if (isLit)
+            renderFire(x, y, z, block, renderer, mixedFire);
+
+        renderer.enableAO = enableAO;
+    }
+
+    // Campfire Texture Face Renderers
+    // Renders the piece at the bottom-north-west corner of the face. Adjust the given coordinates to render at a particular part of the face.
 
     /**
      * @param side
      *            - should be 2 (north), 3 (south), 4 (west), or 5 (east)
      */
-    public void renderLogEnd(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, int side)
+    public static void renderLogEnd(double x, double y, double z, Block block, RenderBlocks renderer, int side)
     {
         if (side == 2 || side == 3)
             renderer.setRenderBounds(0, 0.5F, 0, 0.25F, 0.75F, 1);
@@ -183,7 +220,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 
         y = y - renderer.renderMinY;
 
-        renderFace(access, x, y, z, block, renderer, block.getIcon(0, 0), side);
+        renderFace(x, y, z, block, renderer, block.getIcon(0, 0), side);
     }
 
     /**
@@ -192,8 +229,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
      * @param lower
      *            - lowers the texture by one pixel
      */
-    public void renderLogSide(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, int side, boolean lit,
-            boolean lower)
+    public static void renderLogSide(double x, double y, double z, Block block, RenderBlocks renderer, int side, boolean lit, boolean lower)
     {
         float maxX = 1, maxZ = 1;
 
@@ -211,7 +247,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 
         y = y - renderer.renderMinY;
 
-        renderFace(access, x, y, z, block, renderer, block.getIcon(0, lit ? -2 : 0), side);
+        renderFace(x, y, z, block, renderer, block.getIcon(0, lit ? -2 : 0), side);
     }
 
     /**
@@ -220,8 +256,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
      * @param rotate
      *            - 0 and 3 are opposite, 1 and 2 are opposite
      */
-    public void renderLogTopOrBot(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, int side, int rotate,
-            boolean lit)
+    public static void renderLogTopOrBot(double x, double y, double z, Block block, RenderBlocks renderer, int side, int rotate, boolean lit)
     {
         float minX = 0, maxX = 1, minZ = 0, maxZ = 1;
 
@@ -267,7 +302,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         x = x - renderer.renderMinX;
         z = z - renderer.renderMinZ;
 
-        renderFace(access, x, y, z, block, renderer, block.getIcon(0, lit ? -2 : 0), side);
+        renderFace(x, y, z, block, renderer, block.getIcon(0, lit ? -2 : 0), side);
 
         renderer.flipTexture = false;
         renderer.uvRotateBottom = 0;
@@ -280,7 +315,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
      * @param front
      *            - should be true if side is the front of the campfire, false if it's the back
      */
-    public void renderFirepitSide(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, int side, boolean front)
+    public static void renderFirepitSide(double x, double y, double z, Block block, RenderBlocks renderer, int side, boolean front)
     {
         float minX = 0, maxX = 1, minZ = 0, maxZ = 1;
 
@@ -304,7 +339,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         x = x - renderer.renderMinX;
         z = z - renderer.renderMinZ;
 
-        renderFace(access, x, y, z, block, renderer, block.getIcon(0, 0), side);
+        renderFace(x, y, z, block, renderer, block.getIcon(0, 0), side);
     }
 
     /**
@@ -313,7 +348,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
      * @param rotate
      *            - 0 and 3 are opposite, 1 and 2 are opposite
      */
-    public void renderFirepitTopOrBot(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, int side, int rotate, boolean lit)
+    public static void renderFirepitTopOrBot(double x, double y, double z, Block block, RenderBlocks renderer, int side, int rotate, boolean lit)
     {
         float minX = 0, maxX = 1, minZ = 0, maxZ = 1;
 
@@ -351,26 +386,100 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         x = x - renderer.renderMinX;
         z = z - renderer.renderMinZ;
 
-        renderFace(access, x, y, z, block, renderer, block.getIcon(0, side == 1 && lit ? -2 : 0), side);
+        renderFace(x, y, z, block, renderer, block.getIcon(0, side == 1 && lit ? -2 : 0), side);
 
         renderer.flipTexture = false;
         renderer.uvRotateBottom = 0;
         renderer.uvRotateTop = 0;
     }
 
-    public void renderFire(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer)
+    /**
+     * Draws the campfire fire. If mixedFire is true, the fire will be half regular and half soul.
+     */
+    public static void renderFire(double x, double y, double z, Block block, RenderBlocks renderer, boolean mixedFire)
     {
         Tessellator tess = Tessellator.instance;
-        tess.setBrightness(15728880); // 15 << 20 | 15 << 4, aka max brightness
+        tess.setBrightness(15728880); // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
         tess.setColorOpaque_F(1.0F, 1.0F, 1.0F);
-        renderer.drawCrossedSquares(block.getIcon(0, -3), x, y, z, 1.0F);
+        if (mixedFire)
+            drawCrossedSquaresTwoIcons(CampfireBackportBlocks.campfire.getIcon(0, -3), CampfireBackportBlocks.soul_campfire.getIcon(0, -3), x, y, z, 1.0F);
+        else
+            renderer.drawCrossedSquares(block.getIcon(0, -3), x, y, z, 1.0F);
+    }
+
+    /**
+     * Like {@link RenderBlocks#drawCrossedSquares}, but there's two textures.
+     */
+    public static void drawCrossedSquaresTwoIcons(IIcon icon1, IIcon icon2, double x, double y, double z, float size)
+    {
+        Tessellator tess = Tessellator.instance;
+
+        double scaledSize = 0.45D * (double) size;
+        double minX = x + 0.5D - scaledSize;
+        double midX = x + 0.5D;
+        double maxX = x + 0.5D + scaledSize;
+        double minZ = z + 0.5D - scaledSize;
+        double midZ = z + 0.5D;
+        double maxZ = z + 0.5D + scaledSize;
+
+        double minU1 = (double) icon1.getMinU();
+        double minV1 = (double) icon1.getMinV();
+        double midU1 = (double) (icon1.getMaxU() + icon1.getMinU()) / 2;
+        double maxU1 = (double) icon1.getMaxU();
+        double maxV1 = (double) icon1.getMaxV();
+
+        tess.addVertexWithUV(minX, y + (double) size, minZ, minU1, minV1);
+        tess.addVertexWithUV(minX, y + 0.0D, minZ, minU1, maxV1);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU1, maxV1);
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU1, minV1);
+
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU1, minV1);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU1, maxV1);
+        tess.addVertexWithUV(minX, y + 0.0D, minZ, maxU1, maxV1);
+        tess.addVertexWithUV(minX, y + (double) size, minZ, maxU1, minV1);
+
+        tess.addVertexWithUV(minX, y + (double) size, maxZ, minU1, minV1);
+        tess.addVertexWithUV(minX, y + 0.0D, maxZ, minU1, maxV1);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU1, maxV1);
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU1, minV1);
+
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU1, minV1);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU1, maxV1);
+        tess.addVertexWithUV(minX, y + 0.0D, maxZ, maxU1, maxV1);
+        tess.addVertexWithUV(minX, y + (double) size, maxZ, maxU1, minV1);
+
+        double minU2 = (double) icon2.getMinU();
+        double minV2 = (double) icon2.getMinV();
+        double midU2 = (double) (icon2.getMaxU() + icon2.getMinU()) / 2;
+        double maxU2 = (double) icon2.getMaxU();
+        double maxV2 = (double) icon2.getMaxV();
+
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU2, minV2);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU2, maxV2);
+        tess.addVertexWithUV(maxX, y + 0.0D, maxZ, maxU2, maxV2);
+        tess.addVertexWithUV(maxX, y + (double) size, maxZ, maxU2, minV2);
+
+        tess.addVertexWithUV(maxX, y + (double) size, maxZ, minU2, minV2);
+        tess.addVertexWithUV(maxX, y + 0.0D, maxZ, minU2, maxV2);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU2, maxV2);
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU2, minV2);
+
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU2, minV2);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU2, maxV2);
+        tess.addVertexWithUV(maxX, y + 0.0D, minZ, maxU2, maxV2);
+        tess.addVertexWithUV(maxX, y + (double) size, minZ, maxU2, minV2);
+
+        tess.addVertexWithUV(maxX, y + (double) size, minZ, minU2, minV2);
+        tess.addVertexWithUV(maxX, y + 0.0D, minZ, minU2, maxV2);
+        tess.addVertexWithUV(midX, y + 0.0D, midZ, midU2, maxV2);
+        tess.addVertexWithUV(midX, y + (double) size, midZ, midU2, minV2);
     }
 
     /**
      * Shortcut for all the renderFace methods. These renderFace methods are almost exactly the same as the ones in {@link RenderBlocks}, except they slightly adjust the quads with
      * {@link #FINAGLE}, and {@link #renderFaceYNegFlippable} uses the {@link RenderBlocks#flipTexture} option to flip textures perpendicular to the facing direction.
      */
-    public void renderFace(IBlockAccess access, double x, double y, double z, Block block, RenderBlocks renderer, IIcon icon, int side)
+    public static void renderFace(double x, double y, double z, Block block, RenderBlocks renderer, IIcon icon, int side)
     {
         if (side == 0)
             renderFaceYNegFlippable(renderer, block, x, y, z, icon);
@@ -394,7 +503,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the bottom face of the block. If the {@link RenderBlocks#flipTexture} option is true, flips textures perpendicular to the facing direction.
      */
-    public void renderFaceYNegFlippable(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceYNegFlippable(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 
@@ -534,7 +643,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the top face of the block.
      */
-    public void renderFaceYPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceYPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 
@@ -642,7 +751,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the north (z-negative) face of the block.
      */
-    public void renderFaceZNeg(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceZNeg(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 
@@ -765,7 +874,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the south (z-positive) face of the block.
      */
-    public void renderFaceZPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceZPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 
@@ -881,7 +990,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the west (x-negative) face of the block.
      */
-    public void renderFaceXNeg(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceXNeg(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 
@@ -997,7 +1106,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     /**
      * Renders the given texture to the east (x-positive) face of the block.
      */
-    public void renderFaceXPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
+    public static void renderFaceXPos(RenderBlocks renderer, Block block, double x, double y, double z, IIcon icon)
     {
         Tessellator tessellator = Tessellator.instance;
 

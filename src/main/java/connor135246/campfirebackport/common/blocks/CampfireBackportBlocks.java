@@ -75,6 +75,18 @@ public class CampfireBackportBlocks
     {
         return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
     }
+    
+    /**
+     * @param lit
+     *            - true if you want a lit campfire, false if you want an unlit campfire
+     * @param type
+     *            - "EnumCampfireType.REG_ONLY" for regular campfire, "EnumCampfireType.SOUL_ONLY" for soul campfire (if neither, defaults to regular)
+     * @return the corresponding campfire block
+     */
+    public static Block getBlockFromLitAndType(boolean lit, EnumCampfireType type)
+    {
+        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
+    }
 
     /**
      * @return true if and only if the given block is a lit campfire

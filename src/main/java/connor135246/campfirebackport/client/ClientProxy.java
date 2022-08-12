@@ -38,7 +38,7 @@ public class ClientProxy extends CommonProxy
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire), RenderItemBlockCampfire.INSTANCE);
 
         BlockCampfire.renderId = RenderingRegistry.getNextAvailableRenderId();
-        RenderingRegistry.registerBlockHandler(new RenderBlockCampfire());
+        RenderingRegistry.registerBlockHandler(RenderBlockCampfire.INSTANCE);
     }
 
     @Override
