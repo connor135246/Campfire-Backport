@@ -2,10 +2,12 @@ package connor135246.campfirebackport.client.rendering;
 
 import javax.annotation.Nullable;
 
+import org.lwjgl.opengl.GL11;
+
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import connor135246.campfirebackport.util.EnumCampfireType;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -13,6 +15,9 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 
+/**
+ * Renders the campfire block. Doesn't render its items.
+ */
 public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 {
 
@@ -21,20 +26,23 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     @Override
     public boolean renderWorldBlock(IBlockAccess access, int x, int y, int z, Block block, int modelId, RenderBlocks renderer)
     {
-        renderCampfire(access, x, y, z, block, access.getBlockMetadata(x, y, z), renderer, true);
+        renderCampfire(access, x, y, z, block, access.getBlockMetadata(x, y, z), renderer, false, false, false);
         return true;
     }
 
     @Override
     public void renderInventoryBlock(Block block, int meta, int modelId, RenderBlocks renderer)
     {
-        renderInventoryCampfire(block, meta, renderer, false);
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
+        renderCampfire(null, block, 5, renderer, true, false, true);
+        GL11.glDisable(GL11.GL_CULL_FACE);
     }
 
     @Override
     public boolean shouldRender3DInInventory(int modelId)
     {
-        return false;
+        return CampfireBackportConfig.renderItem3D;
     }
 
     @Override
@@ -43,30 +51,14 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         return BlockCampfire.renderId;
     }
 
-    /**
-     * Draws the campfire given by lit and type, with a null IBlockAccess.
-     */
-    public static void renderInventoryCampfire(EnumCampfireType type, boolean lit, RenderBlocks renderer)
+    public static void renderCampfire(@Nullable IBlockAccess access, final Block block, final int meta, final RenderBlocks renderer, final boolean doDraw,
+            final boolean mixedFire, final boolean flatSideColor)
     {
-        renderInventoryCampfire(CampfireBackportBlocks.getBlockFromLitAndType(lit, type), 2, renderer, type == EnumCampfireType.BOTH);
+        renderCampfire(access, 0, 0, 0, block, meta, renderer, doDraw, mixedFire, flatSideColor);
     }
 
-    /**
-     * Draws the campfire block with a null IBlockAccess.
-     */
-    public static void renderInventoryCampfire(Block block, int meta, RenderBlocks renderer, boolean mixedFire)
-    {
-        Tessellator tess = Tessellator.instance;
-        tess.startDrawingQuads();
-        renderCampfire(null, 0, 0, 0, block, meta, renderer, mixedFire);
-        tess.draw();
-    }
-
-    /**
-     * Actually renders the campfire.
-     */
     public static void renderCampfire(@Nullable IBlockAccess access, final int x, final int y, final int z, final Block block, final int meta,
-            final RenderBlocks renderer, boolean mixedFire)
+            final RenderBlocks renderer, final boolean doDraw, final boolean mixedFire, final boolean flatSideColor)
     {
         Tessellator tess = Tessellator.instance;
 
@@ -89,14 +81,15 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             b = f5;
         }
 
-        // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
-        tess.setBrightness(access == null ? 15728880 : block.getMixedBrightnessForBlock(access, x, y, z));
+        if (!doDraw)
+            // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
+            tess.setBrightness(access == null ? 15728880 : block.getMixedBrightnessForBlock(access, x, y, z));
 
         final boolean isLit = CampfireBackportBlocks.isLitCampfire(block);
         final boolean northSouth = !(meta == 4 || meta == 5);
         final double sideLogY = 0.1875, logY1 = 0.25, logY2 = 0.4375, firepitO = 0.3125, logO1 = 0.0625, logO2 = 0.6875;
         final float colorYNeg, colorYPos, colorZ, colorX;
-        if (access == null)
+        if (flatSideColor)
             colorYNeg = colorYPos = colorZ = colorX = 1.0F;
         else
         {
@@ -106,6 +99,11 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             colorX = northSouth ? 0.8F : 0.6F;
         }
 
+        if (doDraw)
+        {
+            tess.startDrawingQuads();
+            tess.setNormal(0.0F, -1.0F, 0.0F);
+        }
         tess.setColorOpaque_F(r * colorYNeg, g * colorYNeg, b * colorYNeg);
 
         // upper log bottoms
@@ -124,6 +122,12 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             renderFirepitTopOrBot(northSouth ? (x + firepitO) : x, y, northSouth ? z : (z + firepitO), block, renderer, 0, rotateFromMeta, isLit);
         }
 
+        if (doDraw)
+        {
+            tess.draw();
+            tess.startDrawingQuads();
+            tess.setNormal(0.0F, 1.0F, 0.0F);
+        }
         tess.setColorOpaque_F(r * colorYPos, g * colorYPos, b * colorYPos);
 
         // north-south log tops
@@ -138,15 +142,17 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         renderFirepitTopOrBot(northSouth ? (x + firepitO) : x, y - 0.9375, northSouth ? z : (z + firepitO), block, renderer, 1,
                 meta == 3 ? 2 : (meta == 4 ? 0 : (meta == 5 ? 3 : 1)), isLit);
 
+        if (doDraw)
+        {
+            tess.draw();
+            tess.startDrawingQuads();
+            tess.setNormal(0.0F, 0.0F, -1.0F);
+        }
         tess.setColorOpaque_F(r * colorZ, g * colorZ, b * colorZ);
 
         // north log sides
         renderLogSide(x, northSouth ? (y + sideLogY) : y, z + logO1, block, renderer, 2, northSouth ? isLit : false, false);
         renderLogSide(x, northSouth ? (y + sideLogY) : y, z + logO2, block, renderer, 2, isLit, !northSouth);
-
-        // south log sides
-        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO1, block, renderer, 3, northSouth ? isLit : false, false);
-        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO2, block, renderer, 3, isLit, !northSouth);
 
         // north side faces
         if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x, y, z - 1, 2))
@@ -154,8 +160,16 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             renderLogEnd(x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
             renderLogEnd(x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 2);
             if (northSouth)
-                renderFirepitSide(x + firepitO, y, z, block, renderer, 2, meta == 2);
+                renderFirepitSide(x + firepitO, y, z, block, renderer, 2, meta < 3 || meta > 5);
         }
+
+        if (doDraw)
+        {
+            tess.draw();
+            tess.startDrawingQuads();
+            tess.setNormal(0.0F, 0.0F, 1.0F);
+        }
+        tess.setColorOpaque_F(r * colorZ, g * colorZ, b * colorZ);
 
         // south side faces
         if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x, y, z + 1, 3))
@@ -166,15 +180,21 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
                 renderFirepitSide(x + firepitO, y, z, block, renderer, 3, meta == 3);
         }
 
+        // south log sides
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO1, block, renderer, 3, northSouth ? isLit : false, false);
+        renderLogSide(x, northSouth ? (y + sideLogY) : y, z - logO2, block, renderer, 3, isLit, !northSouth);
+
+        if (doDraw)
+        {
+            tess.draw();
+            tess.startDrawingQuads();
+            tess.setNormal(-1.0F, 0.0F, 0.0F);
+        }
         tess.setColorOpaque_F(r * colorX, g * colorX, b * colorX);
 
         // west log sides
         renderLogSide(x + logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 4, northSouth ? false : isLit, false);
         renderLogSide(x + logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 4, isLit, northSouth);
-
-        // east log sides
-        renderLogSide(x - logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 5, northSouth ? false : isLit, false);
-        renderLogSide(x - logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 5, isLit, northSouth);
 
         // west side faces
         if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x - 1, y, z, 4))
@@ -185,6 +205,18 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
                 renderFirepitSide(x, y, z + firepitO, block, renderer, 4, meta == 4);
         }
 
+        if (doDraw)
+        {
+            tess.draw();
+            tess.startDrawingQuads();
+            tess.setNormal(1.0F, 0.0F, 0.0F);
+        }
+        tess.setColorOpaque_F(r * colorX, g * colorX, b * colorX);
+
+        // east log sides
+        renderLogSide(x - logO1, northSouth ? y : (y + sideLogY), z, block, renderer, 5, northSouth ? false : isLit, false);
+        renderLogSide(x - logO2, northSouth ? y : (y + sideLogY), z, block, renderer, 5, isLit, northSouth);
+
         // east side faces
         if (renderer.renderAllFaces || access == null || block.shouldSideBeRendered(access, x + 1, y, z, 5))
         {
@@ -193,10 +225,33 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             if (!northSouth)
                 renderFirepitSide(x, y, z + firepitO, block, renderer, 5, meta == 5);
         }
+        
+        if (doDraw)
+        {
+            tess.draw();
+        }
 
         // fire
         if (isLit)
+        {
+            boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+
+            if (doDraw)
+            {
+                if (lighting)
+                    GL11.glDisable(GL11.GL_LIGHTING);
+                tess.startDrawingQuads();
+            }
+
             renderFire(x, y, z, block, renderer, mixedFire);
+
+            if (doDraw)
+            {
+                tess.draw();
+                if (lighting)
+                    GL11.glEnable(GL11.GL_LIGHTING);
+            }
+        }
 
         renderer.enableAO = enableAO;
     }

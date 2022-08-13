@@ -49,6 +49,8 @@ public class CampfireBackportConfig
 
     public static boolean charcoalOnly;
     public static boolean soulSoilOnly;
+    
+    public static boolean renderItem3D;
 
     public static EnumCampfireType regenCampfires;
     public static int[] regularRegen;
@@ -209,6 +211,9 @@ public class CampfireBackportConfig
         }
 
         config.setCategoryPropertyOrder(Configuration.CATEGORY_GENERAL, ConfigReference.configOrder);
+
+        renderItem3D = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.renderItem3D, false,
+                StringParsers.translateComment("render_3d")).getBoolean();
 
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
                 StringParsers.translateComment("charcoal")).setRequiresMcRestart(true).getBoolean();
@@ -642,6 +647,8 @@ public class CampfireBackportConfig
      */
     private static void getConfigDefaults()
     {
+        renderItem3D = false;
+
         charcoalOnly = false;
         soulSoilOnly = false;
 

@@ -188,6 +188,7 @@ campfirebackport.config.packets.encode_error=Error occurred while creating confi
 campfirebackport.config.packets.decode_error=Error occurred while receiving config packet. Try reconnecting. If it still fails, report this bug.
 campfirebackport.config.packets.apply_error=Error occurred while applying received config packet. Try reconnecting. If it still fails, report this bug.
 
+campfirebackport.config.comment.render_3d=Client-side option. If true, campfire items in your inventory will render as a 3D block instead of a 2D item.
 campfirebackport.config.comment.charcoal=If true, regular campfires can be crafted only using charcoal. In vanilla either coal or charcoal can be used, but breaking campfires always drops charcoal. If for some reason you don't want players to be able to turn coal into charcoal, turn this on.
 campfirebackport.config.comment.soul_soil=If true, soul campfires can be crafted only using soul soil from Netherlicious. In vanilla either soul sand or soul soil can be used, but breaking campfires always drops soul soil. If for some reason you don't want players to be able to turn soul sand into soul soil, turn this on. This won't do anything if Netherlicious isn't installed!
 campfirebackport.config.comment.regen=Lit campfires of this type will periodically apply a regeneration effect to nearby players.

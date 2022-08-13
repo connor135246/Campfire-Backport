@@ -12,6 +12,7 @@ import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 import connor135246.campfirebackport.client.rendering.RenderBlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
@@ -290,7 +291,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         renderer.lockBlockBounds = false;
         renderer.renderAllFaces = false;
         renderer.useInventoryTint = true;
-        RenderBlockCampfire.renderInventoryCampfire(type, lit, renderer);
+        RenderBlockCampfire.renderCampfire(null, CampfireBackportBlocks.getBlockFromLitAndType(lit, type), 2, renderer, true, type == EnumCampfireType.BOTH, true);
     }
 
 }

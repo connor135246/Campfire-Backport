@@ -255,7 +255,7 @@ public class ItemBlockCampfire extends ItemBlock
     @Override
     public int getSpriteNumber()
     {
-        return 1;
+        return CampfireBackportConfig.renderItem3D ? 0 : 1;
     }
 
     @SideOnly(Side.CLIENT)
