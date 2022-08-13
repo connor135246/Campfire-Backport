@@ -1,6 +1,7 @@
 package connor135246.campfirebackport.util;
 
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigSmokeFXConstructingEvent;
+import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
@@ -19,16 +20,45 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public class CampfireBackportEventHandler
 {
+
+    /**
+     * Registers the lit log textures, which use 1.8's interpolated icons.
+     */
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public void onTextureStitchPre(TextureStitchEvent.Pre event)
+    {
+        if (event.map.getTextureType() == 0)
+        {
+            String regName = Reference.MODID + ":" + "campfire_log_lit";
+            TextureAtlasSprite regLitLog = new InterpolatedIcon(regName);
+            if (event.map.setTextureEntry(regName, regLitLog))
+            {
+                ((BlockCampfire) CampfireBackportBlocks.campfire).setLitLogIcon(regLitLog);
+                ((BlockCampfire) CampfireBackportBlocks.campfire_base).setLitLogIcon(regLitLog);
+            }
+
+            String soulName = Reference.MODID + ":" + "soul_campfire_log_lit";
+            TextureAtlasSprite soulLitLog = new InterpolatedIcon(soulName);
+            if (event.map.setTextureEntry(soulName, soulLitLog))
+            {
+                ((BlockCampfire) CampfireBackportBlocks.soul_campfire).setLitLogIcon(soulLitLog);
+                ((BlockCampfire) CampfireBackportBlocks.soul_campfire_base).setLitLogIcon(soulLitLog);
+            }
+        }
+    }
 
     /**
      * Applies changes when config is changed via in-game GUI.

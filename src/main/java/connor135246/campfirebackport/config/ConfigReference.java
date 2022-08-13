@@ -77,6 +77,7 @@ public class ConfigReference
     // config option names
     public static final String charcoalOnly = "Charcoal Only",
             soulSoilOnly = "Soul Soil Only (Netherlicious)",
+            renderItem3D = "Render Item in 3D",
             regenCampfires = "Regeneration Campfires",
             regularRegen = "Regeneration Settings (Regular Campfires)",
             soulRegen = "Regeneration Settings (Soul Campfires)",
@@ -119,6 +120,7 @@ public class ConfigReference
 
     static
     {
+        configOrder.add(renderItem3D);
         configOrder.add(charcoalOnly);
         configOrder.add(soulSoilOnly);
         configOrder.add(automation);

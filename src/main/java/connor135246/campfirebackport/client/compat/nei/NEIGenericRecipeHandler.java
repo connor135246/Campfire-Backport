@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
+import connor135246.campfirebackport.client.rendering.RenderBlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
@@ -21,6 +21,7 @@ import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
@@ -76,19 +77,6 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
                 inputs = new ArrayList<PositionedStack>(numInputs);
                 inputRects = new Rectangle[numInputs];
             }
-        }
-
-        /**
-         * see {@link connor135246.campfirebackport.client.rendering.RenderCampfire#renderModelAt}
-         */
-        public @Nullable String getTypeStringForRender()
-        {
-            if (types == EnumCampfireType.BOTH)
-                return null;
-            else if (types == EnumCampfireType.SOUL_ONLY)
-                return EnumCampfireType.soul;
-            else
-                return EnumCampfireType.regular;
         }
 
     }
@@ -287,6 +275,23 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         GuiDraw.drawRect(x + 8 - 16 / 2, y + 8 - 16 / 2, 16, 16, 0xff8b8b8b);
         GuiDraw.drawRect(x + 8 - 16 / 2, y + 8 + 16 / 2, 16 + 1, 1, 0xffffffff);
         GuiDraw.drawRect(x + 8 + 16 / 2, y + 8 - 16 / 2, 1, 16, 0xffffffff);
+    }
+
+    /**
+     * Renders a campfire.
+     */
+    public static void renderCampfire(EnumCampfireType type, boolean lit)
+    {
+        RenderBlocks renderer = RenderBlocks.getInstance();
+        renderer.clearOverrideBlockTexture();
+        renderer.setRenderFromInside(false);
+        renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
+        renderer.uvRotateBottom = renderer.uvRotateTop = renderer.uvRotateEast = renderer.uvRotateWest = renderer.uvRotateSouth = renderer.uvRotateNorth = 0;
+        renderer.flipTexture = false;
+        renderer.lockBlockBounds = false;
+        renderer.renderAllFaces = false;
+        renderer.useInventoryTint = true;
+        RenderBlockCampfire.renderCampfire(null, CampfireBackportBlocks.getBlockFromLitAndType(lit, type), 2, renderer, true, type == EnumCampfireType.BOTH, true);
     }
 
 }

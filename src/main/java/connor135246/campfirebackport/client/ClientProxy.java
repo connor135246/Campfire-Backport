@@ -3,13 +3,16 @@ package connor135246.campfirebackport.client;
 import java.util.Random;
 
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX;
-import connor135246.campfirebackport.client.rendering.RenderCampfire;
+import connor135246.campfirebackport.client.rendering.RenderBlockCampfire;
+import connor135246.campfirebackport.client.rendering.RenderTileEntityCampfire;
 import connor135246.campfirebackport.client.rendering.RenderItemBlockCampfire;
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -29,10 +32,13 @@ public class ClientProxy extends CommonProxy
     {
         super.init(event);
 
-        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCampfire.class, RenderCampfire.INSTANCE);
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityCampfire.class, RenderTileEntityCampfire.INSTANCE);
 
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.campfire), RenderItemBlockCampfire.INSTANCE);
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire), RenderItemBlockCampfire.INSTANCE);
+
+        BlockCampfire.renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(RenderBlockCampfire.INSTANCE);
     }
 
     @Override
@@ -61,14 +67,14 @@ public class ClientProxy extends CommonProxy
     @Override
     public void generateSmokeOverItems(World world, int x, int y, int z, int meta, ItemStack[] items)
     {
-        int[] iro = RenderCampfire.getRenderSlotMappingFromMeta(meta);
+        int[] iro = RenderTileEntityCampfire.getRenderSlotMappingFromMeta(meta);
         for (int slot = 0; slot < items.length; ++slot)
         {
             if (items[slot] != null)
             {
                 if (RAND.nextFloat() < 0.2F)
                 {
-                    double[] position = RenderCampfire.getRenderPositionFromRenderSlot(iro[slot], true);
+                    double[] position = RenderTileEntityCampfire.getRenderPositionFromRenderSlot(iro[slot], true);
                     world.spawnParticle("smoke", x + position[0], y + position[1], z + position[2], 0.0, 0.0005, 0.0);
                 }
             }

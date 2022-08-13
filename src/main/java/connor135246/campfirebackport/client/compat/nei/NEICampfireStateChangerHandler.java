@@ -13,7 +13,6 @@ import com.google.common.collect.Lists;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
-import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
@@ -335,12 +334,14 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         if (cachedCstate != null && cachedCstate.types != EnumCampfireType.NEITHER)
         {
+            GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
+
             GL11.glTranslatef(12, 32, 100);
             GL11.glRotatef(-30, 1, 0, 0);
             GL11.glRotatef(45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderModelAt(cachedCstate.extinguisher, cachedCstate.getTypeStringForRender(), cycleticks);
+            renderCampfire(cachedCstate.types, cachedCstate.extinguisher);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
@@ -351,13 +352,11 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GL11.glRotatef(-45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderModelAt(!cachedCstate.extinguisher, cachedCstate.getTypeStringForRender(), cycleticks);
+            renderCampfire(cachedCstate.types, !cachedCstate.extinguisher);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1);
-
-            GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
 
             // this is a real mess...
             GL11.glTranslatef(9, 21, -20);
