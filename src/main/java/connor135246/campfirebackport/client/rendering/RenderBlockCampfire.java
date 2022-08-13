@@ -95,8 +95,8 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         {
             colorYNeg = 0.5F;
             colorYPos = 1.0F;
-            colorZ = northSouth ? 0.6F : 0.8F; // TODO
-            colorX = northSouth ? 0.8F : 0.6F;
+            colorZ = 0.8F;
+            colorX = 0.6F;
         }
 
         if (doDraw)
