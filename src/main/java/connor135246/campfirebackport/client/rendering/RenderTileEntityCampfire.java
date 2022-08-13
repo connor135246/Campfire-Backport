@@ -1,14 +1,8 @@
 package connor135246.campfirebackport.client.rendering;
 
-import javax.annotation.Nullable;
-
 import org.lwjgl.opengl.GL11;
 
-import connor135246.campfirebackport.client.models.ModelFire;
-import connor135246.campfirebackport.client.models.ModelLogs;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
-import connor135246.campfirebackport.util.EnumCampfireType;
-import connor135246.campfirebackport.util.Reference;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.entity.RenderItem;
@@ -19,83 +13,29 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
 
-public class RenderCampfire extends TileEntitySpecialRenderer
+/**
+ * Renders the campfire tile's items.
+ */
+public class RenderTileEntityCampfire extends TileEntitySpecialRenderer
 {
 
-    public static final RenderCampfire INSTANCE = new RenderCampfire();
-
-    public static final ResourceLocation BASE_LOGS = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/campfire_base_logs.png");
-    public static final int LOGS_TEXTURE_COUNT = 16;
-    public static final ResourceLocation[] REGULAR_LOGS = new ResourceLocation[LOGS_TEXTURE_COUNT];
-    public static final ResourceLocation[] SOUL_LOGS = new ResourceLocation[LOGS_TEXTURE_COUNT];
-    public static final int FIRE_TEXTURE_COUNT = 8;
-    public static final ResourceLocation[] REGULAR_FIRE = new ResourceLocation[FIRE_TEXTURE_COUNT];
-    public static final ResourceLocation[] SOUL_FIRE = new ResourceLocation[FIRE_TEXTURE_COUNT];
-    /** mixed fire textures are half regular, half soul. for representing recipes that work with both campfires in NEI. */
-    public static final ResourceLocation[] MIXED_FIRE = new ResourceLocation[FIRE_TEXTURE_COUNT];
-    static
-    {
-        for (int i = 0; i < LOGS_TEXTURE_COUNT; ++i)
-        {
-            REGULAR_LOGS[i] = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/campfire_logs" + i + ".png");
-            SOUL_LOGS[i] = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/soul_campfire_logs" + i + ".png");
-        }
-
-        for (int i = 0; i < FIRE_TEXTURE_COUNT; ++i)
-        {
-            REGULAR_FIRE[i] = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/campfire_fire" + i + ".png");
-            SOUL_FIRE[i] = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/soul_campfire_fire" + i + ".png");
-            MIXED_FIRE[i] = new ResourceLocation(Reference.MODID + ":" + "textures/entity/campfire/mixed_campfire_fire" + i + ".png");
-        }
-    }
-
-    protected ModelLogs logs;
-    protected ModelFire fire;
-    protected EntityItem invRender[] = new EntityItem[4];
+    public static final RenderTileEntityCampfire INSTANCE = new RenderTileEntityCampfire();
 
     // https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/mapping-and-modding-tutorials/1571543-forge-rendering-an-item-on-your-block
     // thanks
 
-    public RenderCampfire()
-    {
-        logs = new ModelLogs();
-        fire = new ModelFire();
-    }
+    protected EntityItem invRender[] = new EntityItem[4];
 
     @Override
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float scale)
     {
-        TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-        boolean lit = false;
-        String type = EnumCampfireType.regular;
-        int meta = 2;
-        int animTimer = 0;
-        boolean renderItems = false;
-
-        if (ctile.hasWorldObj())
+        if (tile instanceof TileEntityCampfire && tile.hasWorldObj())
         {
-            lit = ctile.isLit();
-            type = ctile.getType();
-            meta = ctile.getBlockMetadata();
-            animTimer = ctile.getAnimTimer();
-            renderItems = true;
-        }
+            TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-        GL11.glPushMatrix();
-
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glDisable(GL11.GL_BLEND);
-
-        renderModelAt(lit, type, animTimer, x, y, z, meta);
-
-        GL11.glPopMatrix();
-
-        if (renderItems)
-        {
-            int[] iro = getRenderSlotMappingFromMeta(meta);
+            int[] iro = getRenderSlotMappingFromMeta(ctile.getBlockMetadata());
 
             for (int slot = 0; slot < ctile.getSizeInventory(); ++slot)
             {
@@ -153,74 +93,6 @@ public class RenderCampfire extends TileEntitySpecialRenderer
                 }
             }
         }
-    }
-
-    /**
-     * Renders the campfire model! If type is null, renders lit campfires with regular logs and {@link #MIXED_FIRE}.
-     */
-    public void renderModelAt(boolean lit, @Nullable String type, int animTimer, double x, double y, double z, int meta)
-    {
-        GL11.glTranslated(x + 0.5, y + 1.5, z + 0.5);
-        GL11.glRotatef(180, 0, 0, 1);
-
-        switch (meta)
-        {
-        case 5:
-            GL11.glRotatef(90, 0, 1, 0);
-            break;
-        case 3:
-            GL11.glRotatef(180, 0, 1, 0);
-            break;
-        case 4:
-            GL11.glRotatef(270, 0, 1, 0);
-            break;
-        }
-
-        if (lit)
-        {
-            if (type == null)
-            {
-                bindTexture(getLogTexture(animTimer, EnumCampfireType.regular));
-                logs.renderSimple();
-                bindTexture(getMixedFireTexture(animTimer));
-                fire.renderSimple();
-            }
-            else
-            {
-                bindTexture(getLogTexture(animTimer, type));
-                logs.renderSimple();
-                bindTexture(getFireTexture(animTimer, type));
-                fire.renderSimple();
-            }
-        }
-        else
-        {
-            bindTexture(BASE_LOGS);
-            logs.renderSimple();
-        }
-    }
-
-    /**
-     * shortcut for {@link #renderModelAt(boolean, String, int, double, double, double, int)} with a bunch of zeroes
-     */
-    public void renderModelAt(boolean lit, @Nullable String type, int animTimer)
-    {
-        renderModelAt(lit, type, animTimer, 0, 0, 0, 0);
-    }
-
-    public static ResourceLocation getLogTexture(int animTimer, String type)
-    {
-        return EnumCampfireType.option(type, REGULAR_LOGS, SOUL_LOGS)[Math.abs(animTimer % (LOGS_TEXTURE_COUNT * 2)) / 2];
-    }
-
-    public static ResourceLocation getFireTexture(int animTimer, String type)
-    {
-        return EnumCampfireType.option(type, REGULAR_FIRE, SOUL_FIRE)[Math.abs(animTimer % (FIRE_TEXTURE_COUNT * 2)) / 2];
-    }
-
-    public static ResourceLocation getMixedFireTexture(int animTimer)
-    {
-        return MIXED_FIRE[Math.abs(animTimer % (FIRE_TEXTURE_COUNT * 2)) / 2];
     }
 
     // Rendering Positions

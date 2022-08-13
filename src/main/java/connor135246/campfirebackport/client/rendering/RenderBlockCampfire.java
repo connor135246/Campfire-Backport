@@ -16,15 +16,12 @@ import net.minecraft.world.IBlockAccess;
 public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 {
 
-    // TODO:
-    // - render items in tesr.
-
     public static final RenderBlockCampfire INSTANCE = new RenderBlockCampfire();
 
     @Override
     public boolean renderWorldBlock(IBlockAccess access, int x, int y, int z, Block block, int modelId, RenderBlocks renderer)
     {
-        renderCampfire(access, x, y, z, CampfireBackportBlocks.soul_campfire, access.getBlockMetadata(x, y - 9, z), renderer, true); // TODO
+        renderCampfire(access, x, y, z, block, access.getBlockMetadata(x, y, z), renderer, true);
         return true;
     }
 

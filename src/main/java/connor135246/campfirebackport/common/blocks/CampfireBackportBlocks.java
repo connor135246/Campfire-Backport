@@ -10,7 +10,6 @@ import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 
 public class CampfireBackportBlocks
 {
@@ -31,8 +30,6 @@ public class CampfireBackportBlocks
         LIST_OF_CAMPFIRES.forEach(cblock -> {
             GameRegistry.registerBlock(cblock, ItemBlockCampfire.class, cblock.getUnlocalizedName().substring(5));
         });
-        
-        GameRegistry.registerBlock(new BlockC(Material.wood).setBlockName("campfire_log").setBlockTextureName(Reference.MODID + ":" + "campfire_log"), "campfire_log");
     }
 
     /**

@@ -5,6 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
@@ -465,14 +466,14 @@ public class BlockCampfire extends BlockContainer
     }
 
     /**
-     * The lit log icon is registered from {@link connor135246.campfirebackport.util.CampfireBackportEventHandler#onTextureStitchPre}.
+     * The lit log icon is an {@link InterpolatedIcon}. It's registered from {@link connor135246.campfirebackport.util.CampfireBackportEventHandler#onTextureStitchPre}.
      */
     @SideOnly(Side.CLIENT)
     public void setLitLogIcon(IIcon litLog)
     {
         this.litLog = litLog;
     }
-    
+
     /**
      * if meta is -2, returns the lit log icon. if meta is -3, return the fire icon. otherwise, returns the normal icon.
      */
@@ -637,7 +638,7 @@ public class BlockCampfire extends BlockContainer
     @Override
     public int getRenderType()
     {
-        return -1; // TODO renderId;
+        return renderId;
     }
 
     // Getters

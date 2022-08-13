@@ -10,7 +10,6 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
-import connor135246.campfirebackport.client.rendering.RenderCampfire;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -237,7 +236,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
             GL11.glRotatef(45, 0, 1, 0);
             GL11.glScalef(30, -30, 30);
 
-            RenderCampfire.INSTANCE.renderModelAt(true, cachedCrecipe.getTypeStringForRender(), cycleticks);
+            renderCampfire(cachedCrecipe.types, true);
         }
 
         GL11.glPopMatrix();
