@@ -212,7 +212,7 @@ public class ItemBlockCampfire extends ItemBlock
             if (itemList.tagCount() != 0)
             {
                 for (int i = 0; i < itemList.tagCount(); ++i)
-                    list.add(ItemStack.loadItemStackFromNBT(itemList.getCompoundTagAt(i)).getDisplayName());
+                    list.add("-" + ItemStack.loadItemStackFromNBT(itemList.getCompoundTagAt(i)).getDisplayName());
             }
         }
 

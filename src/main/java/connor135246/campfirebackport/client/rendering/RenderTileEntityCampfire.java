@@ -12,7 +12,6 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.MathHelper;
 
 /**
  * Renders the campfire tile's items.
@@ -30,7 +29,6 @@ public class RenderTileEntityCampfire extends TileEntitySpecialRenderer
     @Override
     public void renderTileEntityAt(TileEntity tile, double x, double y, double z, float scale)
     {
-
         if (tile instanceof TileEntityCampfire && tile.hasWorldObj())
         {
             TileEntityCampfire ctile = (TileEntityCampfire) tile;
@@ -156,7 +154,7 @@ public class RenderTileEntityCampfire extends TileEntitySpecialRenderer
      */
     public static double[] getRenderPositionFromRenderSlot(int renderslot, boolean smoke)
     {
-        return (smoke ? RENDER_POSITION_SMOKE : RENDER_POSITION_ITEM)[MathHelper.clamp_int(renderslot, 0, 3)];
+        return (smoke ? RENDER_POSITION_SMOKE : RENDER_POSITION_ITEM)[Math.abs(renderslot) % 4];
     }
 
 }

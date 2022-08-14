@@ -76,9 +76,14 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                     int cookTime = ctile.getCookingTimeInSlot(slot);
                     int cookTotalTime = ctile.getCookingTotalTimeInSlot(slot);
 
-                    int percentCooked = Math.min(Math.round((((float) cookTime) / ((float) cookTotalTime)) * 100F), 100);
-                    tooltip.add("-" + stack.getDisplayName() + " (" + (cookTime > cookTotalTime ? EnumChatFormatting.ITALIC : "")
-                            + percentCooked + "%" + EnumChatFormatting.RESET + ")");
+                    String tip = "-" + stack.getDisplayName() + " (";
+
+                    if (cookTime >= cookTotalTime)
+                        tip += EnumChatFormatting.ITALIC + "100%" + EnumChatFormatting.RESET;
+                    else
+                        tip += Math.min(Math.round((((float) cookTime) / ((float) cookTotalTime)) * 100F), 99) + "%";
+
+                    tooltip.add(tip + ")");
                 }
             }
 

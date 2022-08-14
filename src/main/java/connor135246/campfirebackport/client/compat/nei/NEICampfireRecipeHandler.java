@@ -61,7 +61,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
             if (crecipe.hasByproduct())
             {
-                byproductChance = crecipe.getByproductChance() * 100;
+                byproductChance = crecipe.getByproductChance();
                 if (byproductChance > 0)
                     byproduct = new PositionedStack(crecipe.getByproduct(), 138, 23, false);
             }
@@ -153,11 +153,11 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
             tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC
                     + StringParsers.translateNEI(cachedCrecipe.signalFire == 1 ? "onlysignal" : "notsignal"));
         }
-        else if (!tooltip.isEmpty() && cachedCrecipe.byproduct != null && byproductRect.contains(relMouse) && cachedCrecipe.byproductChance < 100)
+        else if (!tooltip.isEmpty() && cachedCrecipe.byproduct != null && byproductRect.contains(relMouse) && cachedCrecipe.byproductChance < 1.0D)
         {
             tooltip.add("");
             tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("chance") + " "
-                    + Math.round(cachedCrecipe.byproductChance * 100) / 100.0D + "%");
+                    + Math.min(Math.round(cachedCrecipe.byproductChance * 1000), 999) / 10.0D + "%");
         }
         else
             return true;
