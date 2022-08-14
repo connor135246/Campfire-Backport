@@ -984,7 +984,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (stack != null && stack.stackSize > 0)
         {
-            EntityItem entityitem = new EntityItem(world, x + RAND.nextDouble() * 0.75 + 0.125, y + RAND.nextDouble() * 0.75 + 0.5,
+            EntityItem entityitem = new EntityItem(world, x + RAND.nextDouble() * 0.75 + 0.125, y + RAND.nextDouble() * 0.375 + 0.5,
                     z + RAND.nextDouble() * 0.75 + 0.125, stack);
 
             entityitem.motionX = RAND.nextGaussian() * 0.05;
