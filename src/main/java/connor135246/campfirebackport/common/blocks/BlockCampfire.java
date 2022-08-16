@@ -343,7 +343,7 @@ public class BlockCampfire extends BlockContainer
     }
 
     /**
-     * Attempts to either extinguish, ignite, or reignite the campfire. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     * Attempts to either extinguish, ignite, or reignite the campfire. See {@link #updateCampfireBlockState(int, EntityPlayer, TileEntityCampfire)}.
      * 
      * @param extinguisher
      *            - if true, will try to extinguish the campfire. if false, will try to either ignite or reignite the campfire.
@@ -354,7 +354,7 @@ public class BlockCampfire extends BlockContainer
     }
 
     /**
-     * Attempts to ignite or reignite the campfire at the position. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     * Attempts to ignite or reignite the campfire at the position. See {@link #updateCampfireBlockState(int, EntityPlayer, TileEntityCampfire)}.
      */
     public static int igniteOrReigniteCampfire(@Nullable EntityPlayer player, World world, int x, int y, int z)
     {
@@ -371,7 +371,7 @@ public class BlockCampfire extends BlockContainer
     }
 
     /**
-     * Attempts to extinguish the campfire at the position. See {@link #updateCampfireBlockState(StateChange, EntityPlayer, TileEntityCampfire)}.
+     * Attempts to extinguish the campfire at the position. See {@link #updateCampfireBlockState(int, EntityPlayer, TileEntityCampfire)}.
      */
     public static int extinguishCampfire(@Nullable EntityPlayer player, World world, int x, int y, int z)
     {

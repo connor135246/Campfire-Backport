@@ -52,6 +52,8 @@ public abstract class GenericRecipe
 
             CustomInput cinput = getInputs()[cinputIndex];
 
+            // yes we do apply crafttweaker transforms BEFORE running {@link #use(CustomInput, ItemStack, EntityPlayer)}.
+            // that's how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it.
             if (cinput.isIIngredientInput())
                 stack = ((ICraftTweakerIngredient) cinput.getInput()).applyTransform(stack, player);
             else if (cinput.hasExtraData() && cinput.getDataType() == 3)
@@ -91,7 +93,7 @@ public abstract class GenericRecipe
                     ForgeEventFactory.onPlayerDestroyItem(player, containerStack);
                 else if (!MiscUtil.putStackInExistingSlots(player.inventory, containerStack, true))
                 {
-                    // an odd thing we have to do, but ultimately this simulates how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it
+                    // it looks odd to copy the stack here, but ultimately this simulates how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it.
                     if (use(cinput, stack.copy(), player).stackSize <= 0)
                         return containerStack;
                     else if (!player.inventory.addItemStackToInventory(containerStack))
