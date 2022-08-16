@@ -23,7 +23,6 @@ import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -337,31 +336,24 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
 
             GL11.glTranslatef(12, 32, 100);
-            GL11.glRotatef(-30, 1, 0, 0);
-            GL11.glRotatef(45, 0, 1, 0);
-            GL11.glScalef(30, -30, 30);
 
-            renderCampfire(cachedCstate.types, cachedCstate.extinguisher);
+            renderCampfire(cachedCstate.types, cachedCstate.extinguisher, 2);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1);
 
-            GL11.glTranslatef(130.5F, 21.5F, 100);
-            GL11.glRotatef(-30, 1, 0, 0);
-            GL11.glRotatef(-45, 0, 1, 0);
-            GL11.glScalef(30, -30, 30);
+            GL11.glTranslatef(110, 32, 100);
 
-            renderCampfire(cachedCstate.types, !cachedCstate.extinguisher);
+            renderCampfire(cachedCstate.types, !cachedCstate.extinguisher, 4);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1);
 
             // this is a real mess...
-            GL11.glTranslatef(9, 21, -20);
-            GL11.glScalef(3, 3, 3);
-            RenderItem.getInstance().renderItemIntoGUI(fonty, rendy, grassStack, 0, 0);
+            GL11.glTranslatef(12, 58, 0);
+            renderBlock(Blocks.grass);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
@@ -387,9 +379,8 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GL11.glPushMatrix();
 
             GL11.glColor4f(1, 1, 1, 1);
-            GL11.glTranslatef(106.5F, 21F, -20);
-            GL11.glScalef(3, 3, 3);
-            RenderItem.getInstance().renderItemIntoGUI(fonty, rendy, grassStack, 0, 0);
+            GL11.glTranslatef(109.5F, 58, -6);
+            renderBlock(Blocks.grass);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();

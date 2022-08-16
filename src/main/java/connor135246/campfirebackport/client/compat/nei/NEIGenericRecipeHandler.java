@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.lwjgl.opengl.GL11;
+
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
@@ -19,13 +21,15 @@ import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
+import connor135246.campfirebackport.util.SingleBlockAccess;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.oredict.OreDictionary;
 
 public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
@@ -33,14 +37,9 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     // thanks to immersive engineering for uhh... having a github. :)
 
     public static final FontRenderer fonty = Minecraft.getMinecraft().fontRenderer;
-    public static final TextureManager rendy = Minecraft.getMinecraft().renderEngine;
 
     public static final String basicBackground = "minecraft:textures/gui/container/furnace.png",
             neiBackground = Reference.MODID + ":" + "textures/gui/neiElements.png";
-
-    public static final ItemStack hayStack = new ItemStack(Blocks.hay_block),
-            stoneStack = new ItemStack(Blocks.stone),
-            grassStack = new ItemStack(Blocks.grass);
 
     public abstract class CachedGenericRecipe extends CachedRecipe
     {
@@ -119,9 +118,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
         if (cachedGrecipe != null && cachedGrecipe.types != EnumCampfireType.NEITHER)
         {
-            Point mouse = GuiDraw.getMousePosition();
-            Point offset = gui.getRecipePosition(recipe);
-            Point relMouse = new Point(mouse.x - (gui.width - 176) / 2 - offset.x, mouse.y - (gui.height - 166) / 2 - offset.y);
+            Point relMouse = getRelMouse(gui, recipe);
 
             if (handleMiscTooltipFromMousePosition(relMouse, cachedGrecipe, stack, tooltip))
                 handleInputTooltipFromMousePosition(relMouse, cachedGrecipe, stack, tooltip);
@@ -266,6 +263,16 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     }
 
     /**
+     * Gets mouse position in the gui relative to the recipe.
+     */
+    public static Point getRelMouse(GuiRecipe gui, int recipe)
+    {
+        Point mouse = GuiDraw.getMousePosition();
+        Point offset = gui.getRecipePosition(recipe);
+        return new Point(mouse.x - (gui.width - 176) / 2 - offset.x, mouse.y - (gui.height - 166) / 2 - offset.y);
+    }
+
+    /**
      * Draws an inventory slot at x, y.
      */
     public static void drawSlot(int x, int y)
@@ -278,20 +285,56 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     }
 
     /**
-     * Renders a campfire.
+     * Gets the RenderBlocks instance and resets everything about it.
      */
-    public static void renderCampfire(EnumCampfireType type, boolean lit)
+    public static RenderBlocks getRenderBlocks()
     {
         RenderBlocks renderer = RenderBlocks.getInstance();
         renderer.clearOverrideBlockTexture();
         renderer.setRenderFromInside(false);
         renderer.setRenderBounds(0, 0, 0, 1, 1, 1);
         renderer.uvRotateBottom = renderer.uvRotateTop = renderer.uvRotateEast = renderer.uvRotateWest = renderer.uvRotateSouth = renderer.uvRotateNorth = 0;
+        renderer.field_152631_f = false;
         renderer.flipTexture = false;
         renderer.lockBlockBounds = false;
         renderer.renderAllFaces = false;
         renderer.useInventoryTint = true;
-        RenderBlockCampfire.renderCampfire(null, CampfireBackportBlocks.getBlockFromLitAndType(lit, type), 2, renderer, true, type == EnumCampfireType.BOTH, true);
+        return renderer;
+    }
+
+    /**
+     * Renders a campfire.
+     */
+    public static void renderCampfire(EnumCampfireType type, boolean lit, int meta)
+    {
+        GL11.glRotatef(-30, 1, 0, 0);
+        GL11.glRotatef(45, 0, 1, 0);
+        GL11.glScalef(30, -30, 30);
+
+        RenderBlockCampfire.renderCampfire(null, CampfireBackportBlocks.getBlockFromLitAndType(lit, type), meta, getRenderBlocks(),
+                true, type == EnumCampfireType.BOTH, false);
+    }
+
+    /**
+     * Renders a block.
+     */
+    public static void renderBlock(Block block)
+    {
+        GL11.glRotatef(-30, 1, 0, 0);
+        GL11.glRotatef(45, 0, 1, 0);
+        GL11.glScalef(30, -30, 30);
+
+        RenderBlocks renderer = getRenderBlocks();
+        Tessellator tess = Tessellator.instance;
+
+        IBlockAccess access = renderer.blockAccess;
+        renderer.blockAccess = SingleBlockAccess.getSingleBlockAccess(block);
+
+        tess.startDrawingQuads();
+        renderer.renderBlockByRenderType(block, 0, 0, 0);
+        tess.draw();
+
+        renderer.blockAccess = access;
     }
 
 }

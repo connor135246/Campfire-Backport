@@ -15,8 +15,8 @@ import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -201,10 +201,9 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
             GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
 
             // this is a real mess...
-            GL11.glTranslatef(58, 27, -20);
-            GL11.glScalef(3, 3, 3);
-            RenderItem.getInstance().renderItemIntoGUI(fonty, rendy,
-                    cachedCrecipe.signalFire == 0 ? grassStack : (cachedCrecipe.signalFire == 1 ? hayStack : stoneStack), 0, 0);
+            GL11.glTranslatef(61, 64, 0);
+
+            renderBlock(cachedCrecipe.signalFire == 0 ? Blocks.grass : (cachedCrecipe.signalFire == 1 ? Blocks.hay_block : Blocks.stone));
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
@@ -232,11 +231,8 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
             GL11.glColor4f(1, 1, 1, 1);
 
             GL11.glTranslatef(61, 38, 100);
-            GL11.glRotatef(-30, 1, 0, 0);
-            GL11.glRotatef(45, 0, 1, 0);
-            GL11.glScalef(30, -30, 30);
 
-            renderCampfire(cachedCrecipe.types, true);
+            renderCampfire(cachedCrecipe.types, true, 2);
         }
 
         GL11.glPopMatrix();
