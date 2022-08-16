@@ -4,9 +4,10 @@ import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigS
 import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
-import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.blocks.BlockCampfire.CampfireStateChangeEvent;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
+import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigNetworkManager;
@@ -22,6 +23,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
@@ -34,7 +36,8 @@ public class CampfireBackportEventHandler
 {
 
     /**
-     * Registers the lit log textures, which use 1.8's interpolated icons.
+     * Registers the lit log textures, which use 1.8's interpolated icons. <br>
+     * Registers the item textures, no matter which sprite sheet the item says it should be on.
      */
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
@@ -57,6 +60,13 @@ public class CampfireBackportEventHandler
                 ((BlockCampfire) CampfireBackportBlocks.soul_campfire).setLitLogIcon(soulLitLog);
                 ((BlockCampfire) CampfireBackportBlocks.soul_campfire_base).setLitLogIcon(soulLitLog);
             }
+        }
+        else if (event.map.getTextureType() == 1)
+        {
+            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.campfire)).registerIconsEvent(event.map);
+            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.campfire_base)).registerIconsEvent(event.map);
+            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire)).registerIconsEvent(event.map);
+            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire_base)).registerIconsEvent(event.map);
         }
     }
 

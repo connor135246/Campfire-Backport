@@ -258,9 +258,23 @@ public class ItemBlockCampfire extends ItemBlock
         return CampfireBackportConfig.renderItem3D ? 0 : 1;
     }
 
+    /**
+     * See {@link #registerIconsEvent}
+     */
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister iconreg)
+    {
+        // nothing!
+    }
+
+    /**
+     * {@link #getSpriteNumber()} should be 1 in order to register the item icons. <br>
+     * However, {@link #getSpriteNumber()} has to be either 0 or 1 depending on {@link CampfireBackportConfig#renderItem3D}. <br>
+     * So instead the item icons are registered from {@link connor135246.campfirebackport.util.CampfireBackportEventHandler#onTextureStitchPre}.
+     */
+    @SideOnly(Side.CLIENT)
+    public void registerIconsEvent(IIconRegister iconreg)
     {
         if (EnumCampfireType.isRegular(getType()))
         {
