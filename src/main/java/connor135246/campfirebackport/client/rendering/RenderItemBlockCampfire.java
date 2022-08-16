@@ -58,7 +58,8 @@ public class RenderItemBlockCampfire implements IItemRenderer
 
         if (type == ItemRenderType.ENTITY)
         {
-            GL11.glTranslatef(-0.5F, -0.25F, 0.0F);
+            GL11.glScalef(1.025641F, 1.025641F, 1.025641F);
+            GL11.glTranslatef(-0.5F, -0.3F, 0.0203125F);
             GL11.glDisable(GL11.GL_CULL_FACE);
             GL11.glTranslatef(1.0F, 0.0F, 0.0F);
             GL11.glScalef(-1.0F, 1.0F, 1.0F);
