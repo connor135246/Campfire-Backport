@@ -13,6 +13,9 @@ import com.google.common.collect.Lists;
 import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.recipe.GuiUsageRecipe;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
@@ -62,6 +65,9 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         /** string id for non-recipe state changers */
         public String specialID = null;
 
+        /** if true, clicking on the input sends you to {@link NEISignalFireBlocksHandler} */
+        public boolean sendsToSignalBlocks = false;
+
         public CachedCampfireStateChanger(CampfireStateChanger cstate)
         {
             super(cstate);
@@ -82,7 +88,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
          * constructor for non-recipe state changers
          */
         public CachedCampfireStateChanger(String specialID, EnumCampfireType type, boolean extinguisher, ArrayList<LinkedList<String>> tooltips,
-                List<ItemStack> inputStacks)
+                List<ItemStack> inputStacks, boolean sendsToSignalBlocks)
         {
             super(null);
 
@@ -97,6 +103,8 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             inputs = new ArrayList<PositionedStack>(1);
             inputs.add(new PositionedStack(inputStacks, 74, 17, false));
             inputRects = new Rectangle[] { new Rectangle(73, 16, 20, 20) };
+
+            this.sendsToSignalBlocks = sendsToSignalBlocks;
         }
 
         @Override
@@ -191,13 +199,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         if (regCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
-                                    extinguisher, createWandTooltips(extinguisher, regCost), wandList));
+                                    extinguisher, createWandTooltips(extinguisher, regCost), wandList, false));
                         }
 
                         if (!sameCosts && soulCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
-                                    extinguisher, createWandTooltips(extinguisher, soulCost), wandList));
+                                    extinguisher, createWandTooltips(extinguisher, soulCost), wandList, false));
                         }
                     }
                 }
@@ -289,18 +297,40 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             tooltipTicks.add(rain);
         }
 
-        if (!CampfireBackportConfig.signalFiresBurnOut.accepts(types))
+        boolean signalsLive = !CampfireBackportConfig.signalFiresBurnOut.accepts(types);
+        if (signalsLive)
         {
             String signal = EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("signals_live");
             tooltipReadable.add("");
             tooltipTicks.add("");
             tooltipReadable.add(signal);
             tooltipTicks.add(signal);
+
+            String seeSignals = StringParsers.translateNEI("see_signal_fire_blocks");
+            tooltipReadable.add(seeSignals);
+            tooltipTicks.add(seeSignals);
         }
 
         tooltips.add(tooltipReadable);
         tooltips.add(tooltipTicks);
-        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltips, Lists.newArrayList(new ItemStack(Items.written_book))));
+        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltips, Lists.newArrayList(new ItemStack(Items.written_book)), signalsLive));
+    }
+
+    @Override
+    public boolean mouseClicked(GuiRecipe gui, int button, int recipe)
+    {
+        boolean result = false;
+        CachedCampfireStateChanger cachedCstate = (CachedCampfireStateChanger) this.arecipes.get(recipe % arecipes.size());
+
+        if (cachedCstate.sendsToSignalBlocks && cachedCstate.inputRects[0].contains(getRelMouse(gui, recipe)))
+        {
+            if (button == 0)
+                result = GuiCraftingRecipe.openRecipeGui(NEISignalFireBlocksHandler.recipeID);
+            else if (button == 1)
+                result = GuiUsageRecipe.openRecipeGui(NEISignalFireBlocksHandler.recipeID);
+        }
+
+        return result || super.mouseClicked(gui, button, recipe);
     }
 
     @Override

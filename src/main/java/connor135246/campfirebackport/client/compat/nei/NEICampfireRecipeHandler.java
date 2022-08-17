@@ -10,6 +10,9 @@ import codechicken.lib.gui.GuiDraw;
 import codechicken.nei.NEIClientUtils;
 import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
+import codechicken.nei.recipe.GuiCraftingRecipe;
+import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.recipe.GuiUsageRecipe;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -145,6 +148,23 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
     }
 
     @Override
+    public boolean mouseClicked(GuiRecipe gui, int button, int recipe)
+    {
+        boolean result = false;
+        CachedCampfireRecipe cachedCstate = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
+
+        if (cachedCstate.signalFire != 0 && signalRect.contains(getRelMouse(gui, recipe)))
+        {
+            if (button == 0)
+                result = GuiCraftingRecipe.openRecipeGui(NEISignalFireBlocksHandler.recipeID);
+            else if (button == 1)
+                result = GuiUsageRecipe.openRecipeGui(NEISignalFireBlocksHandler.recipeID);
+        }
+
+        return result || super.mouseClicked(gui, button, recipe);
+    }
+
+    @Override
     public boolean handleMiscTooltipFromMousePosition(Point relMouse, CachedGenericRecipe cachedGrecipe, ItemStack stack, List<String> tooltip)
     {
         CachedCampfireRecipe cachedCrecipe = (CachedCampfireRecipe) cachedGrecipe;
@@ -152,6 +172,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
         {
             tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC
                     + StringParsers.translateNEI(cachedCrecipe.signalFire == 1 ? "onlysignal" : "notsignal"));
+            tooltip.add(StringParsers.translateNEI("see_signal_fire_blocks"));
         }
         else if (!tooltip.isEmpty() && cachedCrecipe.byproduct != null && byproductRect.contains(relMouse) && cachedCrecipe.byproductChance < 1.0D)
         {

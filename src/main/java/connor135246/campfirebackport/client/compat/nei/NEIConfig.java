@@ -14,12 +14,16 @@ public class NEIConfig implements IConfigureNEI
     {
         NEICampfireRecipeHandler crecipes = new NEICampfireRecipeHandler();
         NEICampfireStateChangerHandler cstates = new NEICampfireStateChangerHandler();
+        NEISignalFireBlocksHandler sblocks = new NEISignalFireBlocksHandler();
 
         API.registerRecipeHandler((ICraftingHandler) crecipes);
         API.registerUsageHandler((IUsageHandler) crecipes);
 
         API.registerRecipeHandler((ICraftingHandler) cstates);
         API.registerUsageHandler((IUsageHandler) cstates);
+
+        API.registerRecipeHandler((ICraftingHandler) sblocks);
+        API.registerUsageHandler((IUsageHandler) sblocks);
     }
 
     @Override

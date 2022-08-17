@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,7 +51,7 @@ public class CampfireBackportConfig
 
     public static boolean charcoalOnly;
     public static boolean soulSoilOnly;
-    
+
     public static boolean renderItem3D;
 
     public static EnumCampfireType regenCampfires;
@@ -116,8 +118,8 @@ public class CampfireBackportConfig
     public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
     public static Set<Integer> autoBlacklistOres = new HashSet<Integer>();
 
-    public static Map<Block, Set<Integer>> signalFireBlocks = new HashMap<Block, Set<Integer>>();
-    public static Set<Integer> signalFireOres = new HashSet<Integer>();
+    public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
+    public static Set<Integer> signalFireOres = new LinkedHashSet<Integer>();
 
     public static ItemStack[] campfireDropsStacks = new ItemStack[2];
 

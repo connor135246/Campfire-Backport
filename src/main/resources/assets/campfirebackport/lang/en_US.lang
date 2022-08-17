@@ -28,6 +28,7 @@ campfirebackport.compat.error=Error while initializing %s compatibility! Please 
 
 campfirebackport.nei.cooking_recipe=Campfire Cooking
 campfirebackport.nei.state_changer_recipe=Extinguishing/Igniting
+campfirebackport.nei.signal_fire_blocks=Signal Fire Blocks
 campfirebackport.nei.ore_input=Any %s
 campfirebackport.nei.tool_input=Any %s-type tool
 campfirebackport.nei.class_input=Any %s.class
@@ -59,6 +60,10 @@ campfirebackport.nei.rained_out=Burns out in rain
 campfirebackport.nei.signals_die=Signal fires burn out
 campfirebackport.nei.signals_live=Signal fires DON'T burn out
 campfirebackport.nei.vis_cost=Vis Cost:
+campfirebackport.nei.signal_fire_desc1=Place beneath a Campfire
+campfirebackport.nei.signal_fire_desc2=to make it a signal fire.
+campfirebackport.nei.see_signal_fire_blocks=Click to see signal fire blocks
+campfirebackport.nei.no_block_render=Unable to render the block!
 
 
 campfirebackport.waila.empty=Empty

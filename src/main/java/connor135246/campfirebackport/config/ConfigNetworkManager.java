@@ -18,7 +18,7 @@ public class ConfigNetworkManager
     private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "worksUnderwater",
             "signalFiresBurnOut", "burnOutAsItem", "colourfulSmoke", "spawnpointable", "burnOutOnRespawn" },
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
-            LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "campfireDropsStrings",
+            LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "signalFireStrings", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
             INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCosts" };
 
@@ -31,7 +31,7 @@ public class ConfigNetworkManager
         public EnumCampfireType autoRecipe, startUnlit, rememberState, silkNeeded, putOutByRain, worksUnderwater,
                 signalFiresBurnOut, burnOutAsItem, colourfulSmoke, spawnpointable, burnOutOnRespawn;
         public String recipeListInheritance, extinguishersListInheritance, ignitorsListInheritance;
-        public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, campfireDropsStrings,
+        public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, signalFireStrings, campfireDropsStrings,
                 dispenserBlacklistStrings, regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
         public int[] burnOutTimer, defaultCookingTimes;
         public double[] visCosts;
