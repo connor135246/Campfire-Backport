@@ -78,7 +78,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     // only used client side
     protected boolean rainAndSky = false;
-    protected int animTimer = RAND.nextInt(32);
 
     @Override
     public void updateEntity()
@@ -123,10 +122,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     rainAndSky = isBeingRainedOn();
 
                 addParticles();
-
-                // fixes the animation looking a little weird right when placed
-                if (!firstTick)
-                    incrementAnimTimer();
             }
         }
 
@@ -1030,25 +1025,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (isSlotNumber(slot))
             cookingTotalTimes[slot] = time;
-    }
-
-    // animTimer
-
-    public int getAnimTimer()
-    {
-        return animTimer;
-    }
-
-    public void setAnimTimer(int frame)
-    {
-        animTimer = frame;
-    }
-
-    public void incrementAnimTimer()
-    {
-        ++animTimer;
-        if (animTimer > 31)
-            animTimer = 0;
     }
 
     // burning out
