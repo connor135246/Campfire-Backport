@@ -55,10 +55,10 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
         public Block[] blocks;
         public int[] metas;
 
-        public List<PositionedStack> posStack;
+        public List<PositionedStack> posStack = new ArrayList<PositionedStack>();
 
         /** single-line tooltip for ore recipes */
-        public String tooltip;
+        public String tooltip = "";
 
         /** hides the inventory slot if the block doesn't have an item form */
         public boolean hideSlot = false;
@@ -75,8 +75,6 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
          */
         public CachedSignalFireBlocksRecipe(Block block)
         {
-            this.posStack = new ArrayList<PositionedStack>();
-
             List<ItemStack> stacks = new ArrayList<ItemStack>();
 
             Item item = block.getItem(Minecraft.getMinecraft().theWorld, 0, 0, 0);
@@ -88,7 +86,10 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 Arrays.fill(blocks, block);
                 this.metas = new int[stacks.size()];
                 for (int i = 0; i < stacks.size(); i++)
-                    this.metas[i] = stacks.get(i).getItemDamage();
+                {
+                    ItemStack stack = stacks.get(i);
+                    this.metas[i] = stack.getItem().getMetadata(stack.getItemDamage());
+                }
 
                 this.posStack.add(new PositionedStack(stacks, 75, 100, false));
             }
@@ -101,10 +102,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 this.metas = new int[] { 0 };
             }
 
-            this.blockToRender = block;
-            this.metaToRender = 0;
-
-            this.tooltip = "";
+            setBlockToRender(0);
         }
 
         /**
@@ -112,8 +110,6 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
          */
         public CachedSignalFireBlocksRecipe(Block block, int meta)
         {
-            this.posStack = new ArrayList<PositionedStack>();
-
             this.blocks = new Block[] { block };
             this.metas = new int[] { meta };
 
@@ -126,10 +122,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 this.hideSlot = true;
             }
 
-            this.blockToRender = block;
-            this.metaToRender = 0;
-
-            this.tooltip = "";
+            setBlockToRender(0);
         }
 
         /**
@@ -137,8 +130,6 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
          */
         public CachedSignalFireBlocksRecipe(List<ItemStack> stacks, String tooltip)
         {
-            this.posStack = new ArrayList<PositionedStack>();
-
             List<ItemStack> stacksFinal = new ArrayList<ItemStack>();
             List<Block> blocksList = new ArrayList<Block>();
             List<Integer> metasList = new ArrayList<Integer>();
@@ -153,14 +144,14 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                     for (ItemStack metaStack : metaStacks)
                     {
                         blocksList.add(block);
-                        metasList.add(metaStack.getItemDamage());
+                        metasList.add(metaStack.getItem().getMetadata(metaStack.getItemDamage()));
                         stacksFinal.add(metaStack);
                     }
                 }
                 else
                 {
                     blocksList.add(block);
-                    metasList.add(stack.getItemDamage());
+                    metasList.add(stack.getItem().getMetadata(stack.getItemDamage()));
                     stacksFinal.add(stack);
                 }
             }
@@ -170,8 +161,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             for (int i = 0; i < metasList.size(); i++)
                 this.metas[i] = metasList.get(i);
 
-            this.blockToRender = blocks[0];
-            this.metaToRender = metas[0];
+            setBlockToRender(0);
 
             this.posStack.add(new PositionedStack(stacksFinal, 75, 100, false));
 
@@ -194,11 +184,23 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
         @Override
         public void randomRenderPermutation(PositionedStack stack, long cycle)
         {
-            Random rand = new Random(cycle + offset);
-            int permutation = Math.abs(rand.nextInt()) % blocks.length;
-            stack.setPermutationToRender(permutation);
-            blockToRender = blocks[permutation];
-            metaToRender = metas[permutation];
+            Random rand = new Random(cycle + this.offset);
+            int permutation = Math.abs(rand.nextInt());
+            stack.setPermutationToRender(permutation % stack.items.length);
+            setBlockToRender(permutation);
+        }
+
+        public void setBlockToRender(int index)
+        {
+            if (blocks.length > 0)
+                blockToRender = blocks[index % blocks.length];
+            else
+                blockToRender = Blocks.air;
+
+            if (metas.length > 0)
+                metaToRender = metas[index % metas.length];
+            else
+                metaToRender = 0;
         }
 
     }
