@@ -166,6 +166,7 @@ campfirebackport.config.inputerror.invalid_class=  Class "%s" not found!
 campfirebackport.config.inputerror.invalid_ore=  Ore "%s" not found!
 campfirebackport.config.inputerror.invalid_item=  Item "%s" not found!
 campfirebackport.config.inputerror.invalid_block=  Block "%s" not found!
+campfirebackport.config.inputerror.invalid_block_meta=  Block metadata "%s" is invalid! It must be between 0 and 15!
 campfirebackport.config.inputerror.invalid_state_changer=    Campfire %1$s "%2$s" is invalid!
 campfirebackport.config.inputerror.invalid_recipe=    Campfire Recipe "%s" is invalid!
 campfirebackport.config.inputerror.invalid_auto_blacklist=    Auto Recipe Discovery Blacklist entry "%s" is invalid!

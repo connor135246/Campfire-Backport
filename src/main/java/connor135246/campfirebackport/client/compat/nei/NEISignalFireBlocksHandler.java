@@ -198,7 +198,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 blockToRender = Blocks.air;
 
             if (metas.length > 0)
-                metaToRender = metas[index % metas.length];
+                metaToRender = Math.abs(metas[index % metas.length]) % 16;
             else
                 metaToRender = 0;
         }

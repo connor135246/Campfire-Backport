@@ -484,16 +484,23 @@ public class CampfireBackportConfig
                     signalFireOres.add((Integer) output[0]);
                 else if (output[0] instanceof Block)
                 {
-                    if (!signalFireBlocks.containsKey((Block) output[0]))
-                        signalFireBlocks.put((Block) output[0], new HashSet<Integer>());
+                    Block block = (Block) output[0];
+                    if (!signalFireBlocks.containsKey(block))
+                        signalFireBlocks.put(block, new HashSet<Integer>());
 
-                    Set<Integer> metas = signalFireBlocks.get((Block) output[0]);
+                    Set<Integer> metas = signalFireBlocks.get(block);
 
                     if (!metas.contains(OreDictionary.WILDCARD_VALUE))
                     {
-                        if (((Integer) output[2]) == OreDictionary.WILDCARD_VALUE)
+                        int meta = (Integer) output[2];
+                        if (meta == OreDictionary.WILDCARD_VALUE)
                             metas.clear();
-                        metas.add((Integer) output[2]);
+                        else if (meta < 0 || meta > 15)
+                        {
+                            ConfigReference.logError("invalid_block_meta", meta);
+                            throw new Exception();
+                        }
+                        metas.add(meta);
                     }
                 }
                 else
