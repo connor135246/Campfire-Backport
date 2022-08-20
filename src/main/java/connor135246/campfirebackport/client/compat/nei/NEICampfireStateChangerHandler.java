@@ -339,14 +339,17 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         CachedCampfireStateChanger cachedCstate = (CachedCampfireStateChanger) cachedGrecipe;
         if (!tooltip.isEmpty() && cachedCstate.specialID != null && cachedCstate.specialID.equals("burnout") && cachedCstate.inputRects[0].contains(relMouse))
         {
-            tooltip.remove(0);
+            tooltip.clear();
             if (NEIClientUtils.shiftKey())
                 tooltip.addAll(cachedCstate.tooltips.get(1)); // ticks
             else
                 tooltip.addAll(cachedCstate.tooltips.get(0)); // human readable
         }
         else if (!tooltip.isEmpty() && cachedCstate.dispensable && dispenserRect.contains(relMouse))
-            tooltip.set(0, EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("dispensable"));
+        {
+            tooltip.clear();
+            tooltip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("dispensable"));
+        }
         else
             return true;
 
