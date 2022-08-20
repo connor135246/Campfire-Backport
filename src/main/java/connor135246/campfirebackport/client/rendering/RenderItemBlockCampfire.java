@@ -46,7 +46,7 @@ public class RenderItemBlockCampfire implements IItemRenderer
             float timePassed = Minecraft.getMinecraft().thePlayer.worldObj.getTotalWorldTime() - tilenbt.getLong(TileEntityCampfire.KEY_PreviousTimestamp);
             float starting = tilenbt.getInteger(TileEntityCampfire.KEY_StartingLife);
 
-            size = MathHelper.clamp_float(((life - timePassed) / starting), 0.0F, 1.0F) * 0.9F + 0.1F;
+            size = MathHelper.clamp_float(((life - timePassed) / starting), 0.0F, 1.0F) * 0.885F + 0.115F;
         }
 
         Tessellator tess = Tessellator.instance;
@@ -70,7 +70,7 @@ public class RenderItemBlockCampfire implements IItemRenderer
             ItemRenderer.renderItemIn2D(tess, baseIcon.getMaxU(), baseIcon.getMinV(), baseIcon.getMinU(), baseIcon.getMaxV(),
                     baseIcon.getIconWidth(), baseIcon.getIconHeight(), 0.0625F);
 
-            GL11.glTranslatef((1F - size) / 2F, (0.6F - size + 0.5F * size) / 2F, 0.001F);
+            GL11.glTranslatef((1F - size) / 2F, (0.6F - size + 0.4F * size) / 2F, 0.001F);
             GL11.glScalef(size, size, 1.02F);
 
             ItemRenderer.renderItemIn2D(tess, overlayIcon.getMaxU(), overlayIcon.getMinV(), overlayIcon.getMinU(), overlayIcon.getMaxV(),
@@ -87,8 +87,8 @@ public class RenderItemBlockCampfire implements IItemRenderer
             tess.addVertexWithUV(1.0D, 0.0D, 0.0D, (double) baseIcon.getMaxU(), (double) baseIcon.getMinV());
             tess.draw();
 
-            GL11.glTranslatef((1F - size) / 2F, (1.4F - size - 0.4F * size) / 2F, 0.01F);
-            GL11.glScalef(size, size, 1.0F);
+            GL11.glTranslatef((1F - size) / 2F, (1.4F - size - 0.4F * size) / 2F, 0.001F);
+            GL11.glScalef(size, size, 1.02F);
 
             tess.startDrawingQuads();
             tess.addVertexWithUV(0.0D, 0.0D, 0.0D, (double) overlayIcon.getMinU(), (double) overlayIcon.getMinV());
