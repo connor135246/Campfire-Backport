@@ -2,6 +2,7 @@ package connor135246.campfirebackport.client.particle;
 
 import org.lwjgl.opengl.GL11;
 
+import connor135246.campfirebackport.client.ClientProxy;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.eventhandler.Cancelable;
@@ -22,19 +23,25 @@ import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 public class EntityBigSmokeFX extends EntityFX
 {
 
-    /** there are 24 smoke textures. the first 12 are the normal ones, the next 12 are brighter copies that look better when coloured. */
+    /** there are 12 smoke textures. */
     public static final int TEXTURE_COUNT = 12;
-    public static final ResourceLocation TEXTURES = new ResourceLocation(Reference.MODID + ":" + "textures/particle/big_smokes.png");
+    public static final ResourceLocation[] TEXTURES = new ResourceLocation[TEXTURE_COUNT];
+    static
+    {
+        for (int i = 0; i < TEXTURE_COUNT; i++)
+            TEXTURES[i] = new ResourceLocation(Reference.MODID + ":" + "textures/particle/big_smoke_" + i + ".png");
+    }
 
     protected final int texIndex;
     protected boolean alphaFading = false;
     protected float alphaFadePerTick = -0.015F;
     protected boolean hasOxygen = true;
+    protected boolean isColored = false;
 
     /**
      * Posts a {@link EntityBigSmokeFXConstructingEvent}.
      */
-    public EntityBigSmokeFX(World world, double x, double y, double z, boolean signalFire, float[] colours)
+    public EntityBigSmokeFX(World world, int x, int y, int z, boolean signalFire, float[] colours)
     {
         super(world, x, y, z);
 
@@ -62,7 +69,7 @@ public class EntityBigSmokeFX extends EntityFX
         if (colours.length == 3)
             this.setRBGColorF(colours[0], colours[1], colours[2]);
 
-        EntityBigSmokeFXConstructingEvent constructing = new EntityBigSmokeFXConstructingEvent(this, (int) x, (int) y, (int) z);
+        EntityBigSmokeFXConstructingEvent constructing = new EntityBigSmokeFXConstructingEvent(this, x, y, z);
 
         MinecraftForge.EVENT_BUS.post(constructing);
 
@@ -85,8 +92,8 @@ public class EntityBigSmokeFX extends EntityFX
         this.alphaFadePerTick = constructing.alphaFadePerTick;
         this.particleMaxAge = constructing.particleMaxAge;
 
-        this.texIndex = rand.nextInt(TEXTURE_COUNT) + (this.particleRed != 1.0F || this.particleGreen != 1.0F || this.particleBlue != 1.0F ? TEXTURE_COUNT : 0);
-        this.setParticleTextureIndex(this.texIndex);
+        this.texIndex = rand.nextInt(TEXTURE_COUNT);
+        this.isColored = this.particleRed != 1.0F || this.particleGreen != 1.0F || this.particleBlue != 1.0F;
     }
 
     @Override
@@ -114,27 +121,33 @@ public class EntityBigSmokeFX extends EntityFX
         double minV = this.particleTextureIndexY * 0.125;
         double maxV = minV + 0.125;
 
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(particleRed, particleGreen, particleBlue, particleAlpha);
+        if (this.isColored)
+        {
+            // brightens colored campfire textures by 37/255 to make CampfireBackportConfig.colourfulSmoke a bit more vibrant
+            ClientProxy.enableGLSecondaryColor(37F / 255F, particleRed, particleGreen, particleBlue);
+        }
         GL11.glEnable(GL11.GL_BLEND);
-        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+        OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
         GL11.glDepthMask(true);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
         Minecraft.getMinecraft().entityRenderer.disableLightmap((double) partialTicks);
 
-        Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURES);
+        Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURES[this.texIndex % TEXTURES.length]);
 
         tess.startDrawingQuads();
 
-        tess.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-
-        tess.addVertexWithUV(partialPosX - rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ - rotZ * scale - rotXY * scale, maxU, maxV);
-        tess.addVertexWithUV(partialPosX - rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ - rotZ * scale + rotXY * scale, maxU, minV);
-        tess.addVertexWithUV(partialPosX + rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ + rotZ * scale + rotXY * scale, minU, minV);
-        tess.addVertexWithUV(partialPosX + rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ + rotZ * scale - rotXY * scale, minU, maxV);
+        tess.addVertexWithUV(partialPosX - rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ - rotZ * scale - rotXY * scale, 1, 1);
+        tess.addVertexWithUV(partialPosX - rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ - rotZ * scale + rotXY * scale, 1, 0);
+        tess.addVertexWithUV(partialPosX + rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ + rotZ * scale + rotXY * scale, 0, 0);
+        tess.addVertexWithUV(partialPosX + rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ + rotZ * scale - rotXY * scale, 0, 1);
 
         tess.draw();
 
+        if (this.isColored)
+            ClientProxy.disableGLSecondaryColor();
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glDepthMask(false);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
@@ -146,16 +159,6 @@ public class EntityBigSmokeFX extends EntityFX
     public int getFXLayer()
     {
         return 3;
-    }
-
-    @Override
-    public void setParticleTextureIndex(int texIndex)
-    {
-        boolean bright = texIndex >= TEXTURE_COUNT;
-        if (bright)
-            texIndex = texIndex % TEXTURE_COUNT;
-        this.particleTextureIndexX = texIndex / 8 + (bright ? 2 : 0);
-        this.particleTextureIndexY = texIndex % 8;
     }
 
     @Override
