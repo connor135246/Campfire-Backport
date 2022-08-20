@@ -51,10 +51,26 @@ public class ConfigReference
             defaultSoulDrop = new ItemStack(Blocks.soul_sand);
 
     // translating
-    public static final String regular = StatCollector.translateToLocal(Reference.MODID + ".reg"),
-            soul = StatCollector.translateToLocal(Reference.MODID + ".soul"),
-            extinguisher = StatCollector.translateToLocal(Reference.MODID + ".extinguisher"),
-            ignitor = StatCollector.translateToLocal(Reference.MODID + ".ignitor");
+
+    public static String regular()
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".reg");
+    }
+
+    public static String soul()
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".soul");
+    }
+
+    public static String extinguisher()
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".extinguisher");
+    }
+
+    public static String ignitor()
+    {
+        return StatCollector.translateToLocal(Reference.MODID + ".ignitor");
+    }
 
     /**
      * if input error suppression is off, translates the key/args using the "config.inputerror" prefix and logs it

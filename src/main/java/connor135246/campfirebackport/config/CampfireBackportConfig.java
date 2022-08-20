@@ -237,10 +237,10 @@ public class CampfireBackportConfig
                 StringParsers.itemMetaOrePat, "auto_blacklist");
 
         regularRecipeList = listFromConfig(ConfigReference.regularRecipeList, ConfigReference.defaultRecipeList,
-                StringParsers.recipePat, "recipes", ConfigReference.regular);
+                StringParsers.recipePat, "recipes", ConfigReference.regular());
 
         soulRecipeList = listFromConfig(ConfigReference.soulRecipeList, ConfigReference.empty,
-                StringParsers.recipePat, "recipes", ConfigReference.soul);
+                StringParsers.recipePat, "recipes", ConfigReference.soul());
 
         recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
 
@@ -297,7 +297,7 @@ public class CampfireBackportConfig
         // also, it would end up giving the player back 2 buckets with the new system. so we remove it here.
         Property regularExtinguishersListProperty = config.get(Configuration.CATEGORY_GENERAL,
                 ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
-                StringParsers.translateComment("state_changers", ConfigReference.extinguisher, ConfigReference.regular),
+                StringParsers.translateComment("state_changers", ConfigReference.extinguisher(), ConfigReference.regular()),
                 StringParsers.stateChangePat);
 
         regularExtinguishersList = ArrayUtils.removeElement(regularExtinguishersListProperty.getStringList(),
@@ -307,15 +307,15 @@ public class CampfireBackportConfig
         //
 
         soulExtinguishersList = listFromConfig(ConfigReference.soulExtinguishersList, ConfigReference.empty,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher, ConfigReference.soul);
+                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher(), ConfigReference.soul());
 
         extinguishersListInheritance = inheritanceFromConfig(ConfigReference.extinguishersListInheritance, "extinguishers_inheritance");
 
         regularIgnitorsList = listFromConfig(ConfigReference.regularIgnitorsList, ConfigReference.defaultIgnitorsList,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor, ConfigReference.regular);
+                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor(), ConfigReference.regular());
 
         soulIgnitorsList = listFromConfig(ConfigReference.soulIgnitorsList, ConfigReference.empty,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor, ConfigReference.soul);
+                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor(), ConfigReference.soul());
 
         ignitorsListInheritance = inheritanceFromConfig(ConfigReference.ignitorsListInheritance, "ignitors_inheritance");
 

@@ -264,13 +264,13 @@ public class CampfireBackportCraftTweaking
         @Override
         public String describe()
         {
-            return StringParsers.translateCT("state_changer.add", cstate.isExtinguisher() ? ConfigReference.extinguisher : ConfigReference.ignitor);
+            return StringParsers.translateCT("state_changer.add", cstate.isExtinguisher() ? ConfigReference.extinguisher() : ConfigReference.ignitor());
         }
 
         @Override
         public String describeUndo()
         {
-            return StringParsers.translateCT("state_changer.remove", cstate.isExtinguisher() ? ConfigReference.extinguisher : ConfigReference.ignitor);
+            return StringParsers.translateCT("state_changer.remove", cstate.isExtinguisher() ? ConfigReference.extinguisher() : ConfigReference.ignitor());
         }
 
         @Override

@@ -104,7 +104,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
                 if (!cinput.isDataInput())
                     dispensable = true;
                 else
-                    ConfigReference.logError("invalid_dispensable", stateChanger);
+                    ConfigReference.logError("invalid_dispensable", extinguisher ? ConfigReference.extinguisher() : ConfigReference.ignitor(), stateChanger);
             }
 
             // done!
@@ -168,7 +168,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
         boolean added = addToStateChangerLists(cstate);
         if (!added)
-            ConfigReference.logError("invalid_state_changer", extinguisher ? ConfigReference.extinguisher : ConfigReference.ignitor, stateChanger);
+            ConfigReference.logError("invalid_state_changer", extinguisher ? ConfigReference.extinguisher() : ConfigReference.ignitor(), stateChanger);
 
         return added;
     }
