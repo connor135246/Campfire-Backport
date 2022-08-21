@@ -272,13 +272,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                     if (metas.contains(OreDictionary.WILDCARD_VALUE))
                         arecipes.add(new CachedSignalFireBlocksRecipe(ingredientBlock));
                     else if (metas.contains(ingredient.getItemDamage()))
-                    {
-                        for (Integer meta : metas)
-                        {
-                            if (meta != null)
-                                arecipes.add(new CachedSignalFireBlocksRecipe(ingredientBlock, meta));
-                        }
-                    }
+                        arecipes.add(new CachedSignalFireBlocksRecipe(ingredientBlock, ingredient.getItemDamage()));
                 }
             }
 
@@ -291,13 +285,12 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 // (note that it fixes itself if you leave and rejoin the server)
                 for (String ore : CampfireBackportConfig.signalFireOres)
                 {
-                    if (OreDictionary.doesOreNameExist(ore))
-                        for (ItemStack oreStack : OreDictionary.getOres(ore))
-                            if (NEIServerUtils.areStacksSameTypeCrafting(ingredient, oreStack))
-                            {
-                                loadValidOreRecipe(ore);
-                                break;
-                            }
+                    for (ItemStack oreStack : OreDictionary.getOres(ore, false))
+                        if (NEIServerUtils.areStacksSameTypeCrafting(ingredient, oreStack))
+                        {
+                            loadValidOreRecipe(ore);
+                            break;
+                        }
                 }
             }
         }
@@ -328,20 +321,17 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
      */
     public void loadValidOreRecipe(String ore)
     {
-        if (OreDictionary.doesOreNameExist(ore))
+        List<ItemStack> stacks = new ArrayList<ItemStack>(OreDictionary.getOres(ore, false));
+        ListIterator<ItemStack> iterator = stacks.listIterator();
+        while (iterator.hasNext())
         {
-            List<ItemStack> stacks = new ArrayList<ItemStack>(OreDictionary.getOres(ore));
-            ListIterator<ItemStack> iterator = stacks.listIterator();
-            while (iterator.hasNext())
-            {
-                ItemStack stack = iterator.next();
-                if (Block.getBlockFromItem(stack.getItem()) == Blocks.air)
-                    iterator.remove();
-            }
-
-            if (!stacks.isEmpty())
-                arecipes.add(new CachedSignalFireBlocksRecipe(stacks, EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore)));
+            ItemStack stack = iterator.next();
+            if (Block.getBlockFromItem(stack.getItem()) == Blocks.air)
+                iterator.remove();
         }
+
+        if (!stacks.isEmpty())
+            arecipes.add(new CachedSignalFireBlocksRecipe(stacks, EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore)));
     }
 
     @Override
