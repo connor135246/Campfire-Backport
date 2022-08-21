@@ -7,6 +7,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
@@ -35,7 +36,7 @@ public class CustomInput implements Comparable<CustomInput>
     protected final Object input;
 
     /**
-     * the type of input. 1 = ItemStack, 2 = oredict id (Integer), 3 = tool class (String), 4 = Class, 5 = NBTTagCompound, 6 = an ICraftTweakerIngredient that should be an
+     * the type of input. 1 = ItemStack, 2 = oredict (String), 3 = tool class (String), 4 = Class, 5 = NBTTagCompound, 6 = an ICraftTweakerIngredient that should be an
      * {@link connor135246.campfirebackport.common.compat.crafttweaker.ActiveCraftTweakerIngredient ActiveCraftTweakerIngredient}
      */
     protected final byte inputType;
@@ -49,7 +50,7 @@ public class CustomInput implements Comparable<CustomInput>
     protected final byte dataType;
     /** whether or not meta was specified. only applies to ItemStack inputs. */
     protected final boolean metaSpecified;
-    /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for a {@link CampfireStateChanger}). */
+    /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for a {@link CampfireStateChanger}). not used by oredict inputs. */
     protected List<ItemStack> inputList = new ArrayList<ItemStack>();
     /** lines of text to use for displaying extra info in NEI. */
     protected LinkedList<String> neiTooltip = new LinkedList<String>();
@@ -121,47 +122,51 @@ public class CustomInput implements Comparable<CustomInput>
         {
             this.metaSpecified = false;
 
-            if (input instanceof Integer)
+            if (input instanceof String)
             {
-                for (ItemStack stack : OreDictionary.getOres(OreDictionary.getOreName((Integer) input), false))
-                    inputList.add(new ItemStack(stack.getItem(), 1, stack.getItemDamage()));
+                String stringInput = (String) input;
 
-                // ore inputs may have empty inputLists at this point, which is a problem, probably
-                if (inputList.isEmpty())
+                if (stringInput.startsWith("ore:"))
                 {
-                    ConfigReference.logError("no_matches_ore", OreDictionary.getOreName((Integer) input));
-                    throw new Exception();
+                    stringInput = stringInput.substring(4);
+
+                    // ore inputs may be empty, which is a problem, probably
+                    if (OreDictionary.getOres(stringInput, false).isEmpty())
+                        CampfireBackportConfig.possiblyInvalidOres.add(stringInput);
+
+                    this.input = stringInput;
+                    this.inputType = 2;
+
+                    neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", stringInput));
                 }
-
-                this.input = (Integer) input;
-                this.inputType = 2;
-
-                neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", OreDictionary.getOreName((Integer) getInput())));
-            }
-            else if (input instanceof String)
-            {
-                for (Item item : GameData.getItemRegistry().typeSafeIterable())
+                else if (stringInput.startsWith("tool:"))
                 {
-                    listStack = new ItemStack(item);
-                    if (item.getToolClasses(listStack).contains((String) input))
+                    stringInput = stringInput.substring(5);
+                    for (Item item : GameData.getItemRegistry().typeSafeIterable())
                     {
-                        if (item.isDamageable())
-                            listStack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-                        inputList.add(listStack);
+                        listStack = new ItemStack(item);
+                        if (item.getToolClasses(listStack).contains(stringInput))
+                        {
+                            if (item.isDamageable())
+                                listStack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+                            inputList.add(listStack);
+                        }
                     }
-                }
 
-                // tool inputs may have empty inputLists at this point, which is a problem, probably
-                if (inputList.isEmpty())
-                {
-                    ConfigReference.logError("no_matches_tool", (String) input);
+                    // tool inputs may have empty inputLists at this point, which is a problem
+                    if (inputList.isEmpty())
+                    {
+                        ConfigReference.logError("no_matches_tool", stringInput);
+                        throw new Exception();
+                    }
+
+                    this.input = stringInput;
+                    this.inputType = 3;
+
+                    neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("tool_input", stringInput));
+                }
+                else
                     throw new Exception();
-                }
-
-                this.input = (String) input;
-                this.inputType = 3;
-
-                neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("tool_input", (String) input));
             }
             else if (input instanceof Class)
             {
@@ -361,14 +366,14 @@ public class CustomInput implements Comparable<CustomInput>
 
     public static boolean matchesTheOre(CustomInput cinput, ItemStack stack)
     {
-        return matchesTheOre((Integer) cinput.getInput(), stack);
+        return matchesTheOre((String) cinput.getInput(), stack);
     }
 
-    public static boolean matchesTheOre(int oreID, ItemStack stack)
+    public static boolean matchesTheOre(String ore, ItemStack stack)
     {
         for (int id : OreDictionary.getOreIDs(stack))
         {
-            if (oreID == id)
+            if (ore.equals(OreDictionary.getOreName(id)))
                 return true;
         }
         return false;
@@ -570,7 +575,7 @@ public class CustomInput implements Comparable<CustomInput>
             else
             {
                 if (isOreDictInput())
-                    inputToString.append("Ore: " + OreDictionary.getOreName((Integer) getInput()));
+                    inputToString.append("Ore: " + getInput());
                 else if (isToolInput())
                     inputToString.append("Any " + getInput() + "-type tool");
                 else if (isItemInput() && (metaWasSpecified() || anIffyCheckToJustifyImprovedReadability()))
@@ -711,9 +716,15 @@ public class CustomInput implements Comparable<CustomInput>
         return inputSizeMatters;
     }
 
+    /**
+     * @return the cached inputList for non-oredict recipes, or the list from the OreDictionary for oredict recipes
+     */
     public List<ItemStack> getInputList()
     {
-        return inputList;
+        if (isOreDictInput())
+            return OreDictionary.getOres((String) getInput(), false);
+        else
+            return inputList;
     }
 
     // Sorting

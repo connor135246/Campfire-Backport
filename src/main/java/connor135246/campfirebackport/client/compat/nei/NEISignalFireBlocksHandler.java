@@ -289,13 +289,13 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 // if you join a server that has a script that removes a block from an oredict entry,
                 // that method still returns IDs that the stack shouldn't have anymore.
                 // (note that it fixes itself if you leave and rejoin the server)
-                for (Integer oreId : CampfireBackportConfig.signalFireOres)
+                for (String ore : CampfireBackportConfig.signalFireOres)
                 {
-                    if (oreId != null && OreDictionary.doesOreNameExist(OreDictionary.getOreName(oreId)))
-                        for (ItemStack oreStack : OreDictionary.getOres(oreId))
+                    if (OreDictionary.doesOreNameExist(ore))
+                        for (ItemStack oreStack : OreDictionary.getOres(ore))
                             if (NEIServerUtils.areStacksSameTypeCrafting(ingredient, oreStack))
                             {
-                                loadValidOreRecipe(oreId);
+                                loadValidOreRecipe(ore);
                                 break;
                             }
                 }
@@ -319,21 +319,18 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             }
         }
 
-        for (Integer oreId : CampfireBackportConfig.signalFireOres)
-        {
-            if (oreId != null && OreDictionary.doesOreNameExist(OreDictionary.getOreName(oreId)))
-                loadValidOreRecipe(oreId);
-        }
+        for (String ore : CampfireBackportConfig.signalFireOres)
+            loadValidOreRecipe(ore);
     }
 
     /**
      * Adds an oredict recipe to the list of recipes, but first makes sure it's only sending over ItemBlocks.
      */
-    public void loadValidOreRecipe(int oreId)
+    public void loadValidOreRecipe(String ore)
     {
-        if (!OreDictionary.getOreName(oreId).equals("Unknown"))
+        if (OreDictionary.doesOreNameExist(ore))
         {
-            List<ItemStack> stacks = new ArrayList<ItemStack>(OreDictionary.getOres(oreId));
+            List<ItemStack> stacks = new ArrayList<ItemStack>(OreDictionary.getOres(ore));
             ListIterator<ItemStack> iterator = stacks.listIterator();
             while (iterator.hasNext())
             {
@@ -343,8 +340,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             }
 
             if (!stacks.isEmpty())
-                arecipes.add(new CachedSignalFireBlocksRecipe(stacks,
-                        EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", OreDictionary.getOreName(oreId))));
+                arecipes.add(new CachedSignalFireBlocksRecipe(stacks, EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore)));
         }
     }
 

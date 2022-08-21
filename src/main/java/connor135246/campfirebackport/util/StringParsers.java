@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
@@ -257,9 +258,9 @@ public class StringParsers
         if (!input.isEmpty())
         {
             if (input.startsWith("ore:"))
-                return parseOre(input.substring(4), size, data, returnWildcard);
+                return parseOre(input, size, data, returnWildcard);
             else if (input.startsWith("tool:"))
-                return new Object[] { input.substring(5), size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
+                return new Object[] { input, size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
             else if (input.startsWith("class:"))
                 return parseClass(input.substring(6), size, data, returnWildcard);
             else
@@ -275,7 +276,7 @@ public class StringParsers
     public static Object[] parseBlockOrOre(String input, boolean returnWildcard)
     {
         if (input.startsWith("ore:"))
-            return parseOre(input.substring(4), 1, new NBTTagCompound(), returnWildcard);
+            return parseOre(input, 1, new NBTTagCompound(), returnWildcard);
         else
             return parseBlockAndMaybeMeta(input, 1, new NBTTagCompound(), returnWildcard);
     }
@@ -296,13 +297,9 @@ public class StringParsers
 
     public static Object[] parseOre(String input, int size, NBTTagCompound data, boolean returnWildcard)
     {
-        if (OreDictionary.doesOreNameExist(input))
-            return new Object[] { OreDictionary.getOreID(input), size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
-        else
-        {
-            ConfigReference.logError("invalid_ore", input);
-            return new Object[] { null, null, null, null };
-        }
+        if (!OreDictionary.doesOreNameExist(input.substring(4)))
+            CampfireBackportConfig.possiblyInvalidOres.add(input.substring(4));
+        return new Object[] { input, size, returnWildcard ? OreDictionary.WILDCARD_VALUE : 0, data };
     }
 
     public static Object[] parseItemAndMaybeMeta(String input, int size, NBTTagCompound data, boolean returnWildcard)
@@ -787,7 +784,7 @@ public class StringParsers
     {
         return StatCollector.translateToLocalFormatted(Reference.MODID + ".crafttweaker." + key, args);
     }
-    
+
     /**
      * @return the key translated using the "waila" prefix
      */

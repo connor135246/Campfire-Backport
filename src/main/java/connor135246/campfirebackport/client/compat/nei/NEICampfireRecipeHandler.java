@@ -54,7 +54,13 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
             for (int i = 0; i < numInputs; ++i)
             {
-                inputs.add(new PositionedStack(expandInputList(crecipe.getInputs()[i]), getInputX(i), getInputY(i), false));
+                List<ItemStack> expandedInputList = expandInputList(crecipe.getInputs()[i]);
+                if (expandedInputList.isEmpty()) // if the recipe has no inputs, it's invalid!
+                {
+                    types = EnumCampfireType.NEITHER;
+                    return;
+                }
+                inputs.add(new PositionedStack(expandedInputList, getInputX(i), getInputY(i), false));
                 inputRects[i] = new Rectangle(inputs.get(i).relx - 1, inputs.get(i).rely - 1, 18, 18);
             }
 
@@ -123,7 +129,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
     {
         for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
             if (matchesCrafting(crecipe, result) || (crecipe.hasByproduct() && NEIServerUtils.areStacksSameTypeCrafting(crecipe.getByproduct(), result)))
-                arecipes.add(new CachedCampfireRecipe(crecipe));
+                loadValidRecipe(crecipe);
     }
 
     @Override
@@ -137,23 +143,30 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 
         for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
             if (matchesUsage(crecipe, ingredient))
-                arecipes.add(new CachedCampfireRecipe(crecipe));
+                loadValidRecipe(crecipe);
+    }
+
+    public void loadValidRecipe(CampfireRecipe crecipe)
+    {
+        CachedCampfireRecipe cachedCrecipe = new CachedCampfireRecipe(crecipe);
+        if (cachedCrecipe.types != null && cachedCrecipe.types != EnumCampfireType.NEITHER)
+            arecipes.add(cachedCrecipe);
     }
 
     @Override
     public void loadAllRecipes()
     {
         for (CampfireRecipe crecipe : CampfireRecipe.getMasterList())
-            arecipes.add(new CachedCampfireRecipe(crecipe));
+            loadValidRecipe(crecipe);
     }
 
     @Override
     public boolean mouseClicked(GuiRecipe gui, int button, int recipe)
     {
         boolean result = false;
-        CachedCampfireRecipe cachedCstate = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
+        CachedCampfireRecipe cachedCrecipe = (CachedCampfireRecipe) this.arecipes.get(recipe % arecipes.size());
 
-        if (cachedCstate.signalFire != 0 && signalRect.contains(getRelMouse(gui, recipe)))
+        if (cachedCrecipe.signalFire != 0 && signalRect.contains(getRelMouse(gui, recipe)))
         {
             if (button == 0)
                 result = GuiCraftingRecipe.openRecipeGui(NEISignalFireBlocksHandler.recipeID);

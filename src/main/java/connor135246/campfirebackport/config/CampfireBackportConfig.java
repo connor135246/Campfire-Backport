@@ -17,6 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.google.common.io.Files;
 
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
@@ -116,12 +117,14 @@ public class CampfireBackportConfig
     public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
 
     public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
-    public static Set<Integer> autoBlacklistOres = new HashSet<Integer>();
+    public static Set<String> autoBlacklistOres = new HashSet<String>();
 
     public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
-    public static Set<Integer> signalFireOres = new LinkedHashSet<Integer>();
+    public static Set<String> signalFireOres = new LinkedHashSet<String>();
 
     public static ItemStack[] campfireDropsStacks = new ItemStack[2];
+
+    public static Set<String> possiblyInvalidOres = new HashSet<String>();
 
     // doing config things!
 
@@ -362,13 +365,19 @@ public class CampfireBackportConfig
         if (regularRecipeList.length != 0 || soulRecipeList.length != 0)
             ConfigReference.logInfo("parsing_recipes");
 
+        possiblyInvalidOres.clear();
+
         boolean inheritanceBool = recipeListInheritance.equals(ConfigReference.SOUL_GETS_REG);
         for (String recipe : regularRecipeList)
             CampfireRecipe.addToRecipeLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY);
 
+        clearInvalidOresNoCT();
+
         inheritanceBool = recipeListInheritance.equals(ConfigReference.REG_GETS_SOUL);
         for (String recipe : soulRecipeList)
             CampfireRecipe.addToRecipeLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY);
+
+        clearInvalidOresNoCT();
 
         // autoRecipe & autoBlacklistStrings
         CampfireRecipe.getFurnaceList().clear();
@@ -385,8 +394,8 @@ public class CampfireBackportConfig
                 try
                 {
                     Object[] output = StringParsers.parseItemOrOreOrToolOrClass(input, 1, new NBTTagCompound(), true);
-                    if (output[0] instanceof Integer)
-                        autoBlacklistOres.add((Integer) output[0]);
+                    if (output[0] instanceof String && ((String) output[0]).startsWith("ore:"))
+                        autoBlacklistOres.add(((String) output[0]).substring(4));
                     else if (output[0] instanceof Item)
                     {
                         if (!autoBlacklistStacks.containsKey((Item) output[0]))
@@ -409,6 +418,8 @@ public class CampfireBackportConfig
                     ConfigReference.logError("invalid_auto_blacklist", input);
                 }
             }
+
+            clearInvalidOresNoCT();
 
             addFurnaceRecipes();
         }
@@ -448,17 +459,25 @@ public class CampfireBackportConfig
         for (String recipe : regularExtinguishersList)
             CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, true);
 
+        clearInvalidOresNoCT();
+
         inheritanceBool = extinguishersListInheritance.equals(ConfigReference.REG_GETS_SOUL);
         for (String recipe : soulExtinguishersList)
             CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, true);
+
+        clearInvalidOresNoCT();
 
         inheritanceBool = ignitorsListInheritance.equals(ConfigReference.SOUL_GETS_REG);
         for (String recipe : regularIgnitorsList)
             CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY, false);
 
+        clearInvalidOresNoCT();
+
         inheritanceBool = ignitorsListInheritance.equals(ConfigReference.REG_GETS_SOUL);
         for (String recipe : soulIgnitorsList)
             CampfireStateChanger.addToStateChangerLists(recipe, inheritanceBool ? EnumCampfireType.BOTH : EnumCampfireType.SOUL_ONLY, false);
+
+        clearInvalidOresNoCT();
 
         for (CampfireStateChanger cstate : CampfireStateChanger.getCraftTweakerList())
             CampfireStateChanger.addToStateChangerLists(cstate);
@@ -477,8 +496,8 @@ public class CampfireBackportConfig
             try
             {
                 Object[] output = StringParsers.parseBlockOrOre(input, true);
-                if (output[0] instanceof Integer)
-                    signalFireOres.add((Integer) output[0]);
+                if (output[0] instanceof String && ((String) output[0]).startsWith("ore:"))
+                    signalFireOres.add(((String) output[0]).substring(4));
                 else if (output[0] instanceof Block)
                 {
                     Block block = (Block) output[0];
@@ -508,6 +527,8 @@ public class CampfireBackportConfig
                 ConfigReference.logError("invalid_signal_fire_block", input);
             }
         }
+
+        clearInvalidOresNoCT();
 
         // burnOutTimer & burnOutRules
         BurnOutRule.setDefaultBurnOutRules(burnOutTimer[0], burnOutTimer[1]);
@@ -618,7 +639,7 @@ public class CampfireBackportConfig
                     ItemStack oreStack = inputstack.getItemDamage() == OreDictionary.WILDCARD_VALUE ? new ItemStack(inputstack.getItem(), 1, 0) : inputstack;
                     for (int id : OreDictionary.getOreIDs(oreStack))
                     {
-                        if (autoBlacklistOres.contains(id))
+                        if (autoBlacklistOres.contains(OreDictionary.getOreName(id)))
                             continue iteratorLoop;
                     }
                 }
@@ -645,6 +666,32 @@ public class CampfireBackportConfig
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Does {@link #checkInvalidOres()} and then clears it, but only if CraftTweaker isn't loaded.
+     */
+    public static void clearInvalidOresNoCT()
+    {
+        if (!CampfireBackportCompat.isMineTweaker3Loaded)
+        {
+            checkInvalidOres();
+            possiblyInvalidOres.clear();
+        }
+    }
+
+    /**
+     * Goes through {@link #possiblyInvalidOres} and logs any truly invalid ones.
+     */
+    public static void checkInvalidOres()
+    {
+        for (String ore : possiblyInvalidOres)
+        {
+            if (!OreDictionary.doesOreNameExist(ore))
+                ConfigReference.logError("unknown_ore", ore);
+            else if (OreDictionary.getOres(ore, false).isEmpty())
+                ConfigReference.logError("empty_ore", ore);
         }
     }
 

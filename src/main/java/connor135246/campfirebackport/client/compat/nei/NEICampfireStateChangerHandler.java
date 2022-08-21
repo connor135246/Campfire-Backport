@@ -72,7 +72,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             super(cstate);
 
-            inputs.add(new PositionedStack(expandInputList(cstate.getInput()), 74, 17, false));
+            List<ItemStack> expandedInputList = expandInputList(cstate.getInput());
+            if (expandedInputList.isEmpty()) // if the recipe has no inputs, it's invalid!
+            {
+                types = EnumCampfireType.NEITHER;
+                return;
+            }
+            inputs.add(new PositionedStack(expandedInputList, 74, 17, false));
             inputRects[0] = new Rectangle(inputs.get(0).relx - 1, inputs.get(0).rely - 1, 20, 20);
 
             extinguisher = cstate.isExtinguisher();
@@ -152,7 +158,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
     {
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
             if (matchesCrafting(cstate, result))
-                arecipes.add(new CachedCampfireStateChanger(cstate));
+                loadValidRecipe(cstate);
     }
 
     @Override
@@ -166,14 +172,21 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
             if (matchesUsage(cstate, ingredient))
-                arecipes.add(new CachedCampfireStateChanger(cstate));
+                loadValidRecipe(cstate);
+    }
+
+    public void loadValidRecipe(CampfireStateChanger cstate)
+    {
+        CachedCampfireStateChanger cachedCstate = new CachedCampfireStateChanger(cstate);
+        if (cachedCstate.types != null && cachedCstate.types != EnumCampfireType.NEITHER)
+            arecipes.add(cachedCstate);
     }
 
     @Override
     public void loadAllRecipes()
     {
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
-            arecipes.add(new CachedCampfireStateChanger(cstate));
+            loadValidRecipe(cstate);
 
         // creating non-recipe state changers
 

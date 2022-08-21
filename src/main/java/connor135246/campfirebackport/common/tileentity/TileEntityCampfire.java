@@ -488,7 +488,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             {
                 for (int id : OreDictionary.getOreIDs(new ItemStack(block, 1, meta)))
                 {
-                    if (CampfireBackportConfig.signalFireOres.contains(id))
+                    if (CampfireBackportConfig.signalFireOres.contains(OreDictionary.getOreName(id)))
                     {
                         updateSignalFireState(true);
                         return;

@@ -65,6 +65,8 @@ public class CampfireBackportCraftTweaking
         @Override
         public void handle(ReloadEvent event)
         {
+            CampfireBackportConfig.checkInvalidOres();
+
             if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)
             {
                 CampfireRecipe.getFurnaceList().forEach(furnaceCrecipe -> CampfireRecipe.removeFromRecipeLists(furnaceCrecipe));
