@@ -358,19 +358,14 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             Point relMouse = getRelMouse(gui, recipe);
 
             boolean onBlock = blockRect.contains(relMouse);
+
             if (onBlock)
             {
                 tooltip.add(EnumChatFormatting.GOLD + "<" + GameRegistry.findUniqueIdentifierFor(cachedSblock.blockToRender)
                         + (cachedSblock.metaToRender != 0 ? ":" + cachedSblock.metaToRender : "") + ">");
-
-                if (!cachedSblock.didRender)
-                {
-                    tooltip.add("");
-                    tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("no_block_render"));
-                }
             }
 
-            if (!tooltip.isEmpty() && (onBlock || inputRect.contains(relMouse)))
+            if (onBlock || (!tooltip.isEmpty() && inputRect.contains(relMouse)))
             {
                 String tip = cachedSblock.tooltip;
                 if (!tip.isEmpty())
@@ -378,6 +373,12 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                     tooltip.add("");
                     tooltip.add(tip);
                 }
+            }
+
+            if (onBlock && !cachedSblock.didRender)
+            {
+                tooltip.add("");
+                tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("no_block_render"));
             }
         }
 
