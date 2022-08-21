@@ -157,7 +157,7 @@ public class CommandCampfireBackport implements ICommand
             }
             else if (arguments[0].equals(RELOAD))
             {
-                CampfireBackportConfig.doConfig(15, false);
+                CampfireBackportConfig.doConfig(15, false, false);
 
                 if (!MinecraftServer.getServer().isSinglePlayer())
                 {

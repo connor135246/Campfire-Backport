@@ -144,7 +144,7 @@ public class ConfigNetworkManager
                     for (String name : DOUBLELISTS)
                         CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
 
-                    CampfireBackportConfig.doConfig(4, true);
+                    CampfireBackportConfig.doConfig(4, true, true);
                 }
                 catch (Exception excep)
                 {

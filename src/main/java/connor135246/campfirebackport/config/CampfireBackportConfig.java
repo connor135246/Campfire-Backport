@@ -167,10 +167,12 @@ public class CampfireBackportConfig
      * Flags can be added together.
      * 
      * @param flag
-     * @param stopConsoleSpam
-     *            - if true, nothing will be printed to console while setting values, regardless of config settings
+     * @param stopPrinting
+     *            - if true, info won't be printed to console, regardless of {@link #printCustomRecipes}
+     * @param stopErrors
+     *            - if true, errors won't be printed to console, regardless of {@link #suppressInputErrors}
      */
-    public static void doConfig(int flag, boolean stopConsoleSpam)
+    public static void doConfig(int flag, boolean stopPrinting, boolean stopErrors)
     {
         if ((flag & 1) != 0 && !useDefaults)
             config.load();
@@ -180,21 +182,16 @@ public class CampfireBackportConfig
 
         if ((flag & 4) != 0)
         {
-            if (stopConsoleSpam)
-            {
-                boolean tempPrint = printCustomRecipes;
-                boolean tempSuppress = suppressInputErrors;
+            boolean tempPrint = printCustomRecipes;
+            boolean tempSuppress = suppressInputErrors;
 
-                printCustomRecipes = false;
-                suppressInputErrors = true;
+            printCustomRecipes = tempPrint && !stopPrinting;
+            suppressInputErrors = tempSuppress || stopErrors;
 
-                setConfig();
+            setConfig();
 
-                printCustomRecipes = tempPrint;
-                suppressInputErrors = tempSuppress;
-            }
-            else
-                setConfig();
+            printCustomRecipes = tempPrint;
+            suppressInputErrors = tempSuppress;
         }
 
         if ((flag & 8) != 0 && !useDefaults)

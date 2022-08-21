@@ -81,9 +81,9 @@ public class CampfireBackportEventHandler
             if (!CampfireBackportConfig.useDefaults)
             {
                 if (event.isWorldRunning && !Minecraft.getMinecraft().isSingleplayer())
-                    CampfireBackportConfig.doConfig(10, false);
+                    CampfireBackportConfig.doConfig(10, false, false);
                 else
-                    CampfireBackportConfig.doConfig(14, false);
+                    CampfireBackportConfig.doConfig(14, false, false);
             }
             else
             {
@@ -116,7 +116,7 @@ public class CampfireBackportEventHandler
         if (!event.manager.isLocalChannel())
         {
             CommonProxy.modlog.info(StringParsers.translatePacket("restore_config"));
-            CampfireBackportConfig.doConfig(15, true);
+            CampfireBackportConfig.doConfig(15, true, true);
         }
     }
 

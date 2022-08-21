@@ -50,7 +50,7 @@ public class CommonProxy
         CampfireBackportCompat.preInit();
 
         CampfireBackportConfig.prepareConfig(event);
-        CampfireBackportConfig.doConfig(11, true);
+        CampfireBackportConfig.doConfig(11, true, true);
 
         CampfireBackportBlocks.preInit();
 
@@ -71,7 +71,7 @@ public class CommonProxy
 
     public void loadComplete(FMLLoadCompleteEvent event)
     {
-        CampfireBackportConfig.doConfig(4, true);
+        CampfireBackportConfig.doConfig(4, true, false);
     }
 
     public void serverLoad(FMLServerStartingEvent event)
