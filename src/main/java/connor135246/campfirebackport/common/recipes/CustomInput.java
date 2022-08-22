@@ -16,6 +16,7 @@ import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -173,7 +174,7 @@ public class CustomInput implements Comparable<CustomInput>
                 if (Block.class.isAssignableFrom((Class) input))
                 {
                     for (Block block : GameData.getBlockRegistry().typeSafeIterable())
-                        if (((Class) input).isAssignableFrom(block.getClass()))
+                        if (((Class) input).isAssignableFrom(block.getClass()) && Item.getItemFromBlock(block) != null)
                             inputList.add(new ItemStack(block, 1, OreDictionary.WILDCARD_VALUE));
                 }
                 else
@@ -183,7 +184,7 @@ public class CustomInput implements Comparable<CustomInput>
                             inputList.add(new ItemStack(item, 1, OreDictionary.WILDCARD_VALUE));
                 }
 
-                // class inputs may have empty inputLists at this point, which is a problem, probably
+                // class inputs may have empty inputLists at this point, which is a problem
                 if (inputList.isEmpty())
                 {
                     ConfigReference.logError("no_matches_class", ((Class) input).getCanonicalName());
@@ -394,7 +395,7 @@ public class CustomInput implements Comparable<CustomInput>
         if (Block.class.isAssignableFrom(clazz))
         {
             Block block = Block.getBlockFromItem(stack.getItem());
-            return clazz.isInstance(block);
+            return block != Blocks.air && clazz.isInstance(block);
         }
         else
             return clazz.isInstance(stack.getItem());
