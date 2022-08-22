@@ -58,13 +58,19 @@ public class CampfireBackportCraftTweaking
     }
 
     /**
-     * Refreshes {@link CampfireBackportConfig#autoRecipe Auto Recipe Discovery} recipes and ensures recipe lists are sorted.
+     * Rebakes the Ore Dictionary, then refreshes {@link CampfireBackportConfig#autoRecipe Auto Recipe Discovery} recipes and ensures recipe lists are sorted.
      */
     public static class PostReloadEventHandler implements IEventHandler<ReloadEvent>
     {
         @Override
         public void handle(ReloadEvent event)
         {
+            // CraftTweaker doesn't rebake OreDictionary.stackToId when you /mt reload or when the client connects to a server...
+            // If your scripts change ore dicts, this can lead to issues where OreDictionary.getOreIDs(ItemStack) returns old unchanged ore ids.
+            // Technically, I could avoid this issue by avoiding OreDictionary.stackToId and only using methods that involve OreDictionary.idToStack.
+            // However, that would be slightly slower every time I want to check a stack's IDs. Rebaking the map means it's slower just once, and other mods may appreciate it.
+            OreDictionary.rebakeMap();
+
             CampfireBackportConfig.checkInvalidOres();
 
             if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)

@@ -15,7 +15,6 @@ import java.util.Set;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.lib.gui.GuiDraw;
-import codechicken.nei.NEIServerUtils;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
@@ -278,19 +277,11 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
 
             if (!CampfireBackportConfig.signalFireOres.isEmpty())
             {
-                // this may seem to be a way less efficient way of searching for a matching ore compared to just using OreDictionary.getOreIDs(ItemStack).
-                // however, crafttweaker appears to have an issue with syncing oredict changes to the client.
-                // if you join a server that has a script that removes a block from an oredict entry,
-                // that method still returns IDs that the stack shouldn't have anymore.
-                // (note that it fixes itself if you leave and rejoin the server)
-                for (String ore : CampfireBackportConfig.signalFireOres)
+                for (int id : OreDictionary.getOreIDs(ingredient))
                 {
-                    for (ItemStack oreStack : OreDictionary.getOres(ore, false))
-                        if (NEIServerUtils.areStacksSameTypeCrafting(ingredient, oreStack))
-                        {
-                            loadValidOreRecipe(ore);
-                            break;
-                        }
+                    String ore = OreDictionary.getOreName(id);
+                    if (CampfireBackportConfig.signalFireOres.contains(ore))
+                        loadValidOreRecipe(ore);
                 }
             }
         }
