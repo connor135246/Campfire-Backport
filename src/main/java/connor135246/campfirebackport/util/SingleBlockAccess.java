@@ -62,8 +62,7 @@ public class SingleBlockAccess implements IBlockAccess
     @Override
     public int getLightBrightnessForSkyBlocks(int x, int y, int z, int light)
     {
-        // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
-        return 15728880;
+        return MiscUtil.MAX_LIGHT_BRIGHTNESS;
     }
 
     @Override

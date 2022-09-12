@@ -19,6 +19,9 @@ import net.minecraftforge.fluids.IFluidContainerItem;
 public class MiscUtil
 {
 
+    /** 15 << 20 | 15 << 4 is max brightness (see {@link net.minecraft.world.World#getLightBrightnessForSkyBlocks}) */
+    public static final int MAX_LIGHT_BRIGHTNESS = 15 << 20 | 15 << 4;
+
     /**
      * Tries to put returned in the inventory. <br>
      * Note: don't use this for player inventories! {@link net.minecraft.entity.player.InventoryPlayer#isItemValidForSlot} doesn't actually stop non-armor items from going into

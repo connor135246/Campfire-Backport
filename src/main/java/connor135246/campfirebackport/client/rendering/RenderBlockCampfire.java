@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL11;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.util.MiscUtil;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -82,8 +83,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         }
 
         if (!doDraw)
-            // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
-            tess.setBrightness(access == null ? 15728880 : block.getMixedBrightnessForBlock(access, x, y, z));
+            tess.setBrightness(access == null ? MiscUtil.MAX_LIGHT_BRIGHTNESS : block.getMixedBrightnessForBlock(access, x, y, z));
 
         final boolean isLit = CampfireBackportBlocks.isLitCampfire(block);
         final boolean northSouth = !(meta == 4 || meta == 5);
@@ -225,7 +225,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
             if (!northSouth)
                 renderFirepitSide(x, y, z + firepitO, block, renderer, 5, meta == 5);
         }
-        
+
         if (doDraw)
         {
             tess.draw();
@@ -451,7 +451,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     public static void renderFire(double x, double y, double z, Block block, RenderBlocks renderer, boolean mixedFire)
     {
         Tessellator tess = Tessellator.instance;
-        tess.setBrightness(15728880); // 15728880 is 15 << 20 | 15 << 4, aka max brightness (see World.getLightBrightnessForSkyBlocks)
+        tess.setBrightness(MiscUtil.MAX_LIGHT_BRIGHTNESS);
         tess.setColorOpaque_F(1.0F, 1.0F, 1.0F);
         if (mixedFire)
             drawCrossedSquaresTwoIcons(CampfireBackportBlocks.campfire.getIcon(0, -3), CampfireBackportBlocks.soul_campfire.getIcon(0, -3), x, y, z, 1.0F);
