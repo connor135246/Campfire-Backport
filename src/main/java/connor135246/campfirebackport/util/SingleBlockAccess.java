@@ -32,14 +32,16 @@ public class SingleBlockAccess implements IBlockAccess
 
     public static SingleBlockAccess getSingleBlockAccess(Block block, int meta)
     {
-        if (block == Blocks.grass)
-            return GRASS;
-        else if (block == Blocks.hay_block)
-            return HAY_BLOCK;
-        else if (block == Blocks.stone)
-            return STONE;
-        else
-            return new SingleBlockAccess(block, meta);
+        if (meta == 0)
+        {
+            if (block == Blocks.grass)
+                return GRASS;
+            else if (block == Blocks.hay_block)
+                return HAY_BLOCK;
+            else if (block == Blocks.stone)
+                return STONE;
+        }
+        return new SingleBlockAccess(block, meta);
     }
 
     public static SingleBlockAccess getSingleBlockAccess(Block block)
@@ -80,13 +82,13 @@ public class SingleBlockAccess implements IBlockAccess
     @Override
     public boolean isAirBlock(int x, int y, int z)
     {
-        return !(x == 0 && y == 0 && z == 0);
+        return getBlock(x, y, z).isAir(this, x, y, z);
     }
 
     @Override
     public BiomeGenBase getBiomeGenForCoords(int x, int z)
     {
-        return BiomeGenBase.ocean;
+        return BiomeGenBase.plains;
     }
 
     @Override
@@ -104,7 +106,7 @@ public class SingleBlockAccess implements IBlockAccess
     @Override
     public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean _default)
     {
-        return block.isSideSolid(this, x, y, z, side);
+        return getBlock(x, y, z).isSideSolid(this, x, y, z, side);
     }
 
 }
