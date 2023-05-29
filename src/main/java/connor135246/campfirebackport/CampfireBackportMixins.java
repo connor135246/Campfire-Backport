@@ -92,7 +92,7 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
         vanillaMixins = config.get("Vanilla Mixins", Configuration.CATEGORY_GENERAL, true,
                 "Set to false to disable vanilla mixins:\nEntityPotion, EntitySmallFireball, PathFinder").setRequiresMcRestart(true).getBoolean();
         witcheryMixins = config.get("Witchery Mixins", Configuration.CATEGORY_GENERAL, true,
-                "Set to false to disable Witchery mixins:\nTileEntityCauldron, TileEntityKettle").setRequiresMcRestart(true).getBoolean();
+                "Set to false to disable Witchery mixins:\nTileEntityCauldron, TileEntityKettle, symbols.Incendio, symbols.Aguamenti, brews.EntitySplatter, brews.Extinguish").setRequiresMcRestart(true).getBoolean();
         thaumcraftMixins = config.get("Thaumcraft Mixins", Configuration.CATEGORY_GENERAL, true,
                 "Set to false to disable Thaumcraft mixins:\nTileCrucible, TileThaumatorium").setRequiresMcRestart(true).getBoolean();
 

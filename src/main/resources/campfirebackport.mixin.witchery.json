@@ -7,6 +7,10 @@
     "target": "@env(DEFAULT)",
     "mixins": [
         "MixinTileEntityKettle",
-        "MixinTileEntityCauldron"
+        "MixinTileEntityCauldron",
+        "symbols.MixinIncendio",
+        "symbols.MixinAguamenti",
+        "brews.MixinEntitySplatter",
+        "brews.MixinExtinguish"
     ]
 }
