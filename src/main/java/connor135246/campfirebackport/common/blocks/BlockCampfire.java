@@ -5,6 +5,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
@@ -24,8 +25,10 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
@@ -145,6 +148,9 @@ public class BlockCampfire extends BlockContainer
         return new TileEntityCampfire();
     }
 
+    /** if thaumcraft is installed, this will become EntityPrimalArrow.class. otherwise, it's just null. */
+    private static Class primalArrowClass = CampfireBackport.class;
+
     @Override
     public void onEntityCollidedWithBlock(World world, int x, int y, int z, Entity entity)
     {
@@ -155,6 +161,25 @@ public class BlockCampfire extends BlockContainer
             if (entity.isBurning())
             {
                 igniteOrReigniteCampfire(null, world, x, y, z);
+            }
+            else if (entity instanceof EntityArrow)
+            {
+                if (primalArrowClass == CampfireBackport.class)
+                    primalArrowClass = (Class) EntityList.stringToClassMapping.get("Thaumcraft.PrimalArrow");
+                if (primalArrowClass != null && primalArrowClass.isInstance(entity))
+                {
+                    thaumcraft.common.entities.projectile.EntityPrimalArrow primalarrow = (thaumcraft.common.entities.projectile.EntityPrimalArrow) entity;
+                    if (primalarrow.type == 1) // fire
+                    {
+                        if (igniteOrReigniteCampfire(null, world, x, y, z) != 0)
+                            primalarrow.setDead();
+                    }
+                    else if (isLit() && primalarrow.type == 2) // water
+                    {
+                        if (extinguishCampfire(null, world, x, y, z) != 0)
+                            primalarrow.setDead();
+                    }
+                }
             }
             else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
