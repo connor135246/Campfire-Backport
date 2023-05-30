@@ -25,13 +25,8 @@ public class MixinExtinguish
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnBlock(World world, int x, int y, int z, CallbackInfo ci, int dy, Block block)
     {
-        if (CampfireBackportBlocks.isLitCampfire(block))
-        {
-            BlockCampfire.extinguishCampfire(null, world, x, dy, z);
-            if (!world.isRemote)
-                world.playSoundEffect(x, y, z, "random.fizz", 1.0F, 2.0F);
+        if (CampfireBackportBlocks.isLitCampfire(block) && BlockCampfire.extinguishCampfire(null, world, x, dy, z) != 0)
             ci.cancel();
-        }
     }
 
 }

@@ -9,13 +9,14 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 import com.emoniph.witchery.entity.EntitySpellEffect;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
+import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 /**
- * This mixin allows campfires to be extinguished by the Aguamenti symbol.
+ * This mixin allows campfires to be extinguished by the Aguamenti symbol. It must be level 1 (level 3 in the nether).
  */
 @Mixin(targets = "com.emoniph.witchery.infusion.infusions.symbols.EffectRegistry$11")
 public abstract class MixinAguamenti
@@ -28,7 +29,7 @@ public abstract class MixinAguamenti
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci, Block hitBlock)
     {
-        if (BlockCampfire.extinguishCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
+        if (CampfireBackportBlocks.isLitCampfire(hitBlock) && BlockCampfire.extinguishCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
             ci.cancel();
     }
 

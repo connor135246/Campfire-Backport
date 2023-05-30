@@ -14,7 +14,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 /**
- * This mixin allows campfires to be ignited by the Flame brew.
+ * This mixin allows campfires to be ignited by the projectiles created by the Flame brew.
  */
 @Mixin(EntitySplatter.class)
 public abstract class MixinEntitySplatter extends Entity

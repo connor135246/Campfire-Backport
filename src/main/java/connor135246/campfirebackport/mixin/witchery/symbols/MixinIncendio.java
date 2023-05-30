@@ -15,7 +15,7 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 /**
- * This mixin allows campfires to be ignited by the Incendio symbol.
+ * This mixin allows campfires to be ignited by the Incendio symbol. It must be level 1.
  */
 @Mixin(targets = "com.emoniph.witchery.infusion.infusions.symbols.EffectRegistry$22")
 public abstract class MixinIncendio
@@ -27,7 +27,7 @@ public abstract class MixinIncendio
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci, double radius, int level, Block hitBlock)
     {
-        if (BlockCampfire.igniteOrReigniteCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
+        if (hitBlock instanceof BlockCampfire && BlockCampfire.igniteOrReigniteCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
             ci.cancel();
     }
 
