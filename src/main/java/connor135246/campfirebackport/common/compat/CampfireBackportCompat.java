@@ -48,6 +48,9 @@ public class CampfireBackportCompat
         if (isThaumcraftLoaded)
             loadModHandler("Thaumcraft", "handlers.ThaumcraftHandler");
 
+        if (isBotaniaLoaded)
+            loadModHandler("Botania", "botania.BotaniaHandler");
+
         if (isMineTweaker3Loaded)
             loadModHandler("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
     }

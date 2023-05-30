@@ -56,7 +56,7 @@ public class CommandCampfireBackport implements ICommand
     @Override
     public String getCommandName()
     {
-        return "campfirebackport";
+        return Reference.MODID;
     }
 
     @Override
@@ -262,8 +262,7 @@ public class CommandCampfireBackport implements ICommand
                 {
                     if (i == 1)
                     {
-                        sender.addChatMessage(makeHoverAndClickTranslation(Reference.MODID + ".command.help.1",
-                                "https://github.com/connor135246/Campfire-Backport/wiki", EnumChatFormatting.GRAY));
+                        sender.addChatMessage(makeHoverAndClickTranslation(Reference.MODID + ".command.help.1", Reference.WIKI, EnumChatFormatting.GRAY));
                     }
                     else
                     {
