@@ -308,7 +308,7 @@ public class BlockCampfire extends BlockContainer
         Block oldBlock = world.getBlock(x, y, z);
 
         // verify that this state change should happen
-        if (mode < 0 || mode > 2 || !(oldBlock instanceof BlockCampfire) || (ctile.isLit() == (mode == 1)))
+        if (mode < 0 || mode > 2 || !(oldBlock instanceof BlockCampfire) || (ctile.isLit() == (mode == 1)) || (!ctile.canBeReignited() && mode == 2))
             return 0;
 
         int meta = world.getBlockMetadata(x, y, z);
