@@ -20,8 +20,7 @@ public class MixinExtinguish
 
     // func_147439_a is getBlock
     @Inject(method = "Lcom/emoniph/witchery/brewing/WitcheryBrewRegistry$30$1;onBlock(Lnet/minecraft/world/World;III)V",
-            at = @At(value = "INVOKE_ASSIGN",
-                    target = "Lnet/minecraft/world/World;func_147439_a(III)Lnet/minecraft/block/Block;"),
+            at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/world/World;func_147439_a(III)Lnet/minecraft/block/Block;", ordinal = 0),
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnBlock(World world, int x, int y, int z, CallbackInfo ci, int dy, Block block)
     {

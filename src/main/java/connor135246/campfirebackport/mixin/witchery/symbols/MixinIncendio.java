@@ -23,7 +23,8 @@ public abstract class MixinIncendio
 
     @Inject(method = "Lcom/emoniph/witchery/infusion/infusions/symbols/EffectRegistry$22;onCollision(Lnet/minecraft/world/World;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/util/MovingObjectPosition;Lcom/emoniph/witchery/entity/EntitySpellEffect;)V",
             at = @At(value = "INVOKE_ASSIGN",
-                    target = "Lcom/emoniph/witchery/util/BlockUtil;getBlock(Lnet/minecraft/world/World;Lnet/minecraft/util/MovingObjectPosition;)Lnet/minecraft/block/Block;"),
+                    target = "Lcom/emoniph/witchery/util/BlockUtil;getBlock(Lnet/minecraft/world/World;Lnet/minecraft/util/MovingObjectPosition;)Lnet/minecraft/block/Block;",
+                    ordinal = 0),
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci, double radius, int level, Block hitBlock)
     {

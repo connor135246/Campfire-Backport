@@ -24,8 +24,7 @@ public abstract class MixinAguamenti
 
     // func_147439_a is getBlock
     @Inject(method = "Lcom/emoniph/witchery/infusion/infusions/symbols/EffectRegistry$11;onCollision(Lnet/minecraft/world/World;Lnet/minecraft/entity/EntityLivingBase;Lnet/minecraft/util/MovingObjectPosition;Lcom/emoniph/witchery/entity/EntitySpellEffect;)V",
-            at = @At(value = "INVOKE_ASSIGN",
-                    target = "Lnet/minecraft/world/World;func_147439_a(III)Lnet/minecraft/block/Block;", ordinal = 0),
+            at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/world/World;func_147439_a(III)Lnet/minecraft/block/Block;", ordinal = 0),
             locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
     public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci, Block hitBlock)
     {
