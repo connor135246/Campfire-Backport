@@ -29,10 +29,10 @@ public class StringParsers
     // Patterns
 
     public static final String betweenZeroAndOne = "(0(\\.(\\d+))?)|(1(\\.0+)?)",
-            item = "[\\w\\.\\-]+:[\\w\\.\\-\\/]+",
+            item = "[\\w\\.\\-]+:[\\w\\.\\-]+",
             itemMeta = item + "(:\\d+)?",
-            ore = "ore:[\\w\\.\\-\\/]+",
-            tool = "tool:[\\w\\.\\-\\/]+",
+            ore = "ore:[\\w\\.\\-]+",
+            tool = "tool:[\\w\\.\\-]+",
             clazz = "class:[\\w\\.]+",
             size = "(@\\d+)?",
             NBT = "\\{[\\w\\s\"" + Pattern.quote("-+:.,[]{}") + "]+}",
