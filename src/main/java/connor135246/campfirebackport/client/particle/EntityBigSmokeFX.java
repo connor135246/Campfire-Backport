@@ -121,23 +121,24 @@ public class EntityBigSmokeFX extends EntityFX
         double minV = this.particleTextureIndexY * 0.125;
         double maxV = minV + 0.125;
 
-        GL11.glColor4f(particleRed, particleGreen, particleBlue, particleAlpha);
-        if (this.isColored)
-        {
-            // brightens colored campfire textures by 37/255 to make CampfireBackportConfig.colourfulSmoke a bit more vibrant
-            ClientProxy.enableGLSecondaryColor(37F / 255F, particleRed, particleGreen, particleBlue);
-        }
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, GL11.GL_ONE, GL11.GL_ZERO);
         GL11.glDepthMask(true);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
-        Minecraft.getMinecraft().entityRenderer.disableLightmap((double) partialTicks);
-
         Minecraft.getMinecraft().renderEngine.bindTexture(TEXTURES[this.texIndex % TEXTURES.length]);
 
         tess.startDrawingQuads();
+
+        tess.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
+        if (this.isColored)
+        {
+            // brightens colored campfire textures by 37/255 to make CampfireBackportConfig.colourfulSmoke a bit more vibrant
+            ClientProxy.enableGLSecondaryColor(37F / 255F, particleRed, particleGreen, particleBlue);
+        }
+
+        tess.setBrightness(15 << 20 | 14 << 4); // slightly less than MiscUtil.MAX_LIGHT_BRIGHTNESS so that smoke doesn't glow super bright with shaders
 
         tess.addVertexWithUV(partialPosX - rotX * scale - rotYZ * scale, partialPosY - rotXZ * scale, partialPosZ - rotZ * scale - rotXY * scale, 1, 1);
         tess.addVertexWithUV(partialPosX - rotX * scale + rotYZ * scale, partialPosY + rotXZ * scale, partialPosZ - rotZ * scale + rotXY * scale, 1, 0);
@@ -151,8 +152,6 @@ public class EntityBigSmokeFX extends EntityFX
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glDepthMask(false);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-
-        Minecraft.getMinecraft().entityRenderer.enableLightmap((double) partialTicks);
     }
 
     @Override
