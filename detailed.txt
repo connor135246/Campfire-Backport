@@ -2,6 +2,7 @@ This file contains detailed information about config settings, CraftTweaker supp
 You can find the most recent version of this information at https://github.com/connor135246/Campfire-Backport/wiki
 
 Table of Contents
+# Mod Compatibility
 # EnviroMine Compatibility
 # Command
 # v1.9 Recipe Changes
@@ -27,6 +28,39 @@ Table of Contents
 # Campfire Backport Mixin Config
 
 ---
+
+# Mod Compatibility
+NEI:
+-Campfire recipes and campfire exinguishers/ignitors are in NEI.
+-View all of them by pressing the "Usages" hotkey on a campfire item.
+
+WAILA:
+-Campfires show the cooking progress of their items.
+
+Thaumcraft:
+-Campfires can be lit and extinguished by wands using vis.
+-Campfires can be scanned by thaumometers for aspects.
+-Campfires can heat up crucibles/thaumatoriums.
+-Campfires can be extinguised with water arrows and ignited with fire arrows.
+
+Witchery:
+-Campfires can heat up kettles and witch's cauldrons.
+-Campfires can be extinguished with the Extinguish brew and ignited with the Flame brew.
+-Campfires can be extinguished with the Aguamenti symbol and ignited with the Incendio symbol.
+
+Botania:
+-Campfires can be ignited by mana bursts fired using a Kindle Lens.
+
+Galacticraft / Advanced Rocketry:
+-Campfires will burn out if there's no oxygen.
+-Campfire smoke will move faster or slower depending on the atmosphere.
+
+Netherlicious:
+-Soul campfires can be crafted with Soul Soil.
+
+CraftTweaker:
+-Campfire recipes, extinguishers/ignitors, and burn out timers can be made using CraftTweaker (v3.1.0 or later). See # Recipes Overview.
+
 
 # EnviroMine Compatibility
 If you're using EnviroMine and want to have campfires warm you up, you can set it up using EnviroMine's config.
@@ -628,6 +662,10 @@ Avoid renaming mod .jar files! If the filename doesn't include the mod name (ign
  -Witchery Mixins
     TileEntityCauldron: campfires will be able to heat up witch's cauldrons just like fire
     TileEntityKettle: campfires will be able to heat up kettles just like fire
+    symbols.Incendio: the Incendio symbol can ignite campfires
+    symbols.Aguamenti: the Aguamenti symbol can extinguish campfires
+    brews.EntitySplatter: the projectiles created by the Flame brew can ignite campfires
+    brews.Extinguish: the Extinguish brew can extinguish campfires
  -Thaumcraft Mixins
     TileCrucible: campfires will be able to heat up crucibles just like fire and lava
     TileThaumatorium: campfires will be able to heat up thaumatoriums just like fire and lava
