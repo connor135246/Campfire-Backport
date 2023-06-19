@@ -158,28 +158,25 @@ public class BlockCampfire extends BlockContainer
 
         if (!world.isRemote)
         {
-            if (entity.isBurning())
-            {
-                igniteOrReigniteCampfire(null, world, x, y, z);
-            }
-            else if (entity instanceof EntityArrow)
+            if (entity instanceof EntityArrow)
             {
                 if (primalArrowClass == CampfireBackport.class)
                     primalArrowClass = (Class) EntityList.stringToClassMapping.get("Thaumcraft.PrimalArrow");
                 if (primalArrowClass != null && primalArrowClass.isInstance(entity))
                 {
                     thaumcraft.common.entities.projectile.EntityPrimalArrow primalarrow = (thaumcraft.common.entities.projectile.EntityPrimalArrow) entity;
-                    if (primalarrow.type == 1) // fire
+                    boolean canIgnite = primalarrow.type == 1 || entity.isBurning(); // 1 is fire
+                    boolean canExtinguish = isLit() && primalarrow.type == 2; // 2 is water
+                    if ((canIgnite && igniteOrReigniteCampfire(null, world, x, y, z) != 0) || (canExtinguish && extinguishCampfire(null, world, x, y, z) != 0))
                     {
-                        if (igniteOrReigniteCampfire(null, world, x, y, z) != 0)
-                            primalarrow.setDead();
-                    }
-                    else if (isLit() && primalarrow.type == 2) // water
-                    {
-                        if (extinguishCampfire(null, world, x, y, z) != 0)
-                            primalarrow.setDead();
+                        primalarrow.setDead();
+                        return;
                     }
                 }
+            }
+            if (entity.isBurning())
+            {
+                igniteOrReigniteCampfire(null, world, x, y, z);
             }
             else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
