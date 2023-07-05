@@ -34,6 +34,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 {
@@ -222,6 +223,17 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         }
                     }
                 }
+            }
+        }
+
+        // lens
+        if (CampfireBackportCompat.isBotaniaLoaded)
+        {
+            Item lens = GameData.getItemRegistry().getObject("Botania:lens");
+            if (lens != null)
+            {
+                arecipes.add(new CachedCampfireStateChanger("lens", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(lens, 1, 15)), false)); // meta 15 is kindle lens
             }
         }
 
@@ -485,6 +497,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
             String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
             fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
+        }
+        else if (cachedCstate.specialID.equals("lens"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal("entity.Botania.botania:manaBurst.name");
+            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
         }
 
         return true;
