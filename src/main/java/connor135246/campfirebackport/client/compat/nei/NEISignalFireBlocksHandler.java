@@ -41,7 +41,7 @@ import net.minecraftforge.oredict.OreDictionary;
 public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
 {
 
-    public static final String recipeID = Reference.MODID + ".signalFireBlocks";
+    public static final String recipeID = Reference.NEI_SIGNALBLOCKS_ID;
 
     public static final RecipeTransferRect transfer = new RecipeTransferRect(new Rectangle(62, 31, 40, 32), recipeID);
     public static final Rectangle blockRect = new Rectangle(62, 64, 40, 32);
@@ -202,6 +202,16 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 metaToRender = 0;
         }
 
+        // NEI-GTNH compatibility
+        public void jeiStyledRenderPermutation(List<PositionedStack> stacks, long cycle)
+        {
+            for (PositionedStack stack : stacks)
+            {
+                stack.setPermutationToRender((int) (cycle % stack.items.length));
+                setBlockToRender((int) cycle);
+            }
+        }
+
     }
 
     @Override
@@ -225,6 +235,12 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
     public String getRecipeID()
     {
         return recipeID;
+    }
+
+    // NEI-GTNH compatibility
+    public String getHandlerId()
+    {
+        return getRecipeID();
     }
 
     @Override

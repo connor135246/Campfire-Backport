@@ -106,6 +106,12 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
      */
     public abstract String getOutputID();
 
+    // NEI-GTNH compatibility
+    public String getHandlerId()
+    {
+        return getOutputID();
+    }
+
     /**
      * Loads all the possible recipes to the matching recipes list.
      */
@@ -312,8 +318,13 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         GL11.glRotatef(45, 0, 1, 0);
         GL11.glScalef(30, -30, 30);
 
+        boolean depth = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+        if (!depth)
+            GL11.glEnable(GL11.GL_DEPTH_TEST);
         RenderBlockCampfire.renderCampfire(null, CampfireBackportBlocks.getBlockFromLitAndType(lit, type), meta, getRenderBlocks(),
                 true, type == EnumCampfireType.BOTH, false);
+        if (!depth)
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
     }
 
     /**

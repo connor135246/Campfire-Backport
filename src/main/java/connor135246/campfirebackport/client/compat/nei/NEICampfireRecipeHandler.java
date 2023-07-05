@@ -27,7 +27,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
 {
     // thanks to immersive engineering for uhh... having a github. :)
 
-    public static final String outputID = Reference.MODID + ".campfireRecipe";
+    public static final String outputID = Reference.NEI_RECIPE_ID;
 
     /** rectangle for the {@link CampfireRecipe#signalFire} tooltip */
     public static final Rectangle signalRect = new Rectangle(60, 40, 44, 20);

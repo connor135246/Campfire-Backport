@@ -24,6 +24,7 @@ import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -60,6 +61,20 @@ public class CommonProxy
     public void init(FMLInitializationEvent event)
     {
         FMLInterModComms.sendMessage("Waila", "register", Reference.MOD_PACKAGE + ".client.compat.waila.CampfireBackportWailaDataProvider.register");
+
+        sendNEIGTNHHandler(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 65, 166, 5);
+        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:soul_campfire", 0);
+
+        sendNEIGTNHHandler(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire_base", 65, 166, 5);
+        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire_base", -1);
+        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:soul_campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:soul_campfire_base", -1);
+
+        sendNEIGTNHHandler(Reference.NEI_SIGNALBLOCKS_ID, "minecraft:hay_block", 130, 166, 5);
+        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:soul_campfire", 0);
     }
 
     public void postInit(FMLPostInitializationEvent event)
@@ -95,6 +110,36 @@ public class CommonProxy
     public void generateSmokeOverItems(World world, int x, int y, int z, int meta, ItemStack[] items)
     {
         ;
+    }
+
+    // NEI-GTNH compatibility
+
+    public void sendNEIGTNHHandler(String id, String item, int height, int width, int maxRecipesPerPage)
+    {
+        NBTTagCompound handler = new NBTTagCompound();
+        handler.setString("handler", id);
+        handler.setString("handlerID", id);
+        handler.setString("modId", Reference.MODID);
+        handler.setString("modName", Reference.NAME);
+        handler.setBoolean("modRequired", true);
+        handler.setString("itemName", item);
+        handler.setInteger("handlerHeight", height);
+        handler.setInteger("handlerWidth", width);
+        handler.setInteger("maxRecipesPerPage", maxRecipesPerPage);
+        FMLInterModComms.sendMessage("NotEnoughItems", "registerHandlerInfo", handler);
+    }
+
+    public void sendNEIGTNHCatalyst(String id, String item, int priority)
+    {
+        NBTTagCompound catalyst = new NBTTagCompound();
+        catalyst.setString("handler", id);
+        catalyst.setString("handlerID", id);
+        catalyst.setString("modId", Reference.MODID);
+        catalyst.setString("modName", Reference.NAME);
+        catalyst.setBoolean("modRequired", true);
+        catalyst.setString("itemName", item);
+        catalyst.setInteger("priority", priority);
+        FMLInterModComms.sendMessage("NotEnoughItems", "registerCatalystInfo", catalyst);
     }
 
 }

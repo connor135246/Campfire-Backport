@@ -39,7 +39,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 {
     // thanks to immersive engineering for uhh... having a github. :)
 
-    public static final String outputID = Reference.MODID + ".campfireStateChanger";
+    public static final String outputID = Reference.NEI_STATECHANGER_ID;
 
     /** dispenser stack for {@link CampfireStateChanger#dispensable} recipes */
     public static final PositionedStack dispenser = new PositionedStack(new ItemStack(Blocks.dispenser), 94, 41);
@@ -381,22 +381,6 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
 
-            GL11.glTranslatef(12, 32, 100);
-
-            renderCampfire(cachedCstate.types, cachedCstate.extinguisher, 2);
-
-            GL11.glPopMatrix();
-            GL11.glPushMatrix();
-            GL11.glColor4f(1, 1, 1, 1);
-
-            GL11.glTranslatef(110, 32, 100);
-
-            renderCampfire(cachedCstate.types, !cachedCstate.extinguisher, 4);
-
-            GL11.glPopMatrix();
-            GL11.glPushMatrix();
-            GL11.glColor4f(1, 1, 1, 1);
-
             // this is a real mess...
             GL11.glTranslatef(12, 58, 0);
             renderBlock(Blocks.grass);
@@ -449,6 +433,22 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GuiDraw.drawGradientRect(0, 0, 38, 15, 0x00c6c6c6, 0xffc6c6c6);
             GuiDraw.drawRect(0, 15, 38, 14, 0xffc6c6c6);
             //
+
+            GL11.glPopMatrix();
+            GL11.glPushMatrix();
+            GL11.glColor4f(1, 1, 1, 1);
+
+            GL11.glTranslatef(12, 32, 100);
+
+            renderCampfire(cachedCstate.types, cachedCstate.extinguisher, 2);
+
+            GL11.glPopMatrix();
+            GL11.glPushMatrix();
+            GL11.glColor4f(1, 1, 1, 1);
+
+            GL11.glTranslatef(109.5F, 32, 100);
+
+            renderCampfire(cachedCstate.types, !cachedCstate.extinguisher, 4);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();
