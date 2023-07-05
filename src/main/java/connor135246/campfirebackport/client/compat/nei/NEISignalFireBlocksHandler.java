@@ -422,6 +422,10 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             }
             renderer.blockAccess = SingleBlockAccess.getSingleBlockAccess(cachedSblock.blockToRender, meta);
 
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            boolean blend = GL11.glGetBoolean(GL11.GL_BLEND);
+            if (!blend)
+                GL11.glEnable(GL11.GL_BLEND);
             tess.startDrawingQuads();
             try
             {
@@ -439,6 +443,8 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
                 renderer.clearOverrideBlockTexture();
             }
             tess.draw();
+            if (!blend)
+                GL11.glDisable(GL11.GL_BLEND);
 
             renderer.blockAccess = access;
 
@@ -450,7 +456,7 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
 
             GuiDraw.changeTexture(TextureMap.locationBlocksTexture);
 
-            renderCampfire(cycleticks % 40 < 20 ? EnumCampfireType.REG_ONLY : EnumCampfireType.SOUL_ONLY, true, 2);
+            renderCampfire(EnumCampfireType.BOTH, true, 2);
         }
 
         GL11.glPopMatrix();
