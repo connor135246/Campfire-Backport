@@ -212,13 +212,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         if (regCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
-                                    extinguisher, createWandTooltips(extinguisher, regCost), wandList, false));
+                                    extinguisher, new ArrayList<LinkedList<String>>(), wandList, false));
                         }
 
                         if (!sameCosts && soulCost > 0.0)
                         {
                             arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
-                                    extinguisher, createWandTooltips(extinguisher, soulCost), wandList, false));
+                                    extinguisher, new ArrayList<LinkedList<String>>(), wandList, false));
                         }
                     }
                 }
@@ -246,17 +246,6 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             }
 
         }
-    }
-
-    protected static ArrayList<LinkedList<String>> createWandTooltips(boolean extinguisher, double cost)
-    {
-        ArrayList<LinkedList<String>> tooltips = new ArrayList<LinkedList<String>>();
-        LinkedList<String> tooltip = new LinkedList<String>();
-        tooltip.add("");
-        tooltip.add(EnumChatFormatting.GOLD + "-" + StringParsers.translateNEI("vis_cost") +
-                (extinguisher ? EnumChatFormatting.DARK_AQUA + " " + cost + " Aqua" : EnumChatFormatting.RED + " " + cost + " Ignis"));
-        tooltips.add(tooltip);
-        return tooltips;
     }
 
     protected void addBurnoutStateChanger(BurnOutRule brule, EnumCampfireType types)
@@ -491,7 +480,11 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         }
         else if (cachedCstate.specialID.equals("wand"))
         {
-            GuiDraw.drawTexturedModalRect(56, 0, 60, 2, 52, 41);
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
+            String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
+            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
         }
 
         return true;

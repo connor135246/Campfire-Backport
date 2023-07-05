@@ -153,7 +153,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
      */
     public void handleInputTooltipFromMousePosition(Point relMouse, CachedGenericRecipe cachedGrecipe, ItemStack stack, List<String> tooltip)
     {
-        if (!tooltip.isEmpty())
+        if (!tooltip.isEmpty() && !cachedGrecipe.tooltips.isEmpty())
         {
             int cinputIndex = hoveringOverInput(relMouse, cachedGrecipe);
             if (cinputIndex > -1 && cinputIndex < cachedGrecipe.numInputs)
