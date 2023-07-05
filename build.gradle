@@ -9,9 +9,12 @@ buildscript {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
+        maven {
+            url = "https://jitpack.io"
+        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.11'
     }
 }
 
@@ -23,6 +26,7 @@ repositories {
 }
 
 configurations {
+    runtimeClasspath // I don't know what this does.
     embed
     compile.extendsFrom(embed)
 }
@@ -78,6 +82,7 @@ jar {
             'TweakClass': 'org.spongepowered.asm.launch.MixinTweaker',
             'FMLCorePlugin': 'connor135246.campfirebackport.CampfireBackportMixins',
             'TweakOrder': 0,
+            'FMLAT': 'campfirebackport_at.cfg',
 
             // If these two are not set, Forge will not detect the mod, it will only run the mixins
             'FMLCorePluginContainsFMLMod': 'true',

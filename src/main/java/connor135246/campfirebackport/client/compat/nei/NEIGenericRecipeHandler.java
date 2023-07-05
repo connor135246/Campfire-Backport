@@ -269,7 +269,8 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
     {
         Point mouse = GuiDraw.getMousePosition();
         Point offset = gui.getRecipePosition(recipe);
-        return new Point(mouse.x - (gui.width - 176) / 2 - offset.x, mouse.y - (gui.height - 166) / 2 - offset.y);
+        // used access transformers to get guiTop and guiLeft
+        return new Point(mouse.x - gui.guiLeft - offset.x, mouse.y - gui.guiTop - offset.y);
     }
 
     /**
