@@ -21,9 +21,11 @@ import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.config.ConfigNetworkManager;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -33,6 +35,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 
@@ -223,6 +226,59 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         }
                     }
                 }
+            }
+        }
+
+        // branch & brew
+        // check that witchery mixins are enabled!
+        if (ConfigNetworkManager.mixins && ConfigNetworkManager.witcheryMixins && Loader.isModLoaded("witchery"))
+        {
+            Item branch = GameData.getItemRegistry().getObject("witchery:mysticbranch");
+            if (branch != null)
+            {
+                arecipes.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(branch)), false));
+                arecipes.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(branch)), false));
+            }
+
+            Item brew = GameData.getItemRegistry().getObject("witchery:brewbottle");
+            if (brew != null)
+            {
+                String brewOf = StatCollector.translateToLocal("witchery:brew.potion");
+                String extinguish = StatCollector.translateToLocal("witchery:brew.extinguish");
+                String flames = StatCollector.translateToLocal("witchery:brew.inferno");
+                String splash = StatCollector.translateToLocal("witchery:brew.dispersal.splash");
+
+                ItemStack extinguishBrew = new ItemStack(brew);
+                NBTTagCompound extinguishNBT = new NBTTagCompound();
+                extinguishNBT.setString("BrewName", splash + " " + brewOf + " " + extinguish + " ");
+                extinguishNBT.setString("BrewInfo", splash + "\n" + extinguish + "\n");
+                extinguishNBT.setBoolean("Splash", true);
+                extinguishNBT.setInteger("Color", 202434153);
+                extinguishNBT.setInteger("Power", 0);
+                extinguishNBT.setInteger("EffectCount", 1);
+                extinguishNBT.setInteger("UsedCapacity", 1);
+                extinguishNBT.setInteger("RemainingCapacity", 0);
+                extinguishNBT.setInteger("BrewDrinkSpeed", 32);
+                extinguishBrew.setTagCompound(extinguishNBT);
+                arecipes.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(extinguishBrew), false));
+
+                ItemStack flamesBrew = new ItemStack(brew);
+                NBTTagCompound flamesNBT = new NBTTagCompound();
+                flamesNBT.setString("BrewName", splash + " " + brewOf + " " + flames + " ");
+                flamesNBT.setString("BrewInfo", splash + "\n" + flames + "\n");
+                flamesNBT.setBoolean("Splash", true);
+                flamesNBT.setInteger("Color", -1972966640);
+                flamesNBT.setInteger("Power", 900);
+                flamesNBT.setInteger("EffectCount", 1);
+                flamesNBT.setInteger("UsedCapacity", 3);
+                flamesNBT.setInteger("RemainingCapacity", 2);
+                flamesNBT.setInteger("BrewDrinkSpeed", 32);
+                flamesBrew.setTagCompound(flamesNBT);
+                arecipes.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(flamesBrew), false));
             }
         }
 
@@ -497,6 +553,22 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
             String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
             fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
+        }
+        else if (cachedCstate.specialID.equals("branch"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery.pott.aguamenti" : "witchery.pott.incendio")
+                    + " " + StatCollector.translateToLocal("enchantment.level.1");
+            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+        }
+        else if (cachedCstate.specialID.equals("brew"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal("witchery:brew.potion") + " "
+                    + StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery:brew.extinguish" : "witchery:brew.inferno");
+            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("lens"))
         {

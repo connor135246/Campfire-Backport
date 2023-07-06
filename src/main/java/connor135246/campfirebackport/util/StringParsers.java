@@ -754,6 +754,14 @@ public class StringParsers
     }
 
     /**
+     * @return the key/args translated using the "mixin_config.packets" prefix
+     */
+    public static String translatePacketMixin(String key, Object... args)
+    {
+        return StatCollector.translateToLocalFormatted(Reference.MODID + ".mixin_config.packets." + key, args);
+    }
+
+    /**
      * @return the key translated using the "nei" prefix
      */
     public static String translateNEI(String key)

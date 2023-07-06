@@ -103,6 +103,7 @@ public class CampfireBackportEventHandler
         if (event.player instanceof EntityPlayerMP && !((EntityPlayerMP) event.player).mcServer.isSinglePlayer())
         {
             CommonProxy.modlog.info(StringParsers.translatePacket("send_config"));
+            CommonProxy.simpleNetwork.sendTo(new ConfigNetworkManager.SendMixinConfigMessage(), (EntityPlayerMP) event.player);
             CommonProxy.simpleNetwork.sendTo(new ConfigNetworkManager.SendConfigMessage(), (EntityPlayerMP) event.player);
         }
     }
@@ -116,6 +117,7 @@ public class CampfireBackportEventHandler
         if (!event.manager.isLocalChannel())
         {
             CommonProxy.modlog.info(StringParsers.translatePacket("restore_config"));
+            ConfigNetworkManager.getMixinsHere();
             CampfireBackportConfig.doConfig(15, true, true);
         }
     }

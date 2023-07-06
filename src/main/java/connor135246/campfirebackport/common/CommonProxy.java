@@ -8,7 +8,9 @@ import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireBackportRecipes;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
+import connor135246.campfirebackport.config.ConfigNetworkManager;
 import connor135246.campfirebackport.config.ConfigNetworkManager.SendConfigMessage;
+import connor135246.campfirebackport.config.ConfigNetworkManager.SendMixinConfigMessage;
 import connor135246.campfirebackport.util.CampfireBackportEventHandler;
 import connor135246.campfirebackport.util.CommandCampfireBackport;
 import connor135246.campfirebackport.util.Reference;
@@ -45,8 +47,10 @@ public class CommonProxy
         FMLCommonHandler.instance().bus().register(handler);
         FMLCommonHandler.instance().bus().register(CampfireBackport.instance);
 
+        ConfigNetworkManager.getMixinsHere();
         simpleNetwork = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
         simpleNetwork.registerMessage(SendConfigMessage.Handler.class, SendConfigMessage.class, 1, Side.CLIENT);
+        simpleNetwork.registerMessage(SendMixinConfigMessage.Handler.class, SendMixinConfigMessage.class, 2, Side.CLIENT);
 
         CampfireBackportCompat.preInit();
 

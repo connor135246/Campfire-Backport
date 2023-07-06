@@ -14,6 +14,8 @@ import net.minecraft.util.ChatComponentText;
 public class ConfigNetworkManager
 {
 
+    // Normal Config
+
     /** config settings that must be synced */
     private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "worksUnderwater",
             "signalFiresBurnOut", "burnOutAsItem", "colourfulSmoke", "spawnpointable", "burnOutOnRespawn" },
@@ -153,6 +155,123 @@ public class ConfigNetworkManager
                     CommonProxy.modlog.catching(excep);
                     ctx.getClientHandler().getNetworkManager().closeChannel(new ChatComponentText("[" + Reference.MODID + "] " + apply_error));
                 }
+
+                return null;
+            }
+
+        }
+
+    }
+
+    // Mixin Config
+
+    /**
+     * Currently applicable mixin config settings. The client receives a packet from the server. <br>
+     * Since all mixins exclusively affect the logical server, the physical client doesn't care if it has mixins enabled or not, even if it's the -NM version.
+     */
+    public static boolean mixins, vanillaMixins, witcheryMixins, thaumcraftMixins, enableLoadEarly;
+
+    static
+    {
+        resetCurrentMixins();
+    }
+
+    public static void resetCurrentMixins()
+    {
+        mixins = false;
+        vanillaMixins = false;
+        witcheryMixins = false;
+        thaumcraftMixins = false;
+        enableLoadEarly = false;
+    }
+
+    /**
+     * Gets the mixin config on this physical side.
+     */
+    public static void getMixinsHere()
+    {
+        try
+        {
+            Class cbMixins = Class.forName("connor135246.campfirebackport.CampfireBackportMixins");
+            mixins = (Boolean) cbMixins.getDeclaredField("mixins").get(null);
+            vanillaMixins = (Boolean) cbMixins.getDeclaredField("vanillaMixins").get(null);
+            witcheryMixins = (Boolean) cbMixins.getDeclaredField("witcheryMixins").get(null);
+            thaumcraftMixins = (Boolean) cbMixins.getDeclaredField("thaumcraftMixins").get(null);
+            enableLoadEarly = (Boolean) cbMixins.getDeclaredField("enableLoadEarly").get(null);
+        }
+        catch (Exception excep)
+        {
+            resetCurrentMixins();
+        }
+    }
+
+    /**
+     * packet that contains mixin config settings
+     */
+    public static class SendMixinConfigMessage implements IMessage
+    {
+
+        public boolean mixins = false;
+        public boolean vanillaMixins = false;
+        public boolean witcheryMixins = false;
+        public boolean thaumcraftMixins = false;
+        public boolean enableLoadEarly = false;
+
+        @Override
+        public void toBytes(ByteBuf buf)
+        {
+            try
+            {
+                buf.writeBoolean(ConfigNetworkManager.mixins);
+                buf.writeBoolean(ConfigNetworkManager.vanillaMixins);
+                buf.writeBoolean(ConfigNetworkManager.witcheryMixins);
+                buf.writeBoolean(ConfigNetworkManager.thaumcraftMixins);
+                buf.writeBoolean(ConfigNetworkManager.enableLoadEarly);
+            }
+            catch (Exception excep)
+            {
+                CommonProxy.modlog.error(StringParsers.translatePacketMixin("encode_error"));
+                CommonProxy.modlog.catching(excep);
+            }
+        }
+
+        @Override
+        public void fromBytes(ByteBuf buf)
+        {
+            try
+            {
+                mixins = buf.readBoolean();
+                vanillaMixins = buf.readBoolean();
+                witcheryMixins = buf.readBoolean();
+                thaumcraftMixins = buf.readBoolean();
+                enableLoadEarly = buf.readBoolean();
+            }
+            catch (Exception excep)
+            {
+                CommonProxy.modlog.error(StringParsers.translatePacketMixin("decode_error"));
+                CommonProxy.modlog.catching(excep);
+
+                mixins = false;
+                vanillaMixins = false;
+                witcheryMixins = false;
+                thaumcraftMixins = false;
+                enableLoadEarly = false;
+            }
+        }
+
+        public static class Handler implements IMessageHandler<SendMixinConfigMessage, IMessage>
+        {
+
+            @Override
+            public IMessage onMessage(SendMixinConfigMessage message, MessageContext ctx)
+            {
+                CommonProxy.modlog.info(StringParsers.translatePacketMixin("receive_config"));
+
+                ConfigNetworkManager.mixins = message.mixins;
+                ConfigNetworkManager.vanillaMixins = message.vanillaMixins;
+                ConfigNetworkManager.witcheryMixins = message.witcheryMixins;
+                ConfigNetworkManager.thaumcraftMixins = message.thaumcraftMixins;
+                ConfigNetworkManager.enableLoadEarly = message.enableLoadEarly;
 
                 return null;
             }
