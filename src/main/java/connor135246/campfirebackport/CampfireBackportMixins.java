@@ -37,6 +37,7 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
     public static boolean vanillaMixins = true;
     public static boolean witcheryMixins = true;
     public static boolean thaumcraftMixins = true;
+    public static boolean enableLoadEarly = true;
 
     public CampfireBackportMixins()
     {
@@ -87,6 +88,7 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
 
         config.load();
 
+        // I accidentally did these backwards (it's category and then name, not name and then category). Oh well.
         mixins = config.get("Mixins", Configuration.CATEGORY_GENERAL, true,
                 "Set to false to disable all mixins.").setRequiresMcRestart(true).getBoolean();
         vanillaMixins = config.get("Vanilla Mixins", Configuration.CATEGORY_GENERAL, true,
@@ -95,6 +97,8 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
                 "Set to false to disable Witchery mixins:\nTileEntityCauldron, TileEntityKettle, symbols.Incendio, symbols.Aguamenti, brews.EntitySplatter, brews.Extinguish").setRequiresMcRestart(true).getBoolean();
         thaumcraftMixins = config.get("Thaumcraft Mixins", Configuration.CATEGORY_GENERAL, true,
                 "Set to false to disable Thaumcraft mixins:\nTileCrucible, TileThaumatorium").setRequiresMcRestart(true).getBoolean();
+        enableLoadEarly = config.get("Enable Early Mod Loading", Configuration.CATEGORY_GENERAL, true,
+                "Allows certain mods to be loaded early in order to apply mixins. Applies to:\nWitchery").setRequiresMcRestart(true).getBoolean();
 
         config.save();
     }
@@ -138,7 +142,7 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin
             {
                 for (File modfile : modfiles)
                 {
-                    if (loadEarly)
+                    if (loadEarly && enableLoadEarly)
                     {
                         try
                         {
