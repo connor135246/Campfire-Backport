@@ -68,7 +68,9 @@ public class CommonProxy
 
         sendNEIGTNHHandler(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 65, 166, 5);
         sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:campfire_base", -1);
         sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:soul_campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:soul_campfire_base", -1);
 
         sendNEIGTNHHandler(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire_base", 65, 166, 5);
         sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire", 0);
@@ -78,7 +80,9 @@ public class CommonProxy
 
         sendNEIGTNHHandler(Reference.NEI_SIGNALBLOCKS_ID, "minecraft:hay_block", 130, 166, 5);
         sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:campfire_base", -1);
         sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:soul_campfire", 0);
+        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:soul_campfire_base", -1);
     }
 
     public void postInit(FMLPostInitializationEvent event)

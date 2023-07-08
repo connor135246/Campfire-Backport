@@ -426,6 +426,9 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             boolean blend = GL11.glGetBoolean(GL11.GL_BLEND);
             if (!blend)
                 GL11.glEnable(GL11.GL_BLEND);
+            boolean depth = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+            if (!depth)
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
             tess.startDrawingQuads();
             try
             {
@@ -445,6 +448,8 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             tess.draw();
             if (!blend)
                 GL11.glDisable(GL11.GL_BLEND);
+            if (!depth)
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             renderer.blockAccess = access;
 

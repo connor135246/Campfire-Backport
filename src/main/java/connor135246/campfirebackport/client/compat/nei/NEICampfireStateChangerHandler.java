@@ -566,8 +566,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
-            String info = StatCollector.translateToLocal("witchery:brew.potion") + " "
-                    + StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery:brew.extinguish" : "witchery:brew.inferno");
+            String info = StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery:brew.extinguish" : "witchery:brew.inferno");
             fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("lens"))
