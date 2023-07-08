@@ -15,7 +15,8 @@ import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 import connor135246.campfirebackport.client.rendering.RenderBlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
-import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
+import connor135246.campfirebackport.common.recipes.CustomCraftTweakerIngredient;
+import connor135246.campfirebackport.common.recipes.CustomData;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.common.recipes.GenericRecipe;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -180,7 +181,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
      * Returns the {@link CustomInput#inputList} expanded using {@link net.minecraft.item.Item#getSubItems} and modified with {@link CustomInput#modifyStackForDisplay}. <br>
      * Because {@link PositionedStack#generatePermutations()} doesn't always do what I want it to...
      */
-    public static List<ItemStack> expandInputList(CustomInput cinput)
+    public static List<ItemStack> expandInputList(CustomInput<?> cinput)
     {
         List<ItemStack> neiList = new ArrayList<ItemStack>();
 
@@ -193,7 +194,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 
                 for (ItemStack metaStack : metaList)
                 {
-                    if (cinput.isIIngredientInput() && cinputStack.hasTagCompound())
+                    if (cinput instanceof CustomCraftTweakerIngredient && cinputStack.hasTagCompound())
                         metaStack.setTagCompound(MiscUtil.mergeNBT(metaStack.getTagCompound(), cinputStack.getTagCompound()));
 
                     metaStack = cinput.modifyStackForDisplay(metaStack);
@@ -246,16 +247,16 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
      */
     public static boolean matchesUsage(GenericRecipe grecipe, ItemStack ingredient)
     {
-        for (CustomInput cinput : grecipe.getInputs())
+        for (CustomInput<?> cinput : grecipe.getInputs())
         {
-            if (cinput.isDataInput())
+            if (cinput instanceof CustomData)
             {
-                if (CustomInput.matchesData(cinput, ingredient))
+                if (cinput.matchesData(ingredient))
                     return true;
             }
-            else if (cinput.isIIngredientInput() && ((ICraftTweakerIngredient) cinput.getInput()).isWildcard())
+            else if (cinput instanceof CustomCraftTweakerIngredient && ((CustomCraftTweakerIngredient) cinput).getInput().isWildcard())
             {
-                if (((ICraftTweakerIngredient) cinput.getInput()).matches(ingredient, false))
+                if (((CustomCraftTweakerIngredient) cinput).getInput().matches(ingredient, false))
                     return true;
             }
             else

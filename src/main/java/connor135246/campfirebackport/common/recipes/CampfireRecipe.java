@@ -390,7 +390,8 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
             CustomInput cinputCustom = crecipeCustom.getInputs()[0];
             CustomInput cinputAuto = crecipeAuto.getInputs()[0];
 
-            return cinputCustom.isItemInput() && !cinputCustom.hasExtraData() && CustomInput.matchesTheStack(cinputCustom, (ItemStack) cinputAuto.getInput());
+            if (cinputAuto instanceof CustomItemStack && cinputCustom instanceof CustomItemStack && !cinputCustom.hasExtraData())
+                return ((CustomItemStack) cinputCustom).matchesStack(((CustomItemStack) cinputAuto).getInput());
         }
         return false;
     }

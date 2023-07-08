@@ -3,6 +3,7 @@ package connor135246.campfirebackport.common.compat.crafttweaker;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
+import connor135246.campfirebackport.common.recipes.CustomCraftTweakerIngredient;
 import connor135246.campfirebackport.common.recipes.CustomInput;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
@@ -111,7 +112,7 @@ public class CampfireBackportCraftTweaking
                 CustomInput[] cinputs = new CustomInput[Math.min(input.length, 4)];
 
                 for (int i = 0; i < cinputs.length; ++i)
-                    cinputs[i] = new CustomInput(new ActiveCraftTweakerIngredient(input[i]), 1, OreDictionary.WILDCARD_VALUE, null, false, -1);
+                    cinputs[i] = new CustomCraftTweakerIngredient(new ActiveCraftTweakerIngredient(input[i]), 1, null, false, -1);
 
                 addCampfireRecipe(types, cinputs, output, cookingTime, signalFire, byproduct, byproductChance);
             }
@@ -231,9 +232,8 @@ public class CampfireBackportCraftTweaking
 
                 boolean damageable = usageType.equals(CampfireStateChanger.DAMAGEABLE);
 
-                CustomInput[] cinputs = new CustomInput[] { new CustomInput(new ActiveCraftTweakerIngredient(input),
-                        damageable ? Math.max(damageOrReduceBy, 1) : MathHelper.clamp_int(damageOrReduceBy, 1, 64), OreDictionary.WILDCARD_VALUE, null,
-                        !damageable, -1) };
+                CustomInput[] cinputs = new CustomInput[] { new CustomCraftTweakerIngredient(new ActiveCraftTweakerIngredient(input),
+                        damageable ? Math.max(damageOrReduceBy, 1) : MathHelper.clamp_int(damageOrReduceBy, 1, 64), null, !damageable, -1) };
                 ItemStack[] outputs = output == null ? null : new ItemStack[] { MineTweakerMC.getItemStack(output) };
 
                 CampfireStateChanger cstate = new CampfireStateChanger(typesVerified, cinputs, leftClick, extinguisher, usageType, outputs, false, 0);

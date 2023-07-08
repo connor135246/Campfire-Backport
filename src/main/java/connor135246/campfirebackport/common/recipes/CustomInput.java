@@ -7,17 +7,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
-import connor135246.campfirebackport.config.CampfireBackportConfig;
-import connor135246.campfirebackport.config.ConfigReference;
 import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
-import cpw.mods.fml.common.registry.GameData;
-import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,19 +22,13 @@ import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.IFluidContainerItem;
-import net.minecraftforge.oredict.OreDictionary;
 
-public class CustomInput implements Comparable<CustomInput>
+public abstract class CustomInput<T> implements Comparable<CustomInput>
 {
 
     /** the input! */
-    protected final Object input;
+    protected final T input;
 
-    /**
-     * the type of input. 1 = ItemStack, 2 = oredict (String), 3 = tool class (String), 4 = Class, 5 = NBTTagCompound, 6 = an ICraftTweakerIngredient that should be an
-     * {@link connor135246.campfirebackport.common.compat.crafttweaker.ActiveCraftTweakerIngredient ActiveCraftTweakerIngredient}
-     */
-    protected final byte inputType;
     /** the size of the input. (always 1 for a {@link CampfireRecipe}) */
     protected final int inputSize;
     /** whether {@link #inputSize} should be checked when matching. (only true for a {@link CampfireStateChanger} that is not damageable) */
@@ -49,8 +37,6 @@ public class CustomInput implements Comparable<CustomInput>
     protected final NBTTagCompound extraData;
     /** the type of extra/input data. 1 = exact tag, 2 = enchantment, 3 = fluid, 4 = tinkers */
     protected final byte dataType;
-    /** whether or not meta was specified. only applies to ItemStack inputs. */
-    protected final boolean metaSpecified;
     /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for a {@link CampfireStateChanger}). not used by oredict inputs. */
     protected List<ItemStack> inputList = new ArrayList<ItemStack>();
     /** lines of text to use for displaying extra info in NEI. */
@@ -64,7 +50,32 @@ public class CustomInput implements Comparable<CustomInput>
      */
     public static CustomInput createFromParsed(Object[] parsed, boolean inputSizeMatters, int clamp) throws Exception
     {
-        return new CustomInput(parsed[0], (Integer) parsed[1], (Integer) parsed[2], (NBTTagCompound) parsed[3], inputSizeMatters, clamp);
+        Object input = parsed[0];
+        int inputSize = (Integer) parsed[1];
+        int inputMeta = (Integer) parsed[2];
+        @Nullable
+        NBTTagCompound data = (NBTTagCompound) parsed[3];
+
+        if (input instanceof Item)
+            return new CustomItemStack((Item) input, inputMeta, inputSize, data, inputSizeMatters, clamp);
+        else if (input instanceof String)
+        {
+            String stringInput = (String) input;
+            if (stringInput.startsWith("ore:"))
+                return new CustomOre(stringInput.substring(4), inputSize, data, inputSizeMatters, clamp);
+            else if (stringInput.startsWith("tool:"))
+                return new CustomTool(stringInput.substring(5), inputSize, data, inputSizeMatters, clamp);
+            else
+                throw new Exception();
+        }
+        else if (input instanceof Class)
+            return new CustomClass((Class) input, inputSize, data, inputSizeMatters, clamp);
+        else if (input instanceof ICraftTweakerIngredient)
+            return new CustomCraftTweakerIngredient((ICraftTweakerIngredient) input, inputSize, data, inputSizeMatters, clamp);
+        else if (data != null)
+            return new CustomData(inputSize, data, inputSizeMatters, clamp);
+        else
+            throw new Exception();
     }
 
     /**
@@ -75,24 +86,13 @@ public class CustomInput implements Comparable<CustomInput>
      */
     public static CustomInput createAuto(ItemStack stack) throws Exception
     {
-        return new CustomInput(stack.getItem(), 1, stack.getItemDamage(), null, false, -1);
+        return new CustomItemStack(stack.getItem(), stack.getItemDamage(), 1, null, false, -1);
     }
 
-    /**
-     * Creates a CustomInput.
-     * 
-     * @param input
-     *            - must be an Item, Integer, String, Class, null, or ICraftTweakerIngredient
-     * @param inputSize
-     * @param inputMeta
-     * @param data
-     * @param inputSizeMatters
-     *            - {@link #inputSizeMatters}
-     * @param clamp
-     *            - clamps {@link #inputSize} to be between 1 and this number. if it's less than 1, doesn't clamp.
-     */
-    public CustomInput(Object input, int inputSize, int inputMeta, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp) throws Exception
+    public CustomInput(T input, int inputSize, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp) throws Exception
     {
+        this.input = input;
+
         this.inputSize = clamp > 0 ? MathHelper.clamp_int(inputSize, 1, clamp) : inputSize;
 
         this.extraData = data == null || data.hasNoTags() ? null : (NBTTagCompound) data.copy();
@@ -109,135 +109,13 @@ public class CustomInput implements Comparable<CustomInput>
             this.inputSizeMatters = false;
         else
             this.inputSizeMatters = inputSizeMatters;
+    }
 
-        ItemStack listStack;
-        if (input instanceof Item)
-        {
-            this.input = new ItemStack((Item) input, 1, inputMeta);
-            this.inputType = 1;
-            this.metaSpecified = inputMeta != OreDictionary.WILDCARD_VALUE;
-
-            inputList.add(ItemStack.copyItemStack((ItemStack) getInput()));
-        }
-        else
-        {
-            this.metaSpecified = false;
-
-            if (input instanceof String)
-            {
-                String stringInput = (String) input;
-
-                if (stringInput.startsWith("ore:"))
-                {
-                    stringInput = stringInput.substring(4);
-
-                    // ore inputs may be empty, which is a problem, probably
-                    if (OreDictionary.getOres(stringInput, false).isEmpty())
-                        CampfireBackportConfig.possiblyInvalidOres.add(stringInput);
-
-                    this.input = stringInput;
-                    this.inputType = 2;
-
-                    neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", stringInput));
-                }
-                else if (stringInput.startsWith("tool:"))
-                {
-                    stringInput = stringInput.substring(5);
-                    for (Item item : GameData.getItemRegistry().typeSafeIterable())
-                    {
-                        listStack = new ItemStack(item);
-                        if (item.getToolClasses(listStack).contains(stringInput))
-                        {
-                            if (item.isDamageable())
-                                listStack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-                            inputList.add(listStack);
-                        }
-                    }
-
-                    // tool inputs may have empty inputLists at this point, which is a problem
-                    if (inputList.isEmpty())
-                    {
-                        ConfigReference.logError("no_matches_tool", stringInput);
-                        throw new Exception();
-                    }
-
-                    this.input = stringInput;
-                    this.inputType = 3;
-
-                    neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("tool_input", stringInput));
-                }
-                else
-                    throw new Exception();
-            }
-            else if (input instanceof Class)
-            {
-                if (Block.class.isAssignableFrom((Class) input))
-                {
-                    for (Block block : GameData.getBlockRegistry().typeSafeIterable())
-                        if (((Class) input).isAssignableFrom(block.getClass()) && Item.getItemFromBlock(block) != null)
-                            inputList.add(new ItemStack(block, 1, OreDictionary.WILDCARD_VALUE));
-                }
-                else
-                {
-                    for (Item item : GameData.getItemRegistry().typeSafeIterable())
-                        if (((Class) input).isAssignableFrom(item.getClass()))
-                            inputList.add(new ItemStack(item, 1, OreDictionary.WILDCARD_VALUE));
-                }
-
-                // class inputs may have empty inputLists at this point, which is a problem
-                if (inputList.isEmpty())
-                {
-                    ConfigReference.logError("no_matches_class", ((Class) input).getCanonicalName());
-                    throw new Exception();
-                }
-
-                this.input = (Class) input;
-                this.inputType = 4;
-
-                neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("class_input", ((Class) getInput()).getSimpleName()));
-            }
-            else
-            {
-                listStack = new ItemStack(Items.written_book);
-
-                if (input instanceof ICraftTweakerIngredient)
-                {
-                    this.input = (ICraftTweakerIngredient) input;
-                    this.inputType = 6;
-
-                    inputList.addAll(((ICraftTweakerIngredient) getInput()).getItems());
-                    if (inputList.isEmpty())
-                    {
-                        String name = StringParsers.translateNEI(((ICraftTweakerIngredient) getInput()).isWildcard() ? "anything" : "unknown");
-
-                        neiTooltip.add(EnumChatFormatting.GOLD + name);
-
-                        listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
-
-                        inputList.add(listStack);
-                    }
-
-                    neiTooltip.addAll(((ICraftTweakerIngredient) getInput()).getNEITooltip());
-                }
-                else if (hasExtraData())
-                {
-                    this.input = (NBTTagCompound) this.extraData.copy();
-                    this.inputType = 5;
-
-                    String name = StringParsers.translateNEI(getDataType() != 4 ? "anything" : "any_tinkers");
-
-                    if (getDataType() != 4)
-                        neiTooltip.add(EnumChatFormatting.GOLD + name);
-
-                    listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
-
-                    inputList.add(listStack);
-                }
-                else
-                    throw new Exception();
-            }
-        }
-
+    /**
+     * Should be called at the very end of a custom input constructor.
+     */
+    protected void addDataTooltips()
+    {
         switch (getDataType())
         {
         case 4:
@@ -304,115 +182,40 @@ public class CustomInput implements Comparable<CustomInput>
     }
 
     /**
-     * For checking if the player's ItemStack matches this CustomInput.
-     * 
-     * @return true if this CustomInput applies to the given ItemStack, false otherwise
+     * For checking if the ItemStack matches this input, ignoring data.
      */
-    public boolean matches(ItemStack stack)
-    {
-        return matches(this, stack);
-    }
+    public abstract boolean matchesStack(ItemStack stack);
 
-    public static boolean matches(CustomInput cinput, ItemStack stack)
+    public boolean matches(ItemStack stack)
     {
         boolean matches = stack != null;
 
         if (matches)
         {
-            if (cinput.doesInputSizeMatter())
-                matches = stack.stackSize >= cinput.getInputSize();
+            if (doesInputSizeMatter())
+                matches = stack.stackSize >= getInputSize();
 
             if (matches)
             {
-                switch (cinput.getInputType())
-                {
-                case 1:
-                    matches = matchesTheStack(cinput, stack);
-                    break;
-                case 2:
-                    matches = matchesTheOre(cinput, stack);
-                    break;
-                case 3:
-                    matches = matchesTheTool(cinput, stack);
-                    break;
-                case 4:
-                    matches = matchesTheClass(cinput, stack);
-                    break;
-                case 5:
-                    matches = true;
-                    break;
-                case 6:
-                    matches = matchesTheIIngredient(cinput, stack);
-                    break;
-                default:
-                    matches = false;
-                    break;
-                }
+                matches = matchesStack(stack);
 
                 if (matches)
                 {
-                    if (cinput.hasExtraData())
-                        matches = matchesData(cinput, stack);
+                    if (hasExtraData())
+                        matches = matchesData(stack);
                 }
             }
         }
         return matches;
     }
 
-    public static boolean matchesTheStack(CustomInput cinput, ItemStack stack)
+    public boolean matchesData(ItemStack stack)
     {
-        return cinput.metaWasSpecified() ? stack.isItemEqual((ItemStack) cinput.getInput())
-                : ((ItemStack) cinput.getInput()).getItem() == stack.getItem();
-    }
-
-    public static boolean matchesTheOre(CustomInput cinput, ItemStack stack)
-    {
-        return matchesTheOre((String) cinput.getInput(), stack);
-    }
-
-    public static boolean matchesTheOre(String ore, ItemStack stack)
-    {
-        for (int id : OreDictionary.getOreIDs(stack))
+        if (hasExtraData())
         {
-            if (ore.equals(OreDictionary.getOreName(id)))
-                return true;
-        }
-        return false;
-    }
+            NBTTagCompound cinputData = getExtraData();
 
-    public static boolean matchesTheTool(CustomInput cinput, ItemStack stack)
-    {
-        return stack.getItem().getToolClasses(stack).contains((String) cinput.getInput());
-    }
-
-    public static boolean matchesTheClass(CustomInput cinput, ItemStack stack)
-    {
-        return matchesTheClass((Class) cinput.getInput(), stack);
-    }
-
-    public static boolean matchesTheClass(Class clazz, ItemStack stack)
-    {
-        if (Block.class.isAssignableFrom(clazz))
-        {
-            Block block = Block.getBlockFromItem(stack.getItem());
-            return block != Blocks.air && clazz.isInstance(block);
-        }
-        else
-            return clazz.isInstance(stack.getItem());
-    }
-
-    public static boolean matchesTheIIngredient(CustomInput cinput, ItemStack stack)
-    {
-        return ((ICraftTweakerIngredient) cinput.getInput()).matches(stack, cinput.doesInputSizeMatter());
-    }
-
-    public static boolean matchesData(CustomInput cinput, ItemStack stack)
-    {
-        if (cinput.hasExtraData())
-        {
-            NBTTagCompound cinputData = cinput.getExtraData();
-
-            switch (cinput.getDataType())
+            switch (getDataType())
             {
             case 1:
             {
@@ -510,9 +313,6 @@ public class CustomInput implements Comparable<CustomInput>
                 else if (getDataType() == 3)
                     stack = MiscUtil.fillContainerWithFluid(stack, FluidStack.loadFluidStackFromNBT(getExtraData().getCompoundTag(StringParsers.KEY_Fluid)));
             }
-
-            if (isIIngredientInput())
-                stack = ((ICraftTweakerIngredient) getInput()).modifyStackForDisplay(stack);
         }
         return stack;
     }
@@ -566,28 +366,7 @@ public class CustomInput implements Comparable<CustomInput>
 
             inputToString.append("[");
 
-            if (isDataInput())
-            {
-                if (getDataType() == 4)
-                    inputToString.append("A Tinker's Construct tool");
-                else
-                    inputToString.append("Anything");
-            }
-            else
-            {
-                if (isOreDictInput())
-                    inputToString.append("Ore: " + getInput());
-                else if (isToolInput())
-                    inputToString.append("Any " + getInput() + "-type tool");
-                else if (isItemInput() && (metaWasSpecified() || anIffyCheckToJustifyImprovedReadability()))
-                    inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()));
-                else if (isItemInput())
-                    inputToString.append(((ItemStack) getInput()).getItem().getItemStackDisplayName((ItemStack) getInput()) + " (any metadata)");
-                else if (isClassInput())
-                    inputToString.append("Any " + ((Class) getInput()).getSimpleName() + ".class");
-                else if (isIIngredientInput())
-                    inputToString.append("Unknown CraftTweaker IIngredient (check NEI)");
-            }
+            inputToString.append(toStringName());
 
             if (hasExtraData())
                 inputToString.append(" with ");
@@ -602,16 +381,15 @@ public class CustomInput implements Comparable<CustomInput>
             case 2:
             {
                 NBTTagCompound ench = getExtraData().getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
-                inputToString
-                        .append(Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getTranslatedName(ench.getInteger(StringParsers.KEY_lvl))
-                                + " or greater");
+                inputToString.append(Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)]
+                        .getTranslatedName(ench.getInteger(StringParsers.KEY_lvl)) + " or greater");
                 break;
             }
             case 3:
             {
                 NBTTagCompound fluidData = getExtraData().getCompoundTag(StringParsers.KEY_Fluid);
-                inputToString
-                        .append("at least " + fluidData.getInteger(StringParsers.KEY_Amount) + " mB of " + fluidData.getString(StringParsers.KEY_FluidName));
+                inputToString.append("at least " + fluidData.getInteger(StringParsers.KEY_Amount) +
+                        " mB of " + fluidData.getString(StringParsers.KEY_FluidName));
                 break;
             }
             case 4:
@@ -631,55 +409,15 @@ public class CustomInput implements Comparable<CustomInput>
     }
 
     /**
-     * only used by {@link #toString()}
+     * @return input name for toString
      */
-    public boolean anIffyCheckToJustifyImprovedReadability()
-    {
-        ItemStack input0 = new ItemStack(((ItemStack) getInput()).getItem(), 1, 0);
-        ItemStack input1 = new ItemStack(((ItemStack) getInput()).getItem(), 1, 1);
-        return input0.getItem().getItemStackDisplayName(input0).equals(input1.getItem().getItemStackDisplayName(input1));
-    }
+    public abstract String toStringName();
 
     // Getters
 
-    public Object getInput()
+    public T getInput()
     {
         return input;
-    }
-
-    public byte getInputType()
-    {
-        return inputType;
-    }
-
-    public boolean isItemInput()
-    {
-        return inputType == 1;
-    }
-
-    public boolean isOreDictInput()
-    {
-        return inputType == 2;
-    }
-
-    public boolean isToolInput()
-    {
-        return inputType == 3;
-    }
-
-    public boolean isClassInput()
-    {
-        return inputType == 4;
-    }
-
-    public boolean isDataInput()
-    {
-        return inputType == 5;
-    }
-
-    public boolean isIIngredientInput()
-    {
-        return inputType == 6;
     }
 
     public boolean hasExtraData()
@@ -707,60 +445,35 @@ public class CustomInput implements Comparable<CustomInput>
         return neiTooltip;
     }
 
-    public boolean metaWasSpecified()
-    {
-        return metaSpecified;
-    }
-
     public boolean doesInputSizeMatter()
     {
         return inputSizeMatters;
     }
 
-    /**
-     * @return the cached inputList for non-oredict recipes, or the list from the OreDictionary for oredict recipes
-     */
     public List<ItemStack> getInputList()
     {
-        if (isOreDictInput())
-            return OreDictionary.getOres((String) getInput(), false);
-        else
-            return inputList;
+        return inputList;
     }
 
     // Sorting
+
+    /**
+     * Smaller numbers have higher priority.
+     */
+    public abstract int getSortOrder();
+
     /**
      * Note: this class has a natural ordering that is inconsistent with equals.
      */
     @Override
-    public int compareTo(CustomInput cinput)
+    public int compareTo(CustomInput other)
     {
         // orders inputs by their input type, which generally speaking puts more specific inputs at the start.
-        int value = Integer.compare(this.getInputType(), cinput.getInputType());
+        int value = Integer.compare(this.getSortOrder(), other.getSortOrder());
         if (value != 0)
             return value;
-        // orders CraftTweaker IIngredients by their sort order, which generally speaking puts more specific inputs at the start.
-        if (this.getInput() instanceof ICraftTweakerIngredient && cinput.getInput() instanceof ICraftTweakerIngredient)
-        {
-            value = Integer.compare(((ICraftTweakerIngredient) this.getInput()).getSortOrder(), ((ICraftTweakerIngredient) cinput.getInput()).getSortOrder());
-            if (value != 0)
-                return value;
-        }
         // inputs that have extra data come first.
-        value = Boolean.compare(cinput.hasExtraData() && !cinput.isDataInput(), this.hasExtraData() && !this.isDataInput());
-        if (value != 0)
-            return value;
-        // inputs that specify a meta come first.
-        value = Boolean.compare(cinput.metaWasSpecified(), this.metaWasSpecified());
-        // keeps items with the same id and damage together.
-        if (value == 0 && this.getInput() instanceof ItemStack && cinput.getInput() instanceof ItemStack)
-        {
-            value = Integer.compare(Item.getIdFromItem(((ItemStack) this.getInput()).getItem()), Item.getIdFromItem(((ItemStack) cinput.getInput()).getItem()));
-            if (value == 0)
-                value = Integer.compare(((ItemStack) this.getInput()).getItemDamage(), ((ItemStack) cinput.getInput()).getItemDamage());
-        }
-
-        return value;
+        return Boolean.compare(other.hasExtraData(), this.hasExtraData());
     }
 
 }

@@ -2,7 +2,6 @@ package connor135246.campfirebackport.common.recipes;
 
 import javax.annotation.Nullable;
 
-import connor135246.campfirebackport.common.compat.CampfireBackportCompat.ICraftTweakerIngredient;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
@@ -54,8 +53,8 @@ public abstract class GenericRecipe
 
             // yes we do apply crafttweaker transforms BEFORE running {@link #use(CustomInput, ItemStack, EntityPlayer)}.
             // that's how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it.
-            if (cinput.isIIngredientInput())
-                stack = ((ICraftTweakerIngredient) cinput.getInput()).applyTransform(stack, player);
+            if (cinput instanceof CustomCraftTweakerIngredient)
+                stack = ((CustomCraftTweakerIngredient) cinput).getInput().applyTransform(stack, player);
             else if (cinput.hasExtraData() && cinput.getDataType() == 3)
                 stack = CustomInput.doFluidEmptying(stack, cinput.getExtraData().getCompoundTag(StringParsers.KEY_Fluid).getInteger(StringParsers.KEY_Amount), player);
 

@@ -101,7 +101,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
             if (use.length > 1)
             {
-                if (!cinput.isDataInput())
+                if (!(cinput instanceof CustomData))
                     dispensable = true;
                 else
                     ConfigReference.logError("invalid_dispensable", extinguisher ? ConfigReference.extinguisher() : ConfigReference.ignitor(), stateChanger);
@@ -316,7 +316,7 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     /**
      * CampfireStateChangers have only one input, so we have a shortcut for {@link #getInputs()}.
      */
-    public CustomInput getInput()
+    public CustomInput<?> getInput()
     {
         return getInputs()[0];
     }
