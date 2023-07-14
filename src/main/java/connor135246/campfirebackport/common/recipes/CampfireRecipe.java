@@ -80,8 +80,6 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
             if (tempInputsList.size() == 0)
                 throw new Exception();
 
-            Collections.sort(tempInputsList);
-
             // output
 
             Object[] output = StringParsers.parseItemOrOreOrToolOrClassWithNBTOrDataWithSize(segment[1], false);

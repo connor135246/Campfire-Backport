@@ -1,5 +1,7 @@
 package connor135246.campfirebackport.common.recipes;
 
+import java.util.Arrays;
+
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -29,6 +31,7 @@ public abstract class GenericRecipe
     protected GenericRecipe(EnumCampfireType types, CustomInput[] inputs, @Nullable ItemStack[] outputs, int sortOrder)
     {
         this.types = types;
+        Arrays.sort(inputs);
         this.inputs = inputs;
         this.outputs = outputs;
         this.sortOrder = sortOrder;
