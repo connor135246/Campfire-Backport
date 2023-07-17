@@ -95,15 +95,17 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
 
         this.inputSize = clamp > 0 ? MathHelper.clamp_int(inputSize, 1, clamp) : inputSize;
 
-        this.extraData = data == null || data.hasNoTags() ? null : (NBTTagCompound) data.copy();
-
-        if (hasExtraData())
+        if (data != null && !data.hasNoTags())
         {
-            this.dataType = this.extraData.getByte(StringParsers.KEY_GCIDataType);
-            this.extraData.removeTag(StringParsers.KEY_GCIDataType);
+            this.dataType = data.getByte(StringParsers.KEY_GCIDataType);
+            data.removeTag(StringParsers.KEY_GCIDataType);
+            this.extraData = (NBTTagCompound) data.copy();
         }
         else
+        {
             this.dataType = 0;
+            this.extraData = null;
+        }
 
         if (getDataType() == 4)
             this.inputSizeMatters = false;
