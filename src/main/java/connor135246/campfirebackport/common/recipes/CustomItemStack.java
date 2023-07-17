@@ -14,13 +14,13 @@ public class CustomItemStack extends CustomInput<ItemStack>
 
     public CustomItemStack(Item item, int meta, int inputSize, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp) throws Exception
     {
-        super(new ItemStack((Item) item, 1, meta), inputSize, data, inputSizeMatters, clamp);
+        super(new ItemStack(item, 1, meta), inputSize, data, inputSizeMatters, clamp);
 
         this.metaSpecified = meta != OreDictionary.WILDCARD_VALUE;
 
         inputList.add(ItemStack.copyItemStack(this.input));
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

@@ -42,7 +42,7 @@ public class CustomClass extends CustomInput<Class>
 
         neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("class_input", clazz.getSimpleName()));
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

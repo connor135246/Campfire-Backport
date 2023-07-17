@@ -38,7 +38,7 @@ public class CustomTool extends CustomInput<String>
 
         neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("tool_input", tool));
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

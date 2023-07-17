@@ -31,7 +31,7 @@ public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngre
 
         neiTooltip.addAll(iingredient.getNEITooltip());
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

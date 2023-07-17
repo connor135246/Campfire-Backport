@@ -23,7 +23,7 @@ public class CustomData extends CustomInput<NBTTagCompound>
 
         inputList.add(listStack);
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

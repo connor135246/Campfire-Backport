@@ -24,7 +24,7 @@ public class CustomOre extends CustomInput<String>
 
         neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore));
 
-        addDataTooltips();
+        finishTooltips();
     }
 
     @Override

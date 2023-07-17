@@ -116,7 +116,7 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
     /**
      * Should be called at the very end of a custom input constructor.
      */
-    protected void addDataTooltips()
+    protected void finishTooltips()
     {
         switch (getDataType())
         {
