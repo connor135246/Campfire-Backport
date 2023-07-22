@@ -177,6 +177,11 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
             if (matchesUsage(cstate, ingredient))
                 loadValidRecipe(cstate);
+
+        // check non-recipe state changers (except burnout)
+        for (CachedCampfireStateChanger cachedCstate : makeUsageSpecials())
+            if (cachedCstate.contains(cachedCstate.inputs, ingredient))
+                arecipes.add(cachedCstate);
     }
 
     public void loadValidRecipe(CampfireStateChanger cstate)
@@ -192,7 +197,17 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         for (CampfireStateChanger cstate : CampfireStateChanger.getMasterList())
             loadValidRecipe(cstate);
 
-        // creating non-recipe state changers
+        // add non-recipe state changers
+        arecipes.addAll(makeUsageSpecials());
+        arecipes.addAll(makeBurnoutSpecials());
+    }
+
+    /**
+     * creating non-recipe state changers that can be searched by {@link #loadUsageRecipes(ItemStack)}
+     */
+    public List<CachedCampfireStateChanger> makeUsageSpecials()
+    {
+        List<CachedCampfireStateChanger> specials = new ArrayList<CachedCampfireStateChanger>();
 
         // wand
         if (CampfireBackportCompat.isThaumcraftLoaded)
@@ -215,13 +230,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
                         if (regCost > 0.0)
                         {
-                            arecipes.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
+                            specials.add(new CachedCampfireStateChanger("wand", sameCosts ? EnumCampfireType.BOTH : EnumCampfireType.REG_ONLY,
                                     extinguisher, new ArrayList<LinkedList<String>>(), wandList, false));
                         }
 
                         if (!sameCosts && soulCost > 0.0)
                         {
-                            arecipes.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
+                            specials.add(new CachedCampfireStateChanger("wand", EnumCampfireType.SOUL_ONLY,
                                     extinguisher, new ArrayList<LinkedList<String>>(), wandList, false));
                         }
                     }
@@ -229,19 +244,10 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             }
         }
 
-        // branch & brew
+        // brew & branch
         // check that witchery mixins are enabled!
         if (ConfigNetworkManager.mixins && ConfigNetworkManager.witcheryMixins && Loader.isModLoaded("witchery"))
         {
-            Item branch = GameData.getItemRegistry().getObject("witchery:mysticbranch");
-            if (branch != null)
-            {
-                arecipes.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(new ItemStack(branch)), false));
-                arecipes.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(new ItemStack(branch)), false));
-            }
-
             Item brew = GameData.getItemRegistry().getObject("witchery:brewbottle");
             if (brew != null)
             {
@@ -262,7 +268,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                 extinguishNBT.setInteger("RemainingCapacity", 0);
                 extinguishNBT.setInteger("BrewDrinkSpeed", 32);
                 extinguishBrew.setTagCompound(extinguishNBT);
-                arecipes.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
                         Lists.newArrayList(extinguishBrew), false));
 
                 ItemStack flamesBrew = new ItemStack(brew);
@@ -277,8 +283,17 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                 flamesNBT.setInteger("RemainingCapacity", 2);
                 flamesNBT.setInteger("BrewDrinkSpeed", 32);
                 flamesBrew.setTagCompound(flamesNBT);
-                arecipes.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
                         Lists.newArrayList(flamesBrew), false));
+            }
+
+            Item branch = GameData.getItemRegistry().getObject("witchery:mysticbranch");
+            if (branch != null)
+            {
+                specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(branch)), false));
+                specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(branch)), false));
             }
         }
 
@@ -288,12 +303,20 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             Item lens = GameData.getItemRegistry().getObject("Botania:lens");
             if (lens != null)
             {
-                arecipes.add(new CachedCampfireStateChanger("lens", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                specials.add(new CachedCampfireStateChanger("lens", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
                         Lists.newArrayList(new ItemStack(lens, 1, 15)), false)); // meta 15 is kindle lens
             }
         }
 
-        // burning out
+        return specials;
+    }
+
+    /**
+     * burning out
+     */
+    public List<CachedCampfireStateChanger> makeBurnoutSpecials()
+    {
+        List<CachedCampfireStateChanger> specials = new ArrayList<CachedCampfireStateChanger>();
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         BurnOutRule bruleReg = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.regular);
         BurnOutRule bruleSoul = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.soul);
@@ -302,21 +325,21 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             if ((bruleReg == bruleSoul || (bruleReg.isDefaultRule() && bruleSoul.isDefaultRule() && bruleReg.getTimer() == bruleSoul.getTimer()))
                     && CampfireBackportConfig.putOutByRain.sameForBoth() && CampfireBackportConfig.signalFiresBurnOut.sameForBoth())
             {
-                addBurnoutStateChanger(bruleReg, EnumCampfireType.BOTH);
+                specials.add(makeBurnoutCachedCState(bruleReg, EnumCampfireType.BOTH));
             }
             else
             {
                 if (bruleReg.getTimer() != -1 || CampfireBackportConfig.putOutByRain.acceptsRegular())
-                    addBurnoutStateChanger(bruleReg, EnumCampfireType.REG_ONLY);
+                    specials.add(makeBurnoutCachedCState(bruleReg, EnumCampfireType.REG_ONLY));
 
                 if (bruleSoul.getTimer() != -1 || CampfireBackportConfig.putOutByRain.acceptsSoul())
-                    addBurnoutStateChanger(bruleSoul, EnumCampfireType.SOUL_ONLY);
+                    specials.add(makeBurnoutCachedCState(bruleSoul, EnumCampfireType.SOUL_ONLY));
             }
-
         }
+        return specials;
     }
 
-    protected void addBurnoutStateChanger(BurnOutRule brule, EnumCampfireType types)
+    protected CachedCampfireStateChanger makeBurnoutCachedCState(BurnOutRule brule, EnumCampfireType types)
     {
         ArrayList<LinkedList<String>> tooltips = new ArrayList<LinkedList<String>>();
 
@@ -383,7 +406,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         tooltips.add(tooltipReadable);
         tooltips.add(tooltipTicks);
-        arecipes.add(new CachedCampfireStateChanger("burnout", types, true, tooltips, Lists.newArrayList(new ItemStack(Items.written_book)), signalsLive));
+        return new CachedCampfireStateChanger("burnout", types, true, tooltips, Lists.newArrayList(new ItemStack(Items.written_book)), signalsLive);
     }
 
     @Override
