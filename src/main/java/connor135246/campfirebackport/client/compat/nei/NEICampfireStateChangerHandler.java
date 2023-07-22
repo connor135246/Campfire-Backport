@@ -209,7 +209,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
     {
         List<CachedCampfireStateChanger> specials = new ArrayList<CachedCampfireStateChanger>();
 
-        // wand
+        // wand & primalarrow
         if (CampfireBackportCompat.isThaumcraftLoaded)
         {
             Item wand = GameData.getItemRegistry().getObject("Thaumcraft:WandCasting");
@@ -241,6 +241,15 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                         }
                     }
                 }
+            }
+
+            Item primalarrow = GameData.getItemRegistry().getObject("Thaumcraft:PrimalArrow");
+            if (primalarrow != null) // && ThaumcraftApi.internalMethods.isResearchComplete(Minecraft.getMinecraft().thePlayer.getGameProfile().getName(), "PRIMALARROW"))
+            {
+                specials.add(new CachedCampfireStateChanger("primalarrow", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(primalarrow, 1, 2)), false)); // 2 is water
+                specials.add(new CachedCampfireStateChanger("primalarrow", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                        Lists.newArrayList(new ItemStack(primalarrow, 1, 1)), false)); // 1 is fire
             }
         }
 
@@ -576,6 +585,13 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
             String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
             fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
+        }
+        else if (cachedCstate.specialID.equals("primalarrow"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal("tc.research_name.PRIMALARROW");
+            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("branch"))
         {
