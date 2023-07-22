@@ -597,8 +597,18 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
-            String info = StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery.pott.aguamenti" : "witchery.pott.incendio")
-                    + " " + StatCollector.translateToLocal("enchantment.level.1");
+            String info;
+            int level = 1;
+            if (cachedCstate.extinguisher)
+            {
+                info = StatCollector.translateToLocal("witchery.pott.aguamenti");
+                // if you're in the nether you need aguamenti 3 to fill kettles/cauldrons and extinguish campfires
+                if (Minecraft.getMinecraft().theWorld != null && Minecraft.getMinecraft().theWorld.provider.isHellWorld)
+                    level = 3;
+            }
+            else
+                info = StatCollector.translateToLocal("witchery.pott.incendio");
+            info += " " + StatCollector.translateToLocal("enchantment.level." + level);
             fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("brew"))
