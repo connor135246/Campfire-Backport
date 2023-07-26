@@ -142,6 +142,7 @@ public class CommonProxy
         NBTTagCompound catalyst = new NBTTagCompound();
         catalyst.setString("handler", id);
         catalyst.setString("handlerID", id);
+        catalyst.setString("catalystHandlerID", id);
         catalyst.setString("modId", Reference.MODID);
         catalyst.setString("modName", Reference.NAME);
         catalyst.setBoolean("modRequired", true);
