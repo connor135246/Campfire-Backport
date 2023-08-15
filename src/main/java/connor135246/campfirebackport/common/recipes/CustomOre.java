@@ -62,7 +62,15 @@ public class CustomOre extends CustomInput<String>
     @Override
     public int compareTo(CustomInput other)
     {
-        return super.compareTo(other);
+        int value = super.compareTo(other);
+        if (value == 0 && other instanceof CustomOre)
+        {
+            CustomOre otherOre = (CustomOre) other;
+            // keeps the same oredicts together.
+            if (OreDictionary.doesOreNameExist(this.input) && OreDictionary.doesOreNameExist(otherOre.input))
+                value = Integer.compare(OreDictionary.getOreID(this.input), OreDictionary.getOreID(otherOre.input));
+        }
+        return value;
     }
 
 }

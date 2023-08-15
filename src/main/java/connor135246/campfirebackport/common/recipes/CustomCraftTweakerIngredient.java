@@ -66,11 +66,7 @@ public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngre
     {
         int value = super.compareTo(other);
         if (value == 0 && other instanceof CustomCraftTweakerIngredient)
-        {
-            CustomCraftTweakerIngredient otherIIng = (CustomCraftTweakerIngredient) other;
-            // orders CraftTweaker IIngredients by their sort order, which generally speaking puts more specific inputs at the start.
-            value = Integer.compare(this.input.getSortOrder(), otherIIng.input.getSortOrder());
-        }
+            value = this.input.compareTo(((CustomCraftTweakerIngredient) other).input);
         return value;
     }
 

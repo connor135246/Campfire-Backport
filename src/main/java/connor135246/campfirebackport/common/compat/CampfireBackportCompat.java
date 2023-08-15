@@ -121,7 +121,7 @@ public class CampfireBackportCompat
     /**
      * An interface for holding a CraftTweaker IIngredient.
      */
-    public static interface ICraftTweakerIngredient
+    public static interface ICraftTweakerIngredient extends Comparable<ICraftTweakerIngredient>
     {
 
         /**
@@ -233,6 +233,12 @@ public class CampfireBackportCompat
 
         @Override
         public int getSortOrder()
+        {
+            return 0;
+        }
+
+        @Override
+        public int compareTo(ICraftTweakerIngredient other)
         {
             return 0;
         }

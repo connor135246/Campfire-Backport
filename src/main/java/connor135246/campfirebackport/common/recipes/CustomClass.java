@@ -72,7 +72,20 @@ public class CustomClass extends CustomInput<Class>
     @Override
     public int compareTo(CustomInput other)
     {
-        return super.compareTo(other);
+        int value = super.compareTo(other);
+        if (value == 0 && other instanceof CustomClass)
+        {
+            CustomClass otherClass = (CustomClass) other;
+            // keeps the same classes together.
+            String name =  this.input.getCanonicalName();
+            if (name == null)
+                name = "";
+            String otherName = otherClass.input.getCanonicalName();
+            if (otherName == null)
+                otherName = "";
+            value = name.compareTo(otherName);
+        }
+        return value;
     }
 
 }

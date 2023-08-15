@@ -16,8 +16,10 @@ import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.api.oredict.IOreDictEntry;
 import minetweaker.api.oredict.IngredientOreDict;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.oredict.OreDictionary;
 
 /**
  * For when CraftTweaker is loaded.
@@ -26,6 +28,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 {
 
     public final IIngredient iingredient;
+    public final IIngredient iingredUsable;
     public final boolean isWildcard;
     public final boolean hasFunctions;
     public final int sortOrder;
@@ -34,18 +37,18 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     {
         this.iingredient = iingredient;
 
-        IIngredient internal = AbstractItemFunction.reflectIngredientStackInternal(iingredient);
-        this.isWildcard = internal instanceof IngredientAny || internal instanceof IngredientAnyAdvanced;
+        this.iingredUsable = AbstractItemFunction.reflectIngredientStackInternal(iingredient);
+        this.isWildcard = this.iingredUsable instanceof IngredientAny || this.iingredUsable instanceof IngredientAnyAdvanced;
 
-        if (internal instanceof IngredientItem)
+        if (iingredUsable instanceof IngredientItem)
             sortOrder = 20;
-        else if (internal instanceof IItemStack)
+        else if (iingredUsable instanceof IItemStack)
             sortOrder = 40;
-        else if (internal instanceof IngredientOreDict)
+        else if (iingredUsable instanceof IngredientOreDict)
             sortOrder = 60;
-        else if (internal instanceof IOreDictEntry)
+        else if (iingredUsable instanceof IOreDictEntry)
             sortOrder = 80;
-        else if (internal instanceof IngredientAnyAdvanced)
+        else if (iingredUsable instanceof IngredientAnyAdvanced)
             sortOrder = 100;
         else
             sortOrder = 200;
@@ -86,10 +89,8 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     {
         LinkedList<String> tip = new LinkedList<String>();
 
-        IIngredient internal = isWildcard() ? iingredient : AbstractItemFunction.reflectIngredientStackInternal(iingredient);
-
-        if (internal instanceof IOreDictEntry || internal instanceof IngredientOreDict)
-            tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", internal.getInternal()));
+        if (accessibleOre(iingredUsable))
+            tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", iingredUsable.getInternal()));
 
         String nbt = "";
 
@@ -105,7 +106,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 
         if (nbt.isEmpty())
         {
-            String ingredientString = internal.toString();
+            String ingredientString = iingredUsable.toString();
             int withTagIndex = ingredientString.indexOf(".withTag");
             if (withTagIndex != -1 && withTagIndex + 9 <= ingredientString.length() - 1)
                 nbt = ingredientString.substring(withTagIndex + 9, ingredientString.length() - 1);
@@ -146,6 +147,50 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     public int getSortOrder()
     {
         return sortOrder;
+    }
+
+    /**
+     * Note: this class has a natural ordering that is inconsistent with equals.
+     */
+    @Override
+    public int compareTo(ICraftTweakerIngredient other)
+    {
+        // orders CraftTweaker IIngredients by their sort order, which generally speaking puts more specific inputs at the start.
+        int value = Integer.compare(this.getSortOrder(), other.getSortOrder());
+        if (value != 0)
+            return value;
+        if (other instanceof ActiveCraftTweakerIngredient)
+        {
+            ActiveCraftTweakerIngredient otherCT = (ActiveCraftTweakerIngredient) other;
+            // keeps items with the same id and damage together.
+            if (accessibleStack(this.iingredUsable) && accessibleStack(otherCT.iingredUsable))
+            {
+                ItemStack stack = (ItemStack) this.iingredUsable.getInternal();
+                ItemStack otherStack = (ItemStack) otherCT.iingredUsable.getInternal();
+                value = Integer.compare(Item.getIdFromItem(stack.getItem()), Item.getIdFromItem(otherStack.getItem()));
+                if (value == 0)
+                    value = Integer.compare(stack.getItemDamage(), otherStack.getItemDamage());
+            }
+            // keeps the same oredicts together.
+            else if (accessibleOre(this.iingredUsable) && accessibleOre(otherCT.iingredUsable))
+            {
+                String ore = (String) this.iingredUsable.getInternal();
+                String otherOre = (String) otherCT.iingredUsable.getInternal();
+                value = Integer.compare(OreDictionary.getOreID(ore), OreDictionary.getOreID(otherOre));
+            }
+        }
+        return value;
+    }
+
+    protected static boolean accessibleStack(IIngredient iingredient)
+    {
+        return (iingredient instanceof IngredientItem || iingredient instanceof IItemStack) && iingredient.getInternal() instanceof ItemStack;
+    }
+
+    protected static boolean accessibleOre(IIngredient iingredient)
+    {
+        return (iingredient instanceof IngredientOreDict || iingredient instanceof IOreDictEntry) && iingredient.getInternal() instanceof String
+                && OreDictionary.doesOreNameExist((String) iingredient.getInternal());
     }
 
 }

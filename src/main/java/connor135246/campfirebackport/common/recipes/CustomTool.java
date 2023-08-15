@@ -62,7 +62,14 @@ public class CustomTool extends CustomInput<String>
     @Override
     public int compareTo(CustomInput other)
     {
-        return super.compareTo(other);
+        int value = super.compareTo(other);
+        if (value == 0 && other instanceof CustomTool)
+        {
+            CustomTool otherTool = (CustomTool) other;
+            // keeps the same tools together.
+            value = this.input.compareTo(otherTool.input);
+        }
+        return value;
     }
 
 }
