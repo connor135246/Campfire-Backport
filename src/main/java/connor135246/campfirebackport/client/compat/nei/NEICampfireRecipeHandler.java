@@ -226,7 +226,7 @@ public class NEICampfireRecipeHandler extends NEIGenericRecipeHandler
                 timeString = StringParsers.translateTime("ticks", cachedCrecipe.cookingTime + "");
             else
                 timeString = StringParsers.translateTimeHumanReadable(cachedCrecipe.cookingTime);
-            fonty.drawString(timeString, 82 - fonty.getStringWidth(timeString) / 2, 1, 0x777777);
+            fonty().drawString(timeString, 82 - fonty().getStringWidth(timeString) / 2, 1, 0x777777);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();

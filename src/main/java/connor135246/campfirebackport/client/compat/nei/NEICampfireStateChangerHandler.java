@@ -576,7 +576,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
             String info = StringParsers.translateNEI("burn_out");
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("wand"))
         {
@@ -584,14 +584,14 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
             double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
             String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
         }
         else if (cachedCstate.specialID.equals("primalarrow"))
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
             String info = StatCollector.translateToLocal("tc.research_name.PRIMALARROW");
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("branch"))
         {
@@ -609,21 +609,21 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             else
                 info = StatCollector.translateToLocal("witchery.pott.incendio");
             info += " " + StatCollector.translateToLocal("enchantment.level." + level);
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("brew"))
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
             String info = StatCollector.translateToLocal(cachedCstate.extinguisher ? "witchery:brew.extinguish" : "witchery:brew.inferno");
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
         else if (cachedCstate.specialID.equals("lens"))
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
             String info = StatCollector.translateToLocal("entity.Botania.botania:manaBurst.name");
-            fonty.drawString(info, 82 - fonty.getStringWidth(info) / 2, 6, 0x777777);
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
 
         return true;

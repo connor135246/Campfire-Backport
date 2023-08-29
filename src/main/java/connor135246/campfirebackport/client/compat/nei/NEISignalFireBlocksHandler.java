@@ -394,9 +394,9 @@ public class NEISignalFireBlocksHandler extends TemplateRecipeHandler
             GL11.glTranslatef(0, 0, 300);
 
             String desc1 = StringParsers.translateNEI("signal_fire_desc1");
-            fonty.drawString(desc1, 82 - fonty.getStringWidth(desc1) / 2, 5, 0x777777);
+            fonty().drawString(desc1, 82 - fonty().getStringWidth(desc1) / 2, 5, 0x777777);
             String desc2 = StringParsers.translateNEI("signal_fire_desc2");
-            fonty.drawString(desc2, 82 - fonty.getStringWidth(desc2) / 2, 7 + fonty.FONT_HEIGHT, 0x777777);
+            fonty().drawString(desc2, 82 - fonty().getStringWidth(desc2) / 2, 7 + fonty().FONT_HEIGHT, 0x777777);
 
             GL11.glPopMatrix();
             GL11.glPushMatrix();

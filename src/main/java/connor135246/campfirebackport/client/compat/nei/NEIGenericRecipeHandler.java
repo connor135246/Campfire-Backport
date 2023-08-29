@@ -37,8 +37,6 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
 {
     // thanks to immersive engineering for uhh... having a github. :)
 
-    public static final FontRenderer fonty = Minecraft.getMinecraft().fontRenderer;
-
     public static final String basicBackground = "minecraft:textures/gui/container/furnace.png",
             neiBackground = Reference.MODID + ":" + "textures/gui/neiElements.png";
 
@@ -290,6 +288,11 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
         GuiDraw.drawRect(x + 8 - 16 / 2, y + 8 - 16 / 2, 16, 16, 0xff8b8b8b);
         GuiDraw.drawRect(x + 8 - 16 / 2, y + 8 + 16 / 2, 16 + 1, 1, 0xffffffff);
         GuiDraw.drawRect(x + 8 + 16 / 2, y + 8 - 16 / 2, 1, 16, 0xffffffff);
+    }
+
+    public static FontRenderer fonty()
+    {
+        return Minecraft.getMinecraft().fontRenderer;
     }
 
     /**
