@@ -491,7 +491,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             if (!CampfireBackportConfig.signalFireOres.isEmpty())
             {
-                for (int id : OreDictionary.getOreIDs(new ItemStack(block, 1, meta)))
+                for (int id : OreDictionary.getOreIDs(new ItemStack(block, 1, block.damageDropped(meta))))
                 {
                     if (CampfireBackportConfig.signalFireOres.contains(OreDictionary.getOreName(id)))
                     {
@@ -712,8 +712,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public BlockCampfire getBlockTypeAsCampfire()
     {
-        if (getBlockType() instanceof BlockCampfire)
-            return (BlockCampfire) getBlockType();
+        Block block = getBlockType();
+        if (block instanceof BlockCampfire)
+            return (BlockCampfire) block;
         else if (hasWorldObj()) // && ForgeModContainer.removeErroringTileEntities
         {
             CommonProxy.modlog.warn(StatCollector.translateToLocalFormatted(Reference.MODID + ".error.invalid_tile",
@@ -1166,7 +1167,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public boolean distributedInterval(long interval)
     {
         if (hasWorldObj())
-            return (getWorldObj().getTotalWorldTime() + xCoord + yCoord + zCoord) % interval == 0L;
+            return (getWorldObj().getTotalWorldTime() + (long) (xCoord + yCoord + zCoord)) % interval == 0L;
         else
             return false;
     }
