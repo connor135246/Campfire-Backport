@@ -75,6 +75,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     // variables that don't need to be saved to NBT
     protected boolean firstTick = true;
+    protected boolean atmosphericCombustion = true;
 
     // only used client side
     protected boolean rainAndSky = false;
@@ -110,7 +111,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
                 burnOutOverTime();
 
-                if (!firstTick && distributedInterval(20L) && !CampfireBackportCompat.hasOxygen(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
+                if (firstTick)
+                    atmosphericCombustion = CampfireBackportCompat.atmosphericCombustion(getWorldObj());
+
+                if (!firstTick && !atmosphericCombustion && distributedInterval(20L)
+                        && !CampfireBackportCompat.localizedCombustion(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
                     burnOutOrToNothing();
             }
         }

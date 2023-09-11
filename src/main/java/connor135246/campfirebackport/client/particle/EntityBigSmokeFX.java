@@ -35,7 +35,8 @@ public class EntityBigSmokeFX extends EntityFX
     protected final int texIndex;
     protected boolean alphaFading = false;
     protected float alphaFadePerTick = -0.015F;
-    protected boolean hasOxygen = true;
+    protected final boolean atmosphericCombustion;
+    protected boolean localizedCombustion = true;
     protected boolean isColored = false;
 
     /**
@@ -68,6 +69,8 @@ public class EntityBigSmokeFX extends EntityFX
 
         if (colours.length == 3)
             this.setRBGColorF(colours[0], colours[1], colours[2]);
+
+        this.atmosphericCombustion = CampfireBackportCompat.atmosphericCombustion(world);
 
         EntityBigSmokeFXConstructingEvent constructing = new EntityBigSmokeFXConstructingEvent(this, x, y, z);
 
@@ -167,10 +170,10 @@ public class EntityBigSmokeFX extends EntityFX
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
-        if (this.particleAge % 10 == 0 && this.hasOxygen && !CampfireBackportCompat.hasOxygen(this.worldObj, Blocks.air,
-                MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)))
+        if (!this.atmosphericCombustion && this.particleAge % 10 == 0 && this.localizedCombustion && !CampfireBackportCompat.localizedCombustion(this.worldObj,
+                Blocks.air, MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)))
         {
-            this.hasOxygen = false;
+            this.localizedCombustion = false;
             this.alphaFading = true;
             this.alphaFadePerTick = -0.09F;
         }
@@ -180,16 +183,9 @@ public class EntityBigSmokeFX extends EntityFX
 
         if (this.particleAge < this.particleMaxAge && this.particleAlpha > 0.0F)
         {
-            if (this.hasOxygen)
-            {
-                this.motionX += this.rand.nextFloat() / 5000.0F * (this.rand.nextBoolean() ? 1 : -1);
-                this.motionZ += this.rand.nextFloat() / 5000.0F * (this.rand.nextBoolean() ? 1 : -1);
-            }
-            else
-            {
-                this.motionX += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
-                this.motionZ += this.rand.nextFloat() / 10.0F * (this.rand.nextBoolean() ? 1 : -1);
-            }
+            float motionScale = this.localizedCombustion ? 5000.0F : 10.0F;
+            this.motionX += this.rand.nextFloat() / motionScale * (this.rand.nextBoolean() ? 1 : -1);
+            this.motionZ += this.rand.nextFloat() / motionScale * (this.rand.nextBoolean() ? 1 : -1);
 
             this.motionY -= this.particleGravity;
 

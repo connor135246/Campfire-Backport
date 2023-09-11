@@ -82,17 +82,22 @@ public class CampfireBackportCompat
      */
     public static boolean hasOxygen(World world, Block block, int x, int y, int z)
     {
-        boolean atmosphericCombustion;
+        return atmosphericCombustion(world) || localizedCombustion(world, block, x, y, z);
+    }
 
+    public static boolean atmosphericCombustion(World world)
+    {
         if (galacticraftHandler.canGetDimensionProperties(world))
-            atmosphericCombustion = galacticraftHandler.atmosphericCombustion(world);
+            return galacticraftHandler.atmosphericCombustion(world);
         else if (advancedRocketryHandler.canGetDimensionProperties(world))
-            atmosphericCombustion = advancedRocketryHandler.atmosphericCombustion(world);
+            return advancedRocketryHandler.atmosphericCombustion(world);
         else
-            atmosphericCombustion = true;
+            return true;
+    }
 
-        return atmosphericCombustion || galacticraftHandler.localizedCombustion(world, block, x, y, z)
-                || advancedRocketryHandler.localizedCombustion(world, block, x, y, z);
+    public static boolean localizedCombustion(World world, Block block, int x, int y, int z)
+    {
+        return galacticraftHandler.localizedCombustion(world, block, x, y, z) || advancedRocketryHandler.localizedCombustion(world, block, x, y, z);
     }
 
     /**
