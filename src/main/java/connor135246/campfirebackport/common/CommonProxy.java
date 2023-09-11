@@ -107,7 +107,7 @@ public class CommonProxy
     /**
      * Makes campfire smoke particles.
      */
-    public void generateBigSmokeParticles(World world, int x, int y, int z, String type, boolean signalFire)
+    public void generateBigSmokeParticles(World world, int x, int y, int z, int typeIndex, boolean signalFire)
     {
         ;
     }

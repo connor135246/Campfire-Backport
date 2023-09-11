@@ -41,7 +41,7 @@ public class BehaviourGeneric extends BehaviorDefaultDispenseItem
         {
             TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-            if (cstate.matches(stack, ctile.getType(), ctile.isLit(), ctile.canBeReignited())
+            if (cstate.matches(stack, ctile.getTypeIndex(), ctile.isLit(), ctile.canBeReignited())
                     && BlockCampfire.updateCampfireBlockState(cstate.isExtinguisher(), null, ctile) == 1)
             {
                 if (world instanceof WorldServer)

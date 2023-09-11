@@ -152,7 +152,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
             ItemStack stack = getStackInSlot(slot);
             if (stack != null && getCookingTimeInSlot(slot) >= getCookingTotalTimeInSlot(slot))
             {
-                CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getType(), isSignalFire(), incomplete, invCount);
+                CampfireRecipe crecipe = CampfireRecipe.findRecipe(stack, getTypeIndex(), isSignalFire(), incomplete, invCount);
 
                 if (crecipe != null)
                 {
@@ -272,7 +272,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                         transformedStack = null;
                     if (transformedStack != stack)
                     {
-                        int newCookingTime = CampfireRecipe.findLowestCookingTime(transformedStack, getType(), isSignalFire());
+                        int newCookingTime = CampfireRecipe.findLowestCookingTime(transformedStack, getTypeIndex(), isSignalFire());
                         if (newCookingTime != Integer.MAX_VALUE)
                         {
                             setCookingTotalTimeInSlot(slot, newCookingTime);
@@ -311,14 +311,14 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     protected void heal()
     {
-        if (CampfireBackportConfig.regenCampfires.matches(getType()))
+        if (CampfireBackportConfig.regenCampfires.matches(this))
         {
             if (getRegenWaitTimer() < 0)
                 resetRegenWaitTimer();
 
             if (getRegenWaitTimer() == 0)
             {
-                int[] regenValues = EnumCampfireType.option(getType(), CampfireBackportConfig.regularRegen, CampfireBackportConfig.soulRegen);
+                int[] regenValues = EnumCampfireType.isSoul(getTypeIndex()) ? CampfireBackportConfig.soulRegen : CampfireBackportConfig.regularRegen;
 
                 List<EntityPlayer> playerlist = getWorldObj().getEntitiesWithinAABB(EntityPlayer.class,
                         AxisAlignedBB.getBoundingBox(xCoord - regenValues[2], yCoord - regenValues[2], zCoord - regenValues[2],
@@ -536,7 +536,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     protected void addParticles()
     {
-        CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, getType(), isSignalFire());
+        CampfireBackport.proxy.generateBigSmokeParticles(getWorldObj(), xCoord, yCoord, zCoord, getTypeIndex(), isSignalFire());
 
         CampfireBackport.proxy.generateSmokeOverItems(getWorldObj(), xCoord, yCoord, zCoord, getBlockMetadata(), inventory);
 
@@ -614,7 +614,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
                     if (hasCookingTotalTimes)
                         setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
                     else
-                        setCookingTotalTimeInSlot(slot, CampfireRecipe.findLowestCookingTimeOrDefault(stack, getType(), signalFire));
+                        setCookingTotalTimeInSlot(slot, CampfireRecipe.findLowestCookingTimeOrDefault(stack, getTypeIndex(), signalFire));
                 }
             }
         }
@@ -743,7 +743,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public int getTypeIndex()
     {
-        return EnumCampfireType.index(getType());
+        return getBlockTypeAsCampfire().getTypeIndex();
     }
 
     // inventory
@@ -806,7 +806,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
         if (stack != null)
         {
             invStack = stack.splitStack(getInventoryStackLimit());
-            cookingTotalTime = CampfireRecipe.findLowestCookingTimeOrDefault(invStack, getType(), isSignalFire());
+            cookingTotalTime = CampfireRecipe.findLowestCookingTimeOrDefault(invStack, getTypeIndex(), isSignalFire());
         }
 
         setStackInSlot(slot, invStack);
@@ -829,7 +829,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      */
     public boolean isItemValidForCampfire(ItemStack stack)
     {
-        return CampfireRecipe.findRecipe(stack, getType(), isSignalFire()) != null;
+        return CampfireRecipe.findRecipe(stack, getTypeIndex(), isSignalFire()) != null;
     }
 
     /**
@@ -1083,7 +1083,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public void resetBaseBurnOutTimer()
     {
-        baseBurnOutTimer = BurnOutRule.findBurnOutRule(getWorldObj(), xCoord, yCoord, zCoord, getType()).getTimer();
+        baseBurnOutTimer = BurnOutRule.findBurnOutRule(getWorldObj(), xCoord, yCoord, zCoord, getTypeIndex()).getTimer();
     }
 
     public static String getBurnOutTip(int life, int startingLife)
@@ -1155,7 +1155,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public void resetRegenWaitTimer()
     {
-        regenWaitTimer = natureRange(EnumCampfireType.option(getType(), CampfireBackportConfig.regularRegen[3], CampfireBackportConfig.soulRegen[3]));
+        regenWaitTimer = natureRange(EnumCampfireType.isSoul(getTypeIndex()) ? CampfireBackportConfig.soulRegen[3] : CampfireBackportConfig.regularRegen[3]);
     }
 
     // etc

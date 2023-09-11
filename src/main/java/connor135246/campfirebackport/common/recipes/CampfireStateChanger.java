@@ -253,13 +253,13 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
      *            - if this and lit are true, will search for extinguishers or ignitors
      * @return a matching CampfireStateChanger, or null if none was found
      */
-    public static CampfireStateChanger findStateChanger(ItemStack stack, boolean leftClick, String type, boolean lit, boolean reignitable)
+    public static CampfireStateChanger findStateChanger(ItemStack stack, boolean leftClick, int typeIndex, boolean lit, boolean reignitable)
     {
         if (stack != null)
         {
             for (CampfireStateChanger cstate : getStateChangerList(leftClick))
             {
-                if (cstate.matches(stack, type, lit, reignitable))
+                if (cstate.matches(stack, typeIndex, lit, reignitable))
                     return cstate;
             }
         }
@@ -272,9 +272,9 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
      * @param reignitable
      *            - if this and lit are true, extinguishers AND ignitors will match
      */
-    public boolean matches(ItemStack stack, String type, boolean lit, boolean reignitable)
+    public boolean matches(ItemStack stack, int typeIndex, boolean lit, boolean reignitable)
     {
-        return stack != null && (isExtinguisher() == lit || (lit && reignitable)) && getTypes().matches(type) && getInput().matches(stack);
+        return stack != null && (isExtinguisher() == lit || (lit && reignitable)) && getTypes().matches(typeIndex) && getInput().matches(stack);
     }
 
     /**

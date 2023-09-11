@@ -12,9 +12,9 @@ import vazkii.botania.common.item.lens.ItemLens;
 public class BlockCampfireBotania extends BlockCampfire implements IManaTrigger
 {
 
-    public BlockCampfireBotania(boolean lit, String type)
+    public BlockCampfireBotania(boolean lit, int typeIndex)
     {
-        super(lit, type);
+        super(lit, typeIndex);
     }
 
     @Override

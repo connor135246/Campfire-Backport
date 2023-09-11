@@ -23,7 +23,7 @@ public class RenderItemBlockCampfire implements IItemRenderer
     @Override
     public boolean handleRenderType(ItemStack stack, ItemRenderType type)
     {
-        return !CampfireBackportConfig.renderItem3D && CampfireBackportConfig.burnOutAsItem.matches(((ItemBlockCampfire) stack.getItem()).getType())
+        return !CampfireBackportConfig.renderItem3D && CampfireBackportConfig.burnOutAsItem.matches(((ItemBlockCampfire) stack.getItem()))
                 && stack.hasTagCompound() && stack.getTagCompound().hasKey(TileEntityCampfire.KEY_BlockEntityTag);
     }
 

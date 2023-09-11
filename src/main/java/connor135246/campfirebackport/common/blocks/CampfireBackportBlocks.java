@@ -14,10 +14,10 @@ import net.minecraft.block.Block;
 public class CampfireBackportBlocks
 {
 
-    public static final Block campfire = createCampfireBlock(true, EnumCampfireType.regular, "campfire", 1.0F);
-    public static final Block campfire_base = createCampfireBlock(false, EnumCampfireType.regular, "campfire_base", 0.0F);
-    public static final Block soul_campfire = createCampfireBlock(true, EnumCampfireType.soul, "soul_campfire", 0.67F);
-    public static final Block soul_campfire_base = createCampfireBlock(false, EnumCampfireType.soul, "soul_campfire_base", 0.0F);
+    public static final Block campfire = createCampfireBlock(true, EnumCampfireType.regIndex, "campfire", 1.0F);
+    public static final Block campfire_base = createCampfireBlock(false, EnumCampfireType.regIndex, "campfire_base", 0.0F);
+    public static final Block soul_campfire = createCampfireBlock(true, EnumCampfireType.soulIndex, "soul_campfire", 0.67F);
+    public static final Block soul_campfire_base = createCampfireBlock(false, EnumCampfireType.soulIndex, "soul_campfire_base", 0.0F);
 
     /** a list containing the 4 campfires */
     public static final List<Block> LIST_OF_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, campfire_base, soul_campfire_base);
@@ -35,7 +35,7 @@ public class CampfireBackportBlocks
     /**
      * makes the campfire block, or the botania campfire block if botania is installed
      */
-    private static Block createCampfireBlock(boolean lit, String type, String name, float lightLevel)
+    private static Block createCampfireBlock(boolean lit, int typeIndex, String name, float lightLevel)
     {
         Block block = null;
 
@@ -43,8 +43,8 @@ public class CampfireBackportBlocks
         {
             try
             {
-                block = (Block) Class.forName(Reference.MOD_PACKAGE + ".common.compat.botania.BlockCampfireBotania").getConstructor(boolean.class, String.class)
-                        .newInstance(lit, type);
+                block = (Block) Class.forName(Reference.MOD_PACKAGE + ".common.compat.botania.BlockCampfireBotania").getConstructor(boolean.class, int.class)
+                        .newInstance(lit, typeIndex);
             }
             catch (Exception excep)
             {
@@ -54,7 +54,7 @@ public class CampfireBackportBlocks
         }
 
         if (block == null)
-            block = new BlockCampfire(lit, type);
+            block = new BlockCampfire(lit, typeIndex);
 
         return block.setLightLevel(lightLevel).setBlockName(name).setBlockTextureName(Reference.MODID + ":" + name);
     }
@@ -65,12 +65,12 @@ public class CampfireBackportBlocks
      * @param lit
      *            - true if you want a lit campfire, false if you want an unlit campfire
      * @param type
-     *            - "regular" for regular campfire, "soul" for soul campfire (if neither, defaults to regular)
+     *            - 0 for regular campfire, 1 for soul campfire (if neither, defaults to regular)
      * @return the corresponding campfire block
      */
-    public static Block getBlockFromLitAndType(boolean lit, String type)
+    public static Block getBlockFromLitAndType(boolean lit, int typeIndex)
     {
-        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
+        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(typeIndex));
     }
     
     /**

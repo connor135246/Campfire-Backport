@@ -173,17 +173,17 @@ public class BurnOutRule
     }
 
     /**
-     * Floors doubles to ints and sends to {@link #findBurnOutRule(World, int, int, int, String)}
+     * Floors doubles to ints and sends to {@link #findBurnOutRule(World, int, int, int, int)}
      */
-    public static BurnOutRule findBurnOutRule(World world, double x, double y, double z, String type)
+    public static BurnOutRule findBurnOutRule(World world, double x, double y, double z, int typeIndex)
     {
-        return findBurnOutRule(world, MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), type);
+        return findBurnOutRule(world, MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), typeIndex);
     }
 
     /**
      * Gets the first BurnOutRule that matches the given location and campfire type, or the default config rule if no matching BurnOutRules were found.
      */
-    public static BurnOutRule findBurnOutRule(World world, int x, int y, int z, String type)
+    public static BurnOutRule findBurnOutRule(World world, int x, int y, int z, int typeIndex)
     {
         if (!rules.isEmpty() && world != null)
         {
@@ -192,19 +192,19 @@ public class BurnOutRule
 
             for (BurnOutRule brule : rules)
             {
-                if (brule.matches(biomeId, dimensionId, type))
+                if (brule.matches(biomeId, dimensionId, typeIndex))
                     return brule;
             }
         }
-        return defaultRules[EnumCampfireType.index(type)];
+        return defaultRules[EnumCampfireType.index(typeIndex)];
     }
 
     /**
      * Checks if the given biome/dimension ids and campfire type match this BurnOutRule.
      */
-    public boolean matches(int biomeId, int dimensionId, String type)
+    public boolean matches(int biomeId, int dimensionId, int typeIndex)
     {
-        return (!hasBiomeId() || getBiomeId() == biomeId) && (!hasDimensionId() || getDimensionId() == dimensionId) && getTypes().matches(type);
+        return (!hasBiomeId() || getBiomeId() == biomeId) && (!hasDimensionId() || getDimensionId() == dimensionId) && getTypes().matches(typeIndex);
     }
 
     /**

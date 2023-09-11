@@ -17,11 +17,11 @@ public enum EnumCampfireType
 
     // don't want to make a spelling mistake!
     public static final String regular = "regular", soul = "soul";
+    public static final int regIndex = 0, soulIndex = 1;
 
     private final boolean acceptsRegular;
     private final boolean acceptsSoul;
     private final String stringForm;
-    private final String[] asArray;
 
     public static final Map<String, EnumCampfireType> FROM_NAME = new HashMap<String, EnumCampfireType>(10);
 
@@ -41,15 +41,6 @@ public enum EnumCampfireType
         this.acceptsRegular = acceptsRegular;
         this.acceptsSoul = acceptsSoul;
         this.stringForm = stringForm;
-
-        if (acceptsRegular && acceptsSoul)
-            asArray = new String[] { regular, soul };
-        else if (acceptsRegular)
-            asArray = new String[] { regular };
-        else if (acceptsSoul)
-            asArray = new String[] { soul };
-        else
-            asArray = new String[] {};
     }
 
     @Override
@@ -89,27 +80,24 @@ public enum EnumCampfireType
         return acceptsRegular == acceptsSoul;
     }
 
-    /**
-     * @return an array containing the names of the types of campfires this enum accepts.
-     */
-    public String[] asArray()
-    {
-        return asArray;
-    }
-
     public boolean matches(BlockCampfire cblock)
     {
-        return cblock != null && matches(cblock.getType());
+        return cblock != null && matches(cblock.getTypeIndex());
     }
 
     public boolean matches(ItemBlockCampfire citem)
     {
-        return citem != null && matches(citem.getType());
+        return citem != null && matches(citem.getTypeIndex());
     }
 
     public boolean matches(TileEntityCampfire ctile)
     {
-        return ctile != null && matches(ctile.getType());
+        return ctile != null && matches(ctile.getTypeIndex());
+    }
+
+    public boolean matches(int typeIndex)
+    {
+        return isRegular(typeIndex) ? acceptsRegular : (isSoul(typeIndex) ? acceptsSoul : false);
     }
 
     public boolean matches(String type)
@@ -121,33 +109,42 @@ public enum EnumCampfireType
 
     public static boolean isRegular(String type)
     {
-        return type != null && type.equals(regular);
+        return regular.equals(type);
+    }
+
+    public static boolean isRegular(int typeIndex)
+    {
+        return typeIndex == regIndex;
     }
 
     public static boolean isSoul(String type)
     {
-        return type != null && type.equals(soul);
+        return soul.equals(type);
     }
 
-    /**
-     * sometimes we use arrays where the first element is for regular campfires and the second is for soul campfires.
-     */
+    public static boolean isSoul(int typeIndex)
+    {
+        return typeIndex == soulIndex;
+    }
+
+    public static String fromIndex(int typeIndex)
+    {
+        return isSoul(typeIndex) ? soul : regular;
+    }
+
     public static int index(String type)
     {
-        return isSoul(type) ? 1 : 0;
+        return isSoul(type) ? soulIndex : regIndex;
+    }
+
+    public static int index(int typeIndex)
+    {
+        return isSoul(typeIndex) ? soulIndex : regIndex;
     }
 
     public static int index(EnumCampfireType type)
     {
-        return type == SOUL_ONLY ? 1 : 0;
-    }
-
-    /**
-     * @return regularOption if type is "regular", soulOption if type is "soul". if type is neither, regularOption.
-     */
-    public static <E> E option(String type, E regularOption, E soulOption)
-    {
-        return isSoul(type) ? soulOption : regularOption;
+        return type == SOUL_ONLY ? soulIndex : regIndex;
     }
 
 }

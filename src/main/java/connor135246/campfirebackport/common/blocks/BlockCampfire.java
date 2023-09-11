@@ -50,7 +50,7 @@ public class BlockCampfire extends BlockContainer
     protected static final Random RAND = new Random();
 
     protected final boolean lit;
-    protected final String type;
+    protected final int typeIndex;
 
     @SideOnly(Side.CLIENT)
     protected IIcon litLog;
@@ -62,7 +62,7 @@ public class BlockCampfire extends BlockContainer
 
     protected static boolean stateChanging = false;
 
-    protected BlockCampfire(boolean lit, String type)
+    protected BlockCampfire(boolean lit, int typeIndex)
     {
         super(Material.wood);
         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 0.4375F, 1.0F);
@@ -72,7 +72,7 @@ public class BlockCampfire extends BlockContainer
         this.setCreativeTab(CreativeTabs.tabDecorations);
 
         this.lit = lit;
-        this.type = type;
+        this.typeIndex = typeIndex;
     }
 
     /**
@@ -174,13 +174,14 @@ public class BlockCampfire extends BlockContainer
                     }
                 }
             }
+
             if (entity.isBurning())
             {
                 igniteOrReigniteCampfire(null, world, x, y, z);
             }
             else if (isLit() && entity instanceof EntityLivingBase && !entity.isImmuneToFire() && CampfireBackportConfig.damaging.matches(this))
             {
-                if (entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.isSoul(getType()) ? 2.0F : 1.0F))
+                if (entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.isSoul(getTypeIndex()) ? 2.0F : 1.0F))
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, 2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
             }
         }
@@ -229,7 +230,7 @@ public class BlockCampfire extends BlockContainer
      */
     protected static boolean doStateChangers(boolean survival, ItemStack stack, boolean leftClick, TileEntityCampfire ctile, EntityPlayer player)
     {
-        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, ctile.getType(), ctile.isLit(), ctile.canBeReignited());
+        CampfireStateChanger cstate = CampfireStateChanger.findStateChanger(stack, leftClick, ctile.getTypeIndex(), ctile.isLit(), ctile.canBeReignited());
 
         if (cstate != null)
         {
@@ -317,7 +318,7 @@ public class BlockCampfire extends BlockContainer
         {
             stateChanging = true;
 
-            Block newBlock = CampfireBackportBlocks.getBlockFromLitAndType(mode != 0, ((BlockCampfire) oldBlock).getType());
+            Block newBlock = CampfireBackportBlocks.getBlockFromLitAndType(mode != 0, ((BlockCampfire) oldBlock).getTypeIndex());
 
             if (mode != 2)
                 world.setBlock(x, y, z, newBlock, meta, 3);
@@ -468,7 +469,7 @@ public class BlockCampfire extends BlockContainer
                         random.nextFloat() * 0.7F + 0.6F, false);
             }
 
-            if (random.nextInt(5) == 0 && EnumCampfireType.isRegular(getType()))
+            if (random.nextInt(5) == 0 && EnumCampfireType.isRegular(getTypeIndex()))
             {
                 world.spawnParticle("lava", x + 0.5, y + 0.4375, z + 0.5, random.nextFloat() / 2.0F, 0.00005, random.nextFloat() / 2.0F);
             }
@@ -481,7 +482,7 @@ public class BlockCampfire extends BlockContainer
     {
         this.blockIcon = iconreg.registerIcon(Reference.MODID + ":" + "campfire_log");
 
-        if (EnumCampfireType.isRegular(getType()))
+        if (EnumCampfireType.isRegular(getTypeIndex()))
             this.fire = iconreg.registerIcon(Reference.MODID + ":" + "campfire_fire");
         else
             this.fire = iconreg.registerIcon(Reference.MODID + ":" + "soul_campfire_fire");
@@ -510,7 +511,7 @@ public class BlockCampfire extends BlockContainer
     @Override
     public String getItemIconName()
     {
-        if (EnumCampfireType.isRegular(getType()))
+        if (EnumCampfireType.isRegular(getTypeIndex()))
             return Reference.MODID + ":" + "campfire_base";
         else
             return Reference.MODID + ":" + "soul_campfire_base";
@@ -531,7 +532,7 @@ public class BlockCampfire extends BlockContainer
         if (CampfireBackportConfig.rememberState.matches(this))
             return Item.getItemFromBlock(this);
         else
-            return Item.getItemFromBlock(CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.matches(this), getType()));
+            return Item.getItemFromBlock(CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.matches(this), getTypeIndex()));
     }
 
     /**
@@ -672,12 +673,12 @@ public class BlockCampfire extends BlockContainer
 
     public String getType()
     {
-        return type;
+        return EnumCampfireType.fromIndex(typeIndex);
     }
 
     public int getTypeIndex()
     {
-        return EnumCampfireType.index(getType());
+        return typeIndex;
     }
 
     //

@@ -20,7 +20,7 @@ public class CampfireBackportRecipes
     public static void postInit()
     {
         ItemStack campfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regular));
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex));
 
         GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
                 " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
@@ -34,7 +34,7 @@ public class CampfireBackportRecipes
         //
 
         ItemStack soulcampfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.soul));
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.soulIndex));
 
         Block soulSoil = GameData.getBlockRegistry().getObject("netherlicious:SoulSoil");
 

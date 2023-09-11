@@ -62,13 +62,13 @@ public class ClientProxy extends CommonProxy
     }
 
     @Override
-    public void generateBigSmokeParticles(World world, int x, int y, int z, String type, boolean signalFire)
+    public void generateBigSmokeParticles(World world, int x, int y, int z, int typeIndex, boolean signalFire)
     {
         if (RAND.nextFloat() < 0.11F)
         {
             float[] colours = new float[0];
 
-            if (CampfireBackportConfig.colourfulSmoke.matches(type))
+            if (CampfireBackportConfig.colourfulSmoke.matches(typeIndex))
             {
                 Block blockBelow = world.getBlock(x, y - 1, z);
 

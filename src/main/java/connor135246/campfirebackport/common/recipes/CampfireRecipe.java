@@ -254,9 +254,9 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
         return masterRecipeList;
     }
 
-    public static List<CampfireRecipe> getRecipeList(String type)
+    public static List<CampfireRecipe> getRecipeList(int typeIndex)
     {
-        return EnumCampfireType.option(type, regRecipeList, soulRecipeList);
+        return EnumCampfireType.isSoul(typeIndex) ? soulRecipeList : regRecipeList;
     }
 
     public static List<CampfireRecipe> getFurnaceList()
@@ -311,11 +311,11 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      *            - the maximum number of inputs the CampfireRecipe should have
      * @return a matching CampfireRecipe, or null if none was found
      */
-    public static CampfireRecipe findRecipe(ItemStack stack, String type, boolean signalFire, List<CampfireRecipe> skips, int maxInputs)
+    public static CampfireRecipe findRecipe(ItemStack stack, int typeIndex, boolean signalFire, List<CampfireRecipe> skips, int maxInputs)
     {
         if (stack != null)
         {
-            for (CampfireRecipe crecipe : getRecipeList(type))
+            for (CampfireRecipe crecipe : getRecipeList(typeIndex))
             {
                 if (crecipe.getInputs().length <= maxInputs && crecipe.matches(stack, signalFire) && !skips.contains(crecipe))
                     return crecipe;
@@ -327,22 +327,22 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     private static final List<CampfireRecipe> EMPTY_CAMPFIRE_LIST = new ArrayList<CampfireRecipe>(0);
 
     /**
-     * sends to {@link #findRecipe(ItemStack, String, boolean, List, int)} with an empty List<CampfireRecipe> and maxInputs = 4
+     * sends to {@link #findRecipe(ItemStack, int, boolean, List, int)} with an empty List<CampfireRecipe> and maxInputs = 4
      */
-    public static CampfireRecipe findRecipe(ItemStack stack, String type, boolean signalFire)
+    public static CampfireRecipe findRecipe(ItemStack stack, int typeIndex, boolean signalFire)
     {
-        return findRecipe(stack, type, signalFire, EMPTY_CAMPFIRE_LIST, 4);
+        return findRecipe(stack, typeIndex, signalFire, EMPTY_CAMPFIRE_LIST, 4);
     }
 
     /**
      * Finds the lowest cooking time of all Campfire Recipes that match the stack and campfire. If none match, returns Integer.MAX_VALUE.
      */
-    public static int findLowestCookingTime(ItemStack stack, String type, boolean signalFire)
+    public static int findLowestCookingTime(ItemStack stack, int typeIndex, boolean signalFire)
     {
         int lowestCookingTime = Integer.MAX_VALUE;
         if (stack != null)
         {
-            for (CampfireRecipe crecipe : getRecipeList(type))
+            for (CampfireRecipe crecipe : getRecipeList(typeIndex))
             {
                 if (crecipe.getCookingTime() < lowestCookingTime && crecipe.matches(stack, signalFire))
                     lowestCookingTime = crecipe.getCookingTime();
@@ -354,10 +354,10 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     /**
      * Finds the lowest cooking time of all Campfire Recipes that match the stack and campfire. If none match, returns the default cooking time for the campfire type.
      */
-    public static int findLowestCookingTimeOrDefault(ItemStack stack, String type, boolean signalFire)
+    public static int findLowestCookingTimeOrDefault(ItemStack stack, int typeIndex, boolean signalFire)
     {
-        int lowestCookingTime = findLowestCookingTime(stack, type, signalFire);
-        return lowestCookingTime == Integer.MAX_VALUE ? CampfireBackportConfig.defaultCookingTimes[EnumCampfireType.index(type)] : lowestCookingTime;
+        int lowestCookingTime = findLowestCookingTime(stack, typeIndex, signalFire);
+        return lowestCookingTime == Integer.MAX_VALUE ? CampfireBackportConfig.defaultCookingTimes[EnumCampfireType.index(typeIndex)] : lowestCookingTime;
     }
 
     /**

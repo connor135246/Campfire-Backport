@@ -30,14 +30,14 @@ public class ItemBlockCampfire extends ItemBlock
     @SideOnly(Side.CLIENT)
     protected IIcon overlay;
 
-    protected String type;
+    protected int typeIndex;
     protected boolean lit;
 
     public ItemBlockCampfire(Block block)
     {
         super(block);
         this.lit = ((BlockCampfire) block).isLit();
-        this.type = ((BlockCampfire) block).getType();
+        this.typeIndex = ((BlockCampfire) block).getTypeIndex();
     }
 
     @Override
@@ -77,7 +77,7 @@ public class ItemBlockCampfire extends ItemBlock
     {
         if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this))
         {
-            int baseBurnOut = BurnOutRule.findBurnOutRule(world, entity.posX, entity.posY, entity.posZ, getType()).getTimer();
+            int baseBurnOut = BurnOutRule.findBurnOutRule(world, entity.posX, entity.posY, entity.posZ, getTypeIndex()).getTimer();
 
             if (baseBurnOut != -1)
             {
@@ -175,7 +175,7 @@ public class ItemBlockCampfire extends ItemBlock
             }
             else
             {
-                dropstack = new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(false, getType()));
+                dropstack = new ItemStack(CampfireBackportBlocks.getBlockFromLitAndType(false, getTypeIndex()));
 
                 if (copyTags)
                     dropstack.setTagCompound((NBTTagCompound) droptag.copy());
@@ -217,7 +217,7 @@ public class ItemBlockCampfire extends ItemBlock
         }
 
         if (isLit() && CampfireBackportConfig.burnOutAsItem.matches(this)
-                && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getType()).getTimer() != -1)
+                && BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, getTypeIndex()).getTimer() != -1)
         {
             int life = -1, startingLife = -1;
             if (tiletag != null && tiletag.hasKey(TileEntityCampfire.KEY_Life, 99) && tiletag.hasKey(TileEntityCampfire.KEY_StartingLife, 99))
@@ -276,7 +276,7 @@ public class ItemBlockCampfire extends ItemBlock
     @SideOnly(Side.CLIENT)
     public void registerIconsEvent(IIconRegister iconreg)
     {
-        if (EnumCampfireType.isRegular(getType()))
+        if (EnumCampfireType.isRegular(getTypeIndex()))
         {
             this.itemIcon = iconreg.registerIcon(Reference.MODID + ":" + "campfire_base");
             this.overlay = iconreg.registerIcon(Reference.MODID + ":" + "overlay");
@@ -295,12 +295,12 @@ public class ItemBlockCampfire extends ItemBlock
 
     public String getType()
     {
-        return this.type;
+        return EnumCampfireType.fromIndex(typeIndex);
     }
 
     public int getTypeIndex()
     {
-        return EnumCampfireType.index(getType());
+        return this.typeIndex;
     }
 
 }

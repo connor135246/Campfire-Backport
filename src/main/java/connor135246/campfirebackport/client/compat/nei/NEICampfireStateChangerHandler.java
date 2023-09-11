@@ -327,8 +327,8 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
     {
         List<CachedCampfireStateChanger> specials = new ArrayList<CachedCampfireStateChanger>();
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        BurnOutRule bruleReg = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.regular);
-        BurnOutRule bruleSoul = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.soul);
+        BurnOutRule bruleReg = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.regIndex);
+        BurnOutRule bruleSoul = BurnOutRule.findBurnOutRule(player.worldObj, player.posX, player.posY, player.posZ, EnumCampfireType.soulIndex);
         if (bruleReg.getTimer() != -1 || bruleSoul.getTimer() != -1 || CampfireBackportConfig.putOutByRain != EnumCampfireType.NEITHER)
         {
             if ((bruleReg == bruleSoul || (bruleReg.isDefaultRule() && bruleSoul.isDefaultRule() && bruleReg.getTimer() == bruleSoul.getTimer()))
