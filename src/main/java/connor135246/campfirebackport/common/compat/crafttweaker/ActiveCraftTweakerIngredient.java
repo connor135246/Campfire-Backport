@@ -22,7 +22,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.oredict.OreDictionary;
 
 /**
- * For when CraftTweaker is loaded.
+ * For when CraftTweaker is loaded. <br>
+ * This class makes me wonder if I'm proving Hyrum's Law.
  */
 public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 {
@@ -89,7 +90,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     {
         LinkedList<String> tip = new LinkedList<String>();
 
-        if (accessibleOre(iingredUsable))
+        if ((iingredUsable instanceof IngredientOreDict || iingredUsable instanceof IOreDictEntry) && iingredUsable.getInternal() instanceof String)
             tip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", iingredUsable.getInternal()));
 
         String nbt = "";
