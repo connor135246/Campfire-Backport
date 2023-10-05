@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import connor135246.campfirebackport.common.CommonProxy;
+import connor135246.campfirebackport.common.recipes.CampfireBackportRecipes;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import connor135246.campfirebackport.util.StringParsers;
+import cpw.mods.fml.common.registry.GameData;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class ConfigReference
 {
@@ -36,7 +40,7 @@ public class ConfigReference
             defaultIgnitorsList = new String[] { "right/minecraft:flint_and_steel/damageable", "right/minecraft:fire_charge/stackable",
                     "left+dispensable/class:net.minecraft.item.ItemSword[ench:20,1]/damageable", "left/[ench:20,1]/damageable",
                     "left/[Tinkers:[I:{Fiery:1}]]/damageable", "left/[Tinkers:[B:{Lava:1}]]/damageable" },
-            defaultCampfireDrops = new String[] { "", "netherlicious:SoulSoil" },
+            defaultCampfireDrops = new String[] { "", "" },
             defaultSignalFireBlocks = new String[] { "minecraft:hay_block" };
 
     public static final int[] defaultRegRegen = new int[] { 0, 50, 5, 900 },
@@ -47,8 +51,28 @@ public class ConfigReference
     public static final double[] defaultBurnToNothingChances = new double[] { 0.0, 0.0 },
             defaultVisCosts = new double[] { 0.5, 0.5, 0.5, 0.5 };
 
-    public static final ItemStack defaultRegDrop = new ItemStack(Items.coal, 2, 1),
-            defaultSoulDrop = new ItemStack(Blocks.soul_sand);
+    /**
+     * @return two charcoal
+     */
+    public static ItemStack getDefaultRegDrop()
+    {
+        return new ItemStack(Items.coal, 2, 1);
+    }
+
+    /**
+     * @return a soul soil, if one exists; otherwise, vanilla soul sand.
+     */
+    public static ItemStack getDefaultSoulDrop()
+    {
+        Block soulSoil = GameData.getBlockRegistry().getObject("netherlicious:SoulSoil");
+        if (soulSoil != Blocks.air)
+            return new ItemStack(soulSoil);
+        List<ItemStack> soulSoils = OreDictionary.getOres(CampfireBackportRecipes.oreSoulSoil, false);
+        if (!soulSoils.isEmpty())
+            return soulSoils.get(0).copy();
+
+        return new ItemStack(Blocks.soul_sand);
+    }
 
     // translating
 
@@ -92,7 +116,8 @@ public class ConfigReference
 
     // config option names
     public static final String charcoalOnly = "Charcoal Only",
-            soulSoilOnly = "Soul Soil Only (Netherlicious)",
+            soulSoilOnly = "Soul Soil Only",
+            soulSoilOnly_OLD = "Soul Soil Only (Netherlicious)",
             renderItem3D = "Render Item in 3D",
             regenCampfires = "Regeneration Campfires",
             regularRegen = "Regeneration Settings (Regular Campfires)",

@@ -220,6 +220,9 @@ public class CampfireBackportConfig
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
                 StringParsers.translateComment("charcoal")).setRequiresMcRestart(true).getBoolean();
 
+        // rename "Soul Soil Only (Netherlicious)" to "Soul Soil Only"
+        config.renameProperty(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly_OLD, ConfigReference.soulSoilOnly);
+
         soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, false,
                 StringParsers.translateComment("soul_soil")).setRequiresMcRestart(true).getBoolean();
 
@@ -544,8 +547,8 @@ public class CampfireBackportConfig
             BurnOutRule.addToRules(brule);
 
         // campfireDropsStrings
-        campfireDropsStacks[0] = ConfigReference.defaultRegDrop.copy();
-        campfireDropsStacks[1] = ConfigReference.defaultSoulDrop.copy();
+        campfireDropsStacks[0] = ConfigReference.getDefaultRegDrop();
+        campfireDropsStacks[1] = ConfigReference.getDefaultSoulDrop();
 
         ConfigReference.logInfo("parsing_drops");
 

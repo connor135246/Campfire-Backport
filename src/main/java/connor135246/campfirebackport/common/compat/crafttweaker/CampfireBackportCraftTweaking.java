@@ -74,6 +74,10 @@ public class CampfireBackportCraftTweaking
 
             CampfireBackportConfig.checkInvalidOres();
 
+            // ores may have changed!
+            CampfireBackportConfig.campfireDropsStacks[0] = ConfigReference.getDefaultRegDrop();
+            CampfireBackportConfig.campfireDropsStacks[1] = ConfigReference.getDefaultSoulDrop();
+
             if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)
             {
                 CampfireRecipe.getFurnaceList().forEach(furnaceCrecipe -> CampfireRecipe.removeFromRecipeLists(furnaceCrecipe));
