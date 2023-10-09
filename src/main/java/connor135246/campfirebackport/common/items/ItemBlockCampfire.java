@@ -1,6 +1,5 @@
 package connor135246.campfirebackport.common.items;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
@@ -138,24 +137,13 @@ public class ItemBlockCampfire extends ItemBlock
 
         boolean copyTags = false;
         boolean hasItems = false;
-        List<ItemStack> invItems = new ArrayList<ItemStack>();
 
         NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
         NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
-        NBTTagList droptileitemstag = droptiletag.getTagList(TileEntityCampfire.KEY_Items, 10);
 
         droptiletag.removeTag(TileEntityCampfire.KEY_Life);
         droptiletag.removeTag(TileEntityCampfire.KEY_StartingLife);
         droptiletag.removeTag(TileEntityCampfire.KEY_PreviousTimestamp);
-
-        if (droptileitemstag.tagCount() != 0)
-        {
-            for (int i = 0; i < droptileitemstag.tagCount(); ++i)
-                invItems.add(ItemStack.loadItemStackFromNBT(droptileitemstag.getCompoundTagAt(i)));
-
-            droptiletag.removeTag(TileEntityCampfire.KEY_Items);
-            hasItems = true;
-        }
 
         if (droptiletag.hasNoTags())
             droptag.removeTag(TileEntityCampfire.KEY_BlockEntityTag);
@@ -185,13 +173,6 @@ public class ItemBlockCampfire extends ItemBlock
             }
 
             entity.entityDropItem(dropstack, 0.1F);
-
-            // lit campfires drop their items when they're extinguished as a block. so they should do the same when they're extinguished as an item!
-            if (hasItems)
-                invItems.forEach(invStack -> {
-                    if (invStack != null)
-                        entity.entityDropItem(invStack.copy(), 0.1F);
-                });
         }
 
         TileEntityCampfire.playFizzAndAddSmokeServerSide(world, entity.posX, entity.posY, entity.posZ, particles, 0.25);

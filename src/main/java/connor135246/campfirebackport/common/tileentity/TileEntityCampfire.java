@@ -85,25 +85,29 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (!getWorldObj().isRemote)
         {
+            int invCount = 0;
+            for (int slot = 0; slot < getSizeInventory(); ++slot)
+                if (getStackInSlot(slot) != null)
+                {
+                    if (isLit())
+                        incrementCookingTimeInSlot(slot);
+                    else
+                        reduceCookingTimeInSlot(slot);
+
+                    ++invCount;
+                }
+
+            // updates waila display for client every 2.5 sec, if there are items or the campfire is burning out over time
+            if (distributedInterval(50L) && (invCount > 0 || (getBaseBurnOutTimer() > -1 && canBurnOut())))
+                markForClient();
+
+            if (invCount > 0)
+                markDirty();
+
             if (isLit())
             {
-                int invCount = 0;
-                for (int slot = 0; slot < getSizeInventory(); ++slot)
-                    if (getStackInSlot(slot) != null)
-                    {
-                        incrementCookingTimeInSlot(slot);
-                        ++invCount;
-                    }
-
-                // updates waila display for client every 2.5 sec, if there are items cooking or the campfire is burning out over time
-                if (distributedInterval(50L) && (invCount > 0 || (getBaseBurnOutTimer() > -1 && canBurnOut())))
-                    markForClient();
-
                 if (invCount > 0)
-                {
-                    markDirty();
                     cook(invCount);
-                }
 
                 heal();
 
@@ -1018,6 +1022,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (isSlotNumber(slot) && cookingTimes[slot] < Integer.MAX_VALUE)
             ++cookingTimes[slot];
+    }
+
+    public void reduceCookingTimeInSlot(int slot)
+    {
+        if (isSlotNumber(slot) && cookingTimes[slot] > 0)
+            cookingTimes[slot] = MathHelper.clamp_int(cookingTimes[slot] - 2, 0, cookingTimes[slot]);
     }
 
     // cookingTotalTimes

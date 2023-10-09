@@ -339,7 +339,6 @@ public class BlockCampfire extends BlockContainer
                 default:
                 {
                     ctile.playFizzAndAddSmokeServerSide(20, 0.45);
-                    ctile.popItems();
                     break;
                 }
                 }
