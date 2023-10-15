@@ -170,7 +170,8 @@ public class EntityBigSmokeFX extends EntityFX
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
-        if (!this.atmosphericCombustion && this.particleAge % 10 == 0 && this.localizedCombustion && !CampfireBackportCompat.localizedCombustion(this.worldObj,
+        // sadly, this doesn't work on the dedicated server. it appears that advanced rocketry doesn't tell the client about localized atmosphere information! galacticraft seems to work, though.
+        if (!this.atmosphericCombustion && this.localizedCombustion && this.particleAge % 10 == 0 && !CampfireBackportCompat.localizedCombustion(this.worldObj,
                 Blocks.air, MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ)))
         {
             this.localizedCombustion = false;
