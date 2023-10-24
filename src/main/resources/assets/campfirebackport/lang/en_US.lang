@@ -2,6 +2,10 @@ tile.campfire_base.name=Campfire Base
 tile.campfire.name=Campfire
 tile.soul_campfire_base.name=Soul Campfire Base
 tile.soul_campfire.name=Soul Campfire
+tile.foxfire_campfire_base.name=Foxfire Campfire Base
+tile.foxfire_campfire.name=Foxfire Campfire
+tile.shadow_campfire_base.name=Shadow Campfire Base
+tile.shadow_campfire.name=Shadow Campfire
 tile.campfire.inventory.name=Campfire Cooking
 
 campfirebackport.tooltip.burning_out=It's burning out.

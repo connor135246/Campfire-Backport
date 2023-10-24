@@ -16,6 +16,7 @@ import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.CampfireBackportFakePlayer;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.ICampfire;
 import connor135246.campfirebackport.util.Reference;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -41,7 +42,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class TileEntityCampfire extends TileEntity implements ISidedInventory
+public class TileEntityCampfire extends TileEntity implements ISidedInventory, ICampfire
 {
     // final variables
     protected static final Random RAND = new Random();
@@ -322,7 +323,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
             if (getRegenWaitTimer() == 0)
             {
-                int[] regenValues = EnumCampfireType.isSoul(getTypeIndex()) ? CampfireBackportConfig.soulRegen : CampfireBackportConfig.regularRegen;
+                int[] regenValues = EnumCampfireType.isSoulLike(getTypeIndex()) ? CampfireBackportConfig.soulRegen : CampfireBackportConfig.regularRegen;
 
                 List<EntityPlayer> playerlist = getWorldObj().getEntitiesWithinAABB(EntityPlayer.class,
                         AxisAlignedBB.getBoundingBox(xCoord - regenValues[2], yCoord - regenValues[2], zCoord - regenValues[2],
@@ -412,9 +413,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     {
         if (isLit())
         {
-            if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
+            if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getActingTypeIndex()])
             {
-                popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
+                popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getActingTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
 
                 playFizzAndAddSmokeServerSide(65, 0.25);
 
@@ -741,11 +742,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
      * Returns the type of the cached campfire.<br>
      * If it hasn't been cached yet, gets it from the world, but if this tile entity doesn't have a campfire, invalidates it.
      */
-    public String getType()
-    {
-        return getBlockTypeAsCampfire().getType();
-    }
-
     public int getTypeIndex()
     {
         return getBlockTypeAsCampfire().getTypeIndex();
@@ -806,7 +802,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
     public void setInventorySlotContents(int slot, ItemStack stack)
     {
         ItemStack invStack = null;
-        int cookingTotalTime = CampfireBackportConfig.defaultCookingTimes[getTypeIndex()];
+        int cookingTotalTime = CampfireBackportConfig.defaultCookingTimes[getActingTypeIndex()];
 
         if (stack != null)
         {
@@ -1034,7 +1030,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public int getCookingTotalTimeInSlot(int slot)
     {
-        return isSlotNumber(slot) ? cookingTotalTimes[slot] : CampfireBackportConfig.defaultCookingTimes[getTypeIndex()];
+        return isSlotNumber(slot) ? cookingTotalTimes[slot] : CampfireBackportConfig.defaultCookingTimes[getActingTypeIndex()];
     }
 
     public void setCookingTotalTimeInSlot(int slot, int time)
@@ -1166,7 +1162,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory
 
     public void resetRegenWaitTimer()
     {
-        regenWaitTimer = natureRange(EnumCampfireType.isSoul(getTypeIndex()) ? CampfireBackportConfig.soulRegen[3] : CampfireBackportConfig.regularRegen[3]);
+        regenWaitTimer = natureRange(EnumCampfireType.isSoulLike(getTypeIndex()) ? CampfireBackportConfig.soulRegen[3] : CampfireBackportConfig.regularRegen[3]);
     }
 
     // etc

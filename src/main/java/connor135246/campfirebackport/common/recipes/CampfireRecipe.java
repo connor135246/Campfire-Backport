@@ -256,7 +256,7 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
 
     public static List<CampfireRecipe> getRecipeList(int typeIndex)
     {
-        return EnumCampfireType.isSoul(typeIndex) ? soulRecipeList : regRecipeList;
+        return EnumCampfireType.isSoulLike(typeIndex) ? soulRecipeList : regRecipeList;
     }
 
     public static List<CampfireRecipe> getFurnaceList()

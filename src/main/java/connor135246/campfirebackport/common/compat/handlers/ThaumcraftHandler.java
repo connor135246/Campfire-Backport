@@ -51,8 +51,8 @@ public class ThaumcraftHandler
                 {
                     TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
-                    double igniteCost = CampfireBackportConfig.visCosts[ctile.getTypeIndex() + 2];
-                    double extinguishCost = CampfireBackportConfig.visCosts[ctile.getTypeIndex()];
+                    double igniteCost = CampfireBackportConfig.visCosts[ctile.getActingTypeIndex() + 2];
+                    double extinguishCost = CampfireBackportConfig.visCosts[ctile.getActingTypeIndex()];
                     boolean extinguisher;
                     AspectList list = null;
 

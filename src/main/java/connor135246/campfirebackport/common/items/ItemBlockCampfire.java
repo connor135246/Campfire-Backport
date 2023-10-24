@@ -8,6 +8,7 @@ import connor135246.campfirebackport.common.recipes.BurnOutRule;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
+import connor135246.campfirebackport.util.ICampfire;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -24,7 +25,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
-public class ItemBlockCampfire extends ItemBlock
+public class ItemBlockCampfire extends ItemBlock implements ICampfire
 {
     @SideOnly(Side.CLIENT)
     protected IIcon overlay;
@@ -155,9 +156,9 @@ public class ItemBlockCampfire extends ItemBlock
         {
             ItemStack dropstack;
 
-            if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getTypeIndex()])
+            if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getActingTypeIndex()])
             {
-                dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]);
+                dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getActingTypeIndex()]);
 
                 particles = 65;
             }
@@ -257,26 +258,13 @@ public class ItemBlockCampfire extends ItemBlock
     @SideOnly(Side.CLIENT)
     public void registerIconsEvent(IIconRegister iconreg)
     {
-        if (EnumCampfireType.isRegular(getTypeIndex()))
-        {
-            this.itemIcon = iconreg.registerIcon(Reference.MODID + ":" + "campfire_base");
-            this.overlay = iconreg.registerIcon(Reference.MODID + ":" + "overlay");
-        }
-        else
-        {
-            this.itemIcon = iconreg.registerIcon(Reference.MODID + ":" + "soul_campfire_base");
-            this.overlay = iconreg.registerIcon(Reference.MODID + ":" + "soul_overlay");
-        }
+        this.itemIcon = iconreg.registerIcon(Reference.MODID + ":" + EnumCampfireType.iconPrefix(getTypeIndex()) + "campfire_base");
+        this.overlay = iconreg.registerIcon(Reference.MODID + ":" + EnumCampfireType.iconPrefix(getTypeIndex()) + "overlay");
     }
 
     public boolean isLit()
     {
         return this.lit;
-    }
-
-    public String getType()
-    {
-        return EnumCampfireType.fromIndex(typeIndex);
     }
 
     public int getTypeIndex()

@@ -1,7 +1,6 @@
 package connor135246.campfirebackport.util;
 
 import connor135246.campfirebackport.client.particle.EntityBigSmokeFX.EntityBigSmokeFXConstructingEvent;
-import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.BlockCampfire.CampfireStateChangeEvent;
@@ -21,7 +20,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
@@ -36,37 +34,16 @@ public class CampfireBackportEventHandler
 {
 
     /**
-     * Registers the lit log textures, which use 1.8's interpolated icons. <br>
      * Registers the item textures, no matter which sprite sheet the item says it should be on.
      */
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public void onTextureStitchPre(TextureStitchEvent.Pre event)
     {
-        if (event.map.getTextureType() == 0)
+        if (event.map.getTextureType() == 1)
         {
-            String regName = Reference.MODID + ":" + "campfire_log_lit";
-            TextureAtlasSprite regLitLog = new InterpolatedIcon(regName);
-            if (event.map.setTextureEntry(regName, regLitLog))
-            {
-                ((BlockCampfire) CampfireBackportBlocks.campfire).setLitLogIcon(regLitLog);
-                ((BlockCampfire) CampfireBackportBlocks.campfire_base).setLitLogIcon(regLitLog);
-            }
-
-            String soulName = Reference.MODID + ":" + "soul_campfire_log_lit";
-            TextureAtlasSprite soulLitLog = new InterpolatedIcon(soulName);
-            if (event.map.setTextureEntry(soulName, soulLitLog))
-            {
-                ((BlockCampfire) CampfireBackportBlocks.soul_campfire).setLitLogIcon(soulLitLog);
-                ((BlockCampfire) CampfireBackportBlocks.soul_campfire_base).setLitLogIcon(soulLitLog);
-            }
-        }
-        else if (event.map.getTextureType() == 1)
-        {
-            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.campfire)).registerIconsEvent(event.map);
-            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.campfire_base)).registerIconsEvent(event.map);
-            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire)).registerIconsEvent(event.map);
-            ((ItemBlockCampfire) Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire_base)).registerIconsEvent(event.map);
+            for (Block block : CampfireBackportBlocks.LIST_OF_CAMPFIRES)
+                ((ItemBlockCampfire) Item.getItemFromBlock(block)).registerIconsEvent(event.map);
         }
     }
 

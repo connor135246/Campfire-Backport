@@ -582,7 +582,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
         {
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
-            double cost = CampfireBackportConfig.visCosts[(cachedCstate.types.acceptsRegular() ? 0 : 1) + (cachedCstate.extinguisher ? 0 : 2)];
+            double cost = CampfireBackportConfig.visCosts[(EnumCampfireType.index(cachedCstate.types)) + (cachedCstate.extinguisher ? 0 : 2)];
             String info = cost + (cachedCstate.extinguisher ? " Aqua" : " Ignis");
             fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, cachedCstate.extinguisher ? 0x00AAAA : 0xFF5555);
         }

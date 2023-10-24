@@ -3,10 +3,6 @@ package connor135246.campfirebackport.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import connor135246.campfirebackport.common.blocks.BlockCampfire;
-import connor135246.campfirebackport.common.items.ItemBlockCampfire;
-import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
-
 /**
  * Makes it easy to check if a campfire block matches variable config settings.
  */
@@ -16,8 +12,9 @@ public enum EnumCampfireType
     BOTH(true, true, "both"), REG_ONLY(true, false, "regular only"), SOUL_ONLY(false, true, "soul only"), NEITHER(false, false, "neither");
 
     // don't want to make a spelling mistake!
-    public static final String regular = "regular", soul = "soul";
-    public static final int regIndex = 0, soulIndex = 1;
+    public static final String regular = "regular", soul = "soul", foxfire = "foxfire", shadow = "shadow";
+    public static final int regIndex = 0, soulIndex = 1, foxfireIndex = 2, shadowIndex = 3;
+    public static final String[] iconPrefixes = { "", soul + "_", foxfire + "_", shadow + "_" };
 
     private final boolean acceptsRegular;
     private final boolean acceptsSoul;
@@ -34,6 +31,9 @@ public enum EnumCampfireType
         // alternate names
         FROM_NAME.put(regular, REG_ONLY);
         FROM_NAME.put(soul, SOUL_ONLY);
+        // TODO soul-like names
+        FROM_NAME.put(foxfire, SOUL_ONLY);
+        FROM_NAME.put(shadow, SOUL_ONLY);
     }
 
     EnumCampfireType(boolean acceptsRegular, boolean acceptsSoul, String stringForm)
@@ -80,71 +80,71 @@ public enum EnumCampfireType
         return acceptsRegular == acceptsSoul;
     }
 
-    public boolean matches(BlockCampfire cblock)
+    public boolean matches(ICampfire campfire)
     {
-        return cblock != null && matches(cblock.getTypeIndex());
-    }
-
-    public boolean matches(ItemBlockCampfire citem)
-    {
-        return citem != null && matches(citem.getTypeIndex());
-    }
-
-    public boolean matches(TileEntityCampfire ctile)
-    {
-        return ctile != null && matches(ctile.getTypeIndex());
+        return campfire != null && matches(campfire.getTypeIndex());
     }
 
     public boolean matches(int typeIndex)
     {
-        return isRegular(typeIndex) ? acceptsRegular : (isSoul(typeIndex) ? acceptsSoul : false);
-    }
-
-    public boolean matches(String type)
-    {
-        return isRegular(type) ? acceptsRegular : (isSoul(type) ? acceptsSoul : false);
+        return isRegular(typeIndex) ? acceptsRegular : (isSoulLike(typeIndex) ? acceptsSoul : false);
     }
 
     // Static Methods
-
-    public static boolean isRegular(String type)
-    {
-        return regular.equals(type);
-    }
 
     public static boolean isRegular(int typeIndex)
     {
         return typeIndex == regIndex;
     }
 
-    public static boolean isSoul(String type)
+    /**
+     * Foxfire and shadow campfires are "soul-like" and inherit properties from soul campfires. <br>
+     * TODO I may change this in the future to allow properties to be determined separately.
+     */
+    public static boolean isSoulLike(int typeIndex)
     {
-        return soul.equals(type);
+        return typeIndex == soulIndex || typeIndex == foxfireIndex || typeIndex == shadowIndex;
     }
 
-    public static boolean isSoul(int typeIndex)
+    public static boolean isFoxfire(int typeIndex)
     {
-        return typeIndex == soulIndex;
+        return typeIndex == foxfireIndex;
+    }
+
+    public static boolean isShadow(int typeIndex)
+    {
+        return typeIndex == shadowIndex;
     }
 
     public static String fromIndex(int typeIndex)
     {
-        return isSoul(typeIndex) ? soul : regular;
-    }
-
-    public static int index(String type)
-    {
-        return isSoul(type) ? soulIndex : regIndex;
+        return isSoulLike(typeIndex) ? soul : regular;
     }
 
     public static int index(int typeIndex)
     {
-        return isSoul(typeIndex) ? soulIndex : regIndex;
+        return isSoulLike(typeIndex) ? soulIndex : regIndex;
     }
 
     public static int index(EnumCampfireType type)
     {
         return type == SOUL_ONLY ? soulIndex : regIndex;
+    }
+
+    public static boolean isValidIndex(int typeIndex)
+    {
+        return typeIndex == regIndex || typeIndex == soulIndex || typeIndex == foxfireIndex || typeIndex == shadowIndex;
+    }
+
+    /**
+     * @return prefix for IIcons
+     */
+    public static String iconPrefix(int typeIndex)
+    {
+        if (typeIndex < 0 || typeIndex >= iconPrefixes.length)
+            return iconPrefixes[0];
+        else
+            return iconPrefixes[typeIndex];
     }
 
 }

@@ -18,9 +18,14 @@ public class CampfireBackportBlocks
     public static final Block campfire_base = createCampfireBlock(false, EnumCampfireType.regIndex, "campfire_base", 0.0F);
     public static final Block soul_campfire = createCampfireBlock(true, EnumCampfireType.soulIndex, "soul_campfire", 0.67F);
     public static final Block soul_campfire_base = createCampfireBlock(false, EnumCampfireType.soulIndex, "soul_campfire_base", 0.0F);
+    public static final Block foxfire_campfire = createCampfireBlock(true, EnumCampfireType.foxfireIndex, "foxfire_campfire", 1.0F);
+    public static final Block foxfire_campfire_base = createCampfireBlock(false, EnumCampfireType.foxfireIndex, "foxfire_campfire_base", 0.0F);
+    public static final Block shadow_campfire = createCampfireBlock(true, EnumCampfireType.shadowIndex, "shadow_campfire", 0.67F);
+    public static final Block shadow_campfire_base = createCampfireBlock(false, EnumCampfireType.shadowIndex, "shadow_campfire_base", 0.0F);
 
-    /** a list containing the 4 campfires */
-    public static final List<Block> LIST_OF_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, campfire_base, soul_campfire_base);
+    /** a list containing all the campfires */
+    public static final List<Block> LIST_OF_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, foxfire_campfire, shadow_campfire,
+            campfire_base, soul_campfire_base, foxfire_campfire_base, shadow_campfire_base);
 
     /**
      * registers campfire blocks
@@ -64,15 +69,15 @@ public class CampfireBackportBlocks
     /**
      * @param lit
      *            - true if you want a lit campfire, false if you want an unlit campfire
-     * @param type
-     *            - 0 for regular campfire, 1 for soul campfire (if neither, defaults to regular)
+     * @param typeIndex
+     *            - campfire type index
      * @return the corresponding campfire block
      */
     public static Block getBlockFromLitAndType(boolean lit, int typeIndex)
     {
-        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(typeIndex));
+        return LIST_OF_CAMPFIRES.get((lit ? 0 : 4) + (EnumCampfireType.isValidIndex(typeIndex) ? typeIndex : 0));
     }
-    
+
     /**
      * @param lit
      *            - true if you want a lit campfire, false if you want an unlit campfire
@@ -82,7 +87,7 @@ public class CampfireBackportBlocks
      */
     public static Block getBlockFromLitAndType(boolean lit, EnumCampfireType type)
     {
-        return LIST_OF_CAMPFIRES.get((lit ? 0 : 2) + EnumCampfireType.index(type));
+        return LIST_OF_CAMPFIRES.get((lit ? 0 : 4) + EnumCampfireType.index(type));
     }
 
     /**
