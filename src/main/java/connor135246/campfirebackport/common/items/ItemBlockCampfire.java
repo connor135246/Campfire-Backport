@@ -158,7 +158,7 @@ public class ItemBlockCampfire extends ItemBlock implements ICampfire
 
             if (itemRand.nextDouble() < CampfireBackportConfig.burnToNothingChances[getActingTypeIndex()])
             {
-                dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getActingTypeIndex()]);
+                dropstack = ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]);
 
                 particles = 65;
             }

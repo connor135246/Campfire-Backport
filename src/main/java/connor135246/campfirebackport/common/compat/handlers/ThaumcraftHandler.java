@@ -34,6 +34,15 @@ public class ThaumcraftHandler
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.SOUL, 1));
         ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.soul_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.SOUL, 1));
+
+        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire, 1, OreDictionary.WILDCARD_VALUE),
+                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
+        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
+                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
+        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire, 1, OreDictionary.WILDCARD_VALUE),
+                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
+        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
+                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
     }
 
     public static class CampfireBackportWandTriggerManager implements IWandTriggerManager

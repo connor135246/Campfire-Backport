@@ -122,7 +122,7 @@ public class CampfireBackportConfig
     public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
     public static Set<String> signalFireOres = new LinkedHashSet<String>();
 
-    public static ItemStack[] campfireDropsStacks = new ItemStack[2];
+    public static ItemStack[] campfireDropsStacks = new ItemStack[4];
 
     public static Set<String> possiblyInvalidOres = new HashSet<String>();
 
@@ -549,10 +549,13 @@ public class CampfireBackportConfig
         // campfireDropsStrings
         campfireDropsStacks[0] = ConfigReference.getDefaultRegDrop();
         campfireDropsStacks[1] = ConfigReference.getDefaultSoulDrop();
+        // not yet controlled by campfireDropsStrings. if you want to edit the drop, subscribe to BlockEvent.HarvestDropsEvent.
+        campfireDropsStacks[2] = ConfigReference.getDefaultFoxfireDrop();
+        campfireDropsStacks[3] = ConfigReference.getDefaultShadowDrop();
 
         ConfigReference.logInfo("parsing_drops");
 
-        for (int i = 0; i < campfireDropsStacks.length; ++i)
+        for (int i = 0; i < campfireDropsStrings.length; ++i)
         {
             try
             {

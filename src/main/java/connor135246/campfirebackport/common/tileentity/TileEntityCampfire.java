@@ -415,7 +415,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
         {
             if (RAND.nextDouble() < CampfireBackportConfig.burnToNothingChances[getActingTypeIndex()])
             {
-                popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getActingTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
+                popStackedItem(ItemStack.copyItemStack(CampfireBackportConfig.campfireDropsStacks[getTypeIndex()]), getWorldObj(), xCoord, yCoord, zCoord);
 
                 playFizzAndAddSmokeServerSide(65, 0.25);
 

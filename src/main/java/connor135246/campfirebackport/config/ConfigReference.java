@@ -74,6 +74,27 @@ public class ConfigReference
         return new ItemStack(Blocks.soul_sand);
     }
 
+    /**
+     * @return four sticks
+     */
+    public static ItemStack getDefaultFoxfireDrop()
+    {
+        // it doesn't make sense to give back foxfire powder. couldn't find anything better, so it'll just be sticks.
+        return new ItemStack(Items.stick, 4);
+    }
+
+    /**
+     * @return crying blackstone, if it exists; otherwise, four sticks.
+     */
+    public static ItemStack getDefaultShadowDrop()
+    {
+        Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
+        if (cryingBlackstone != Blocks.air)
+            return new ItemStack(cryingBlackstone);
+
+        return new ItemStack(Items.stick, 4);
+    }
+
     // translating
 
     public static String regular()

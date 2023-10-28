@@ -8,6 +8,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
@@ -54,6 +55,30 @@ public class CampfireBackportRecipes
         {
             GameRegistry.addRecipe(new ShapedOreRecipe(soulcampfireResult.copy(),
                     " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreSoulSand, 'C', "logWood"));
+        }
+
+        //
+
+        ItemStack foxfirecampfireResult = new ItemStack(
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.foxfireIndex));
+
+        Item foxfirePowder = GameData.getItemRegistry().getObject("netherlicious:FoxfirePowder");
+        if (foxfirePowder != null)
+        {
+            GameRegistry.addRecipe(new ShapedOreRecipe(foxfirecampfireResult.copy(),
+                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', foxfirePowder, 'C', "logWood"));
+        }
+
+        //
+
+        ItemStack shadowcampfireResult = new ItemStack(
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.shadowIndex));
+
+        Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
+        if (cryingBlackstone != Blocks.air)
+        {
+            GameRegistry.addRecipe(new ShapedOreRecipe(shadowcampfireResult.copy(),
+                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', cryingBlackstone, 'C', "logWood"));
         }
     }
 

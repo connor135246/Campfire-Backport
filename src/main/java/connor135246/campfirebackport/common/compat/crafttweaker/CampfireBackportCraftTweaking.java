@@ -77,6 +77,8 @@ public class CampfireBackportCraftTweaking
             // ores may have changed!
             CampfireBackportConfig.campfireDropsStacks[0] = ConfigReference.getDefaultRegDrop();
             CampfireBackportConfig.campfireDropsStacks[1] = ConfigReference.getDefaultSoulDrop();
+            CampfireBackportConfig.campfireDropsStacks[2] = ConfigReference.getDefaultFoxfireDrop();
+            CampfireBackportConfig.campfireDropsStacks[3] = ConfigReference.getDefaultShadowDrop();
 
             if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)
             {
