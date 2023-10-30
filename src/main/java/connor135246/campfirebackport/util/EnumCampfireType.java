@@ -3,6 +3,13 @@ package connor135246.campfirebackport.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
+import net.minecraft.world.EnumDifficulty;
+
 /**
  * Makes it easy to check if a campfire block matches variable config settings.
  */
@@ -106,14 +113,9 @@ public enum EnumCampfireType
         return typeIndex == soulIndex || typeIndex == foxfireIndex || typeIndex == shadowIndex;
     }
 
-    public static boolean isFoxfire(int typeIndex)
+    public static boolean isValidIndex(int typeIndex)
     {
-        return typeIndex == foxfireIndex;
-    }
-
-    public static boolean isShadow(int typeIndex)
-    {
-        return typeIndex == shadowIndex;
+        return isRegular(typeIndex) || isSoulLike(typeIndex);
     }
 
     public static String fromIndex(int typeIndex)
@@ -131,10 +133,7 @@ public enum EnumCampfireType
         return type == SOUL_ONLY ? soulIndex : regIndex;
     }
 
-    public static boolean isValidIndex(int typeIndex)
-    {
-        return typeIndex == regIndex || typeIndex == soulIndex || typeIndex == foxfireIndex || typeIndex == shadowIndex;
-    }
+    // Foxfire & shadow functionality
 
     /**
      * @return prefix for IIcons
@@ -145,6 +144,50 @@ public enum EnumCampfireType
             return iconPrefixes[0];
         else
             return iconPrefixes[typeIndex];
+    }
+
+    /**
+     * @return if this entity can be damaged by this campfire type. doesn't check CampfireBackportConfig.damaging!
+     */
+    public static boolean canDamage(int typeIndex, Entity entity)
+    {
+        if (entity instanceof EntityLivingBase)
+        {
+            switch (typeIndex)
+            {
+            default:
+                return !entity.isImmuneToFire();
+            case foxfireIndex:
+                return entity.isImmuneToFire();
+            case shadowIndex:
+                return !((EntityLivingBase) entity).isEntityUndead();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * tries to do damage effects to the entity with this campfire type. returns true if damage was dealt.
+     */
+    public static boolean doDamage(int typeIndex, Entity entity, EnumDifficulty difficulty)
+    {
+        if (entity instanceof EntityLivingBase && canDamage(typeIndex, entity))
+        {
+            switch (typeIndex)
+            {
+            default:
+                return entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.isSoulLike(typeIndex) ? 2.0F : 1.0F);
+            case foxfireIndex:
+                return entity.attackEntityFrom(DamageSource.inFire, 1.0F);
+            case shadowIndex:
+            {
+                int blindnessTimer = difficulty == EnumDifficulty.HARD ? 10 : (difficulty == EnumDifficulty.NORMAL ? 5 : 3);
+                ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.blindness.id, blindnessTimer * 20));
+                return entity.attackEntityFrom(DamageSource.wither, 3.0F);
+            }
+            }
+        }
+        return false;
     }
 
 }

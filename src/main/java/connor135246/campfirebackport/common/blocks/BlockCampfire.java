@@ -30,7 +30,6 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.inventory.Container;
@@ -38,14 +37,10 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -188,33 +183,7 @@ public class BlockCampfire extends BlockContainer implements ICampfire
             }
             else if (isLit() && entity instanceof EntityLivingBase && CampfireBackportConfig.damaging.matches(this))
             {
-                boolean damageDone = false;
-
-                switch (getTypeIndex())
-                {
-                default:
-                {
-                    if (!entity.isImmuneToFire() && entity.attackEntityFrom(DamageSource.inFire, EnumCampfireType.isSoulLike(getTypeIndex()) ? 2.0F : 1.0F))
-                        damageDone = true;
-                    break;
-                }
-                case EnumCampfireType.foxfireIndex:
-                {
-                    if (entity.isImmuneToFire() && entity.attackEntityFrom(DamageSource.inFire, 1.0F))
-                        damageDone = true;
-                    break;
-                }
-                case EnumCampfireType.shadowIndex:
-                {
-                    if (((EntityLivingBase) entity).getCreatureAttribute() != EnumCreatureAttribute.UNDEAD && entity.attackEntityFrom(DamageSource.wither, 3.0F))
-                        damageDone = true;
-                    int blindnessTimer = world.difficultySetting == EnumDifficulty.HARD ? 10 : (world.difficultySetting == EnumDifficulty.NORMAL ? 5 : 3);
-                    ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.blindness.id, blindnessTimer * 20));
-                    break;
-                }
-                }
-
-                if (damageDone)
+                if (EnumCampfireType.doDamage(getTypeIndex(), entity, world.difficultySetting))
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, 2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
             }
         }
@@ -688,6 +657,7 @@ public class BlockCampfire extends BlockContainer implements ICampfire
 
     // Getters
 
+    @Override
     public boolean isLit()
     {
         return lit;

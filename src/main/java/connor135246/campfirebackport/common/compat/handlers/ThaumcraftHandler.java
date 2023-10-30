@@ -1,10 +1,13 @@
 package connor135246.campfirebackport.common.compat.handlers;
 
+import java.util.function.Consumer;
+
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.Reference;
+import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -22,9 +25,11 @@ public class ThaumcraftHandler
 
     public static void load()
     {
-        CampfireBackportBlocks.LIST_OF_CAMPFIRES.forEach(cblock -> {
+        Consumer<? super Block> register = cblock -> {
             WandTriggerRegistry.registerWandBlockTrigger(CampfireBackportWandTriggerManager.INSTANCE, 0, cblock, -1, Reference.MODID);
-        });
+        };
+        CampfireBackportBlocks.LIT_CAMPFIRES.forEach(register);
+        CampfireBackportBlocks.UNLIT_CAMPFIRES.forEach(register);
 
         ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.campfire, 1, OreDictionary.WILDCARD_VALUE),
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9));

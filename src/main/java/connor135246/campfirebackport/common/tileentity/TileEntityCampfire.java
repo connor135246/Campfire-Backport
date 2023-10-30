@@ -733,6 +733,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
      * Returns the lit state of the cached campfire.<br>
      * If it hasn't been cached yet, gets it from the world, but if this tile entity doesn't have a campfire, invalidates it.
      */
+    @Override
     public boolean isLit()
     {
         return getBlockTypeAsCampfire().isLit();
@@ -742,6 +743,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
      * Returns the type of the cached campfire.<br>
      * If it hasn't been cached yet, gets it from the world, but if this tile entity doesn't have a campfire, invalidates it.
      */
+    @Override
     public int getTypeIndex()
     {
         return getBlockTypeAsCampfire().getTypeIndex();

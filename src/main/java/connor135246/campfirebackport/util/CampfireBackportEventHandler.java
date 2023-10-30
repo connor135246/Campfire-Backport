@@ -42,7 +42,9 @@ public class CampfireBackportEventHandler
     {
         if (event.map.getTextureType() == 1)
         {
-            for (Block block : CampfireBackportBlocks.LIST_OF_CAMPFIRES)
+            for (Block block : CampfireBackportBlocks.LIT_CAMPFIRES)
+                ((ItemBlockCampfire) Item.getItemFromBlock(block)).registerIconsEvent(event.map);
+            for (Block block : CampfireBackportBlocks.UNLIT_CAMPFIRES)
                 ((ItemBlockCampfire) Item.getItemFromBlock(block)).registerIconsEvent(event.map);
         }
     }

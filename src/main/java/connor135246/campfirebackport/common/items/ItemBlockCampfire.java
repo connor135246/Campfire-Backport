@@ -262,11 +262,13 @@ public class ItemBlockCampfire extends ItemBlock implements ICampfire
         this.overlay = iconreg.registerIcon(Reference.MODID + ":" + EnumCampfireType.iconPrefix(getTypeIndex()) + "overlay");
     }
 
+    @Override
     public boolean isLit()
     {
         return this.lit;
     }
 
+    @Override
     public int getTypeIndex()
     {
         return this.typeIndex;

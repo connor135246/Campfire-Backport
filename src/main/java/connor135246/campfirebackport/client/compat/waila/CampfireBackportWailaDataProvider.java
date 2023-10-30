@@ -2,7 +2,6 @@ package connor135246.campfirebackport.client.compat.waila;
 
 import java.util.List;
 
-import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.Reference;
@@ -87,7 +86,7 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                 }
             }
 
-            if (CampfireBackportBlocks.isLitCampfire(accessor.getBlock()))
+            if (ctile.isLit())
             {
                 boolean canBurnOut = ctile.canBurnOut();
                 boolean canRainOut = canBurnOut && ctile.getRainAndSky() && CampfireBackportConfig.putOutByRain.matches(ctile);
