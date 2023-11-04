@@ -2,11 +2,14 @@ package connor135246.campfirebackport.mixin.witchery.brews;
 
 import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.emoniph.witchery.brewing.EntitySplatter;
+import com.emoniph.witchery.util.Coord;
+import com.emoniph.witchery.util.EntityPosition;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import net.minecraft.entity.Entity;
@@ -25,6 +28,15 @@ public abstract class MixinEntitySplatter extends Entity
         super(p_i1759_1_);
     }
 
+    @Shadow
+    private int level;
+
+    @Shadow
+    public static void splatter(final World world, final Coord coord, final int level)
+    {
+
+    }
+
     // func_70227_a is onImpact
     @Inject(method = "onImpact",
             at = @At(value = "FIELD", opcode = Opcodes.GETFIELD, target = "Lnet/minecraft/util/MovingObjectPosition;field_72310_e:I", ordinal = 0),
@@ -37,6 +49,10 @@ public abstract class MixinEntitySplatter extends Entity
 
         if (BlockCampfire.igniteOrReigniteCampfire(null, this.worldObj, x, y, z) != 0)
         {
+            // don't forget to re-splatter!
+            if (this.level - 1 > 0)
+                splatter(this.worldObj, new Coord(mop, new EntityPosition((Entity) this), true), this.level - 1);
+
             this.setDead();
             ci.cancel();
         }

@@ -4,12 +4,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import com.emoniph.witchery.entity.EntitySpellEffect;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
-import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
@@ -25,10 +23,10 @@ public abstract class MixinIncendio
             at = @At(value = "INVOKE_ASSIGN",
                     target = "Lcom/emoniph/witchery/util/BlockUtil;getBlock(Lnet/minecraft/world/World;Lnet/minecraft/util/MovingObjectPosition;)Lnet/minecraft/block/Block;",
                     ordinal = 0),
-            locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
-    public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci, double radius, int level, Block hitBlock)
+            cancellable = true, remap = false)
+    public void onOnCollision(World world, EntityLivingBase caster, MovingObjectPosition mop, EntitySpellEffect spell, CallbackInfo ci)
     {
-        if (hitBlock instanceof BlockCampfire && BlockCampfire.igniteOrReigniteCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
+        if (BlockCampfire.igniteOrReigniteCampfire(null, world, mop.blockX, mop.blockY, mop.blockZ) != 0)
             ci.cancel();
     }
 

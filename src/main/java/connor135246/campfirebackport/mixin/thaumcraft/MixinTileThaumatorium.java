@@ -4,11 +4,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
-import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.inventory.ISidedInventory;
 import thaumcraft.api.TileThaumcraft;
 import thaumcraft.api.aspects.IAspectContainer;
@@ -22,10 +19,10 @@ import thaumcraft.common.tiles.TileThaumatorium;
 public abstract class MixinTileThaumatorium extends TileThaumcraft implements IAspectContainer, IEssentiaTransport, ISidedInventory
 {
 
-    @Inject(method = "checkHeat", at = @At(value = "INVOKE", ordinal = 3), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
-    void onCheckHeat(CallbackInfoReturnable<Boolean> cir, Material mat, Block bi)
+    @Inject(method = "checkHeat", at = @At(value = "HEAD"), cancellable = true, remap = false)
+    public void onCheckHeat(CallbackInfoReturnable<Boolean> cir)
     {
-        if (CampfireBackportBlocks.isLitCampfire(bi))
+        if (CampfireBackportBlocks.isLitCampfire(this.worldObj.getBlock(this.xCoord, this.yCoord - 2, this.zCoord)))
             cir.setReturnValue(true);
     }
 

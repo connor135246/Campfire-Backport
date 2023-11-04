@@ -15,17 +15,17 @@ import net.minecraft.world.World;
  * This mixin allows campfires to be extinguished by the Extinguish brew.
  */
 @Mixin(targets = "com.emoniph.witchery.brewing.WitcheryBrewRegistry$30$1")
-public class MixinExtinguish
+public abstract class MixinExtinguish
 {
 
     // func_147439_a is getBlock
     @Inject(method = "Lcom/emoniph/witchery/brewing/WitcheryBrewRegistry$30$1;onBlock(Lnet/minecraft/world/World;III)V",
             at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/world/World;func_147439_a(III)Lnet/minecraft/block/Block;", ordinal = 0),
-            locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true, remap = false)
+            locals = LocalCapture.CAPTURE_FAILSOFT, remap = false)
     public void onOnBlock(World world, int x, int y, int z, CallbackInfo ci, int dy, Block block)
     {
-        if (CampfireBackportBlocks.isLitCampfire(block) && BlockCampfire.extinguishCampfire(null, world, x, dy, z) != 0)
-            ci.cancel();
+        if (CampfireBackportBlocks.isLitCampfire(block))
+            BlockCampfire.extinguishCampfire(null, world, x, dy, z);
     }
 
 }
