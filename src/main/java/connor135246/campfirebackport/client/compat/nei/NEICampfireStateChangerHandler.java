@@ -255,7 +255,7 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
         // brew & branch
         // check that witchery mixins are enabled!
-        if (ConfigNetworkManager.mixins && ConfigNetworkManager.witcheryMixins && Loader.isModLoaded("witchery"))
+        if (Loader.isModLoaded("witchery") && ConfigNetworkManager.mixins && ConfigNetworkManager.witcheryMixins[0])
         {
             Item brew = GameData.getItemRegistry().getObject("witchery:brewbottle");
             if (brew != null)
@@ -265,44 +265,57 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                 String flames = StatCollector.translateToLocal("witchery:brew.inferno");
                 String splash = StatCollector.translateToLocal("witchery:brew.dispersal.splash");
 
-                ItemStack extinguishBrew = new ItemStack(brew);
-                NBTTagCompound extinguishNBT = new NBTTagCompound();
-                extinguishNBT.setString("BrewName", splash + " " + brewOf + " " + extinguish + " ");
-                extinguishNBT.setString("BrewInfo", splash + "\n" + extinguish + "\n");
-                extinguishNBT.setBoolean("Splash", true);
-                extinguishNBT.setInteger("Color", 202434153);
-                extinguishNBT.setInteger("Power", 0);
-                extinguishNBT.setInteger("EffectCount", 1);
-                extinguishNBT.setInteger("UsedCapacity", 1);
-                extinguishNBT.setInteger("RemainingCapacity", 0);
-                extinguishNBT.setInteger("BrewDrinkSpeed", 32);
-                extinguishBrew.setTagCompound(extinguishNBT);
-                specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(extinguishBrew), false));
+                if (ConfigNetworkManager.witcheryMixins[4])
+                {
+                    ItemStack extinguishBrew = new ItemStack(brew);
+                    NBTTagCompound extinguishNBT = new NBTTagCompound();
+                    extinguishNBT.setString("BrewName", splash + " " + brewOf + " " + extinguish + " ");
+                    extinguishNBT.setString("BrewInfo", splash + "\n" + extinguish + "\n");
+                    extinguishNBT.setBoolean("Splash", true);
+                    extinguishNBT.setInteger("Color", 202434153);
+                    extinguishNBT.setInteger("Power", 0);
+                    extinguishNBT.setInteger("EffectCount", 1);
+                    extinguishNBT.setInteger("UsedCapacity", 1);
+                    extinguishNBT.setInteger("RemainingCapacity", 0);
+                    extinguishNBT.setInteger("BrewDrinkSpeed", 32);
+                    extinguishBrew.setTagCompound(extinguishNBT);
+                    specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                            Lists.newArrayList(extinguishBrew), false));
+                }
 
-                ItemStack flamesBrew = new ItemStack(brew);
-                NBTTagCompound flamesNBT = new NBTTagCompound();
-                flamesNBT.setString("BrewName", splash + " " + brewOf + " " + flames + " ");
-                flamesNBT.setString("BrewInfo", splash + "\n" + flames + "\n");
-                flamesNBT.setBoolean("Splash", true);
-                flamesNBT.setInteger("Color", -1972966640);
-                flamesNBT.setInteger("Power", 900);
-                flamesNBT.setInteger("EffectCount", 1);
-                flamesNBT.setInteger("UsedCapacity", 3);
-                flamesNBT.setInteger("RemainingCapacity", 2);
-                flamesNBT.setInteger("BrewDrinkSpeed", 32);
-                flamesBrew.setTagCompound(flamesNBT);
-                specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(flamesBrew), false));
+                if (ConfigNetworkManager.witcheryMixins[3])
+                {
+                    ItemStack flamesBrew = new ItemStack(brew);
+                    NBTTagCompound flamesNBT = new NBTTagCompound();
+                    flamesNBT.setString("BrewName", splash + " " + brewOf + " " + flames + " ");
+                    flamesNBT.setString("BrewInfo", splash + "\n" + flames + "\n");
+                    flamesNBT.setBoolean("Splash", true);
+                    flamesNBT.setInteger("Color", -1972966640);
+                    flamesNBT.setInteger("Power", 900);
+                    flamesNBT.setInteger("EffectCount", 1);
+                    flamesNBT.setInteger("UsedCapacity", 3);
+                    flamesNBT.setInteger("RemainingCapacity", 2);
+                    flamesNBT.setInteger("BrewDrinkSpeed", 32);
+                    flamesBrew.setTagCompound(flamesNBT);
+                    specials.add(new CachedCampfireStateChanger("brew", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                            Lists.newArrayList(flamesBrew), false));
+                }
             }
 
             Item branch = GameData.getItemRegistry().getObject("witchery:mysticbranch");
             if (branch != null)
             {
-                specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(new ItemStack(branch)), false));
-                specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
-                        Lists.newArrayList(new ItemStack(branch)), false));
+                if (ConfigNetworkManager.witcheryMixins[5])
+                {
+                    specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(),
+                            Lists.newArrayList(new ItemStack(branch)), false));
+                }
+
+                if (ConfigNetworkManager.witcheryMixins[6])
+                {
+                    specials.add(new CachedCampfireStateChanger("branch", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
+                            Lists.newArrayList(new ItemStack(branch)), false));
+                }
             }
         }
 

@@ -1,5 +1,7 @@
 package connor135246.campfirebackport.config;
 
+import java.util.Arrays;
+
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
@@ -169,7 +171,12 @@ public class ConfigNetworkManager
      * Currently applicable mixin config settings. The client receives a packet from the server. <br>
      * Since all mixins exclusively affect the logical server, the physical client doesn't care if it has mixins enabled or not, even if it's the -NM version.
      */
-    public static boolean mixins, vanillaMixins, witcheryMixins, thaumcraftMixins, enableLoadEarly;
+    public static boolean mixins;
+    public static boolean[] vanillaMixins = new boolean[4];
+    public static boolean[] witcheryMixins = new boolean[7];
+    public static boolean[] thaumcraftMixins = new boolean[3];
+    public static boolean enableLoadEarly;
+    public static boolean skipModCheck;
 
     static
     {
@@ -179,10 +186,11 @@ public class ConfigNetworkManager
     public static void resetCurrentMixins()
     {
         mixins = false;
-        vanillaMixins = false;
-        witcheryMixins = false;
-        thaumcraftMixins = false;
+        Arrays.fill(vanillaMixins, false);
+        Arrays.fill(witcheryMixins, false);
+        Arrays.fill(thaumcraftMixins, false);
         enableLoadEarly = false;
+        skipModCheck = false;
     }
 
     /**
@@ -194,10 +202,11 @@ public class ConfigNetworkManager
         {
             Class cbMixins = Class.forName("connor135246.campfirebackport.CampfireBackportMixins");
             mixins = (Boolean) cbMixins.getDeclaredField("mixins").get(null);
-            vanillaMixins = (Boolean) cbMixins.getDeclaredField("vanillaMixins").get(null);
-            witcheryMixins = (Boolean) cbMixins.getDeclaredField("witcheryMixins").get(null);
-            thaumcraftMixins = (Boolean) cbMixins.getDeclaredField("thaumcraftMixins").get(null);
+            vanillaMixins = (boolean[]) cbMixins.getDeclaredField("vanillaMixins").get(null);
+            witcheryMixins = (boolean[]) cbMixins.getDeclaredField("witcheryMixins").get(null);
+            thaumcraftMixins = (boolean[]) cbMixins.getDeclaredField("thaumcraftMixins").get(null);
             enableLoadEarly = (Boolean) cbMixins.getDeclaredField("enableLoadEarly").get(null);
+            skipModCheck = (Boolean) cbMixins.getDeclaredField("skipModCheck").get(null);
         }
         catch (Exception excep)
         {
@@ -212,10 +221,11 @@ public class ConfigNetworkManager
     {
 
         public boolean mixins = false;
-        public boolean vanillaMixins = false;
-        public boolean witcheryMixins = false;
-        public boolean thaumcraftMixins = false;
+        public boolean[] vanillaMixins = new boolean[4];
+        public boolean[] witcheryMixins = new boolean[7];
+        public boolean[] thaumcraftMixins = new boolean[3];
         public boolean enableLoadEarly = false;
+        public boolean skipModCheck = false;
 
         @Override
         public void toBytes(ByteBuf buf)
@@ -223,10 +233,17 @@ public class ConfigNetworkManager
             try
             {
                 buf.writeBoolean(ConfigNetworkManager.mixins);
-                buf.writeBoolean(ConfigNetworkManager.vanillaMixins);
-                buf.writeBoolean(ConfigNetworkManager.witcheryMixins);
-                buf.writeBoolean(ConfigNetworkManager.thaumcraftMixins);
+                buf.writeInt(ConfigNetworkManager.vanillaMixins.length);
+                for (boolean bool : ConfigNetworkManager.vanillaMixins)
+                    buf.writeBoolean(bool);
+                buf.writeInt(ConfigNetworkManager.witcheryMixins.length);
+                for (boolean bool : ConfigNetworkManager.witcheryMixins)
+                    buf.writeBoolean(bool);
+                buf.writeInt(ConfigNetworkManager.thaumcraftMixins.length);
+                for (boolean bool : ConfigNetworkManager.thaumcraftMixins)
+                    buf.writeBoolean(bool);
                 buf.writeBoolean(ConfigNetworkManager.enableLoadEarly);
+                buf.writeBoolean(ConfigNetworkManager.skipModCheck);
             }
             catch (Exception excep)
             {
@@ -241,10 +258,17 @@ public class ConfigNetworkManager
             try
             {
                 mixins = buf.readBoolean();
-                vanillaMixins = buf.readBoolean();
-                witcheryMixins = buf.readBoolean();
-                thaumcraftMixins = buf.readBoolean();
+                int len = buf.readInt();
+                for (int i = 0; i < len; i++)
+                    vanillaMixins[i] = buf.readBoolean();
+                len = buf.readInt();
+                for (int i = 0; i < len; i++)
+                    witcheryMixins[i] = buf.readBoolean();
+                len = buf.readInt();
+                for (int i = 0; i < len; i++)
+                    thaumcraftMixins[i] = buf.readBoolean();
                 enableLoadEarly = buf.readBoolean();
+                skipModCheck = buf.readBoolean();
             }
             catch (Exception excep)
             {
@@ -252,10 +276,11 @@ public class ConfigNetworkManager
                 CommonProxy.modlog.catching(excep);
 
                 mixins = false;
-                vanillaMixins = false;
-                witcheryMixins = false;
-                thaumcraftMixins = false;
+                Arrays.fill(vanillaMixins, false);
+                Arrays.fill(witcheryMixins, false);
+                Arrays.fill(thaumcraftMixins, false);
                 enableLoadEarly = false;
+                skipModCheck = false;
             }
         }
 
@@ -272,6 +297,7 @@ public class ConfigNetworkManager
                 ConfigNetworkManager.witcheryMixins = message.witcheryMixins;
                 ConfigNetworkManager.thaumcraftMixins = message.thaumcraftMixins;
                 ConfigNetworkManager.enableLoadEarly = message.enableLoadEarly;
+                ConfigNetworkManager.skipModCheck = message.skipModCheck;
 
                 return null;
             }
