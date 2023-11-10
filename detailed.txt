@@ -654,24 +654,27 @@ If you're using the no-mixins version of Campfire Backport (the version number e
 
 Here's an overview of the options in this file.
 -Mixins: 
-    Enable or disable all mixins at once
+    Enable or disable all mixins
 -Vanilla Mixins:
     EntityPotion - thrown splash potions will extinguish campfires near where they land
     EntitySmallFireball - small fireballs (like those shot by blazes, or from dispensers with fire charges) will ignite campfires they hit
     PathFinder - entities will try to avoid lit campfires when pathfinding, and will be able to path properly over unlit campfires
+
+Note: In order for mod compatibility mixins to be applied, the mod's .jar file has to be discovered before Minecraft launches.
+Avoid renaming mod .jar files! If the filename doesn't include the mod name (ignoring case) in it somewhere, the .jar will not be found by Campfire Backport and mixins can't be applied.
+
 -Witchery Mixins:
     TileEntityCauldron - campfires will be able to heat up witch's cauldrons just like fire
     TileEntityKettle - campfires will be able to heat up kettles just like fire
-    symbols.Incendi - the Incendio symbol can ignite campfires
-    symbols.Aguamenti - the Aguamenti symbol can extinguish campfires
     brews.EntitySplatter - the projectiles created by the Flame brew can ignite campfires
     brews.Extinguish - the Extinguish brew can extinguish campfires
+    symbols.Aguamenti - the Aguamenti symbol can extinguish campfires
+    symbols.Incendio - the Incendio symbol can ignite campfires
 -Thaumcraft Mixins:
     TileCrucible - campfires will be able to heat up crucibles just like fire and lava
     TileThaumatorium - campfires will be able to heat up thaumatoriums just like fire and lava
 -Enable Early Mod Loading: 
-    Some mods need to be loaded early so mixins can be applied to them. Different mixin loaders handle this sort of thing in different ways. If your mixin loader does it better than Campfire Backport, you can disable this.
+    Some mods need to be loaded early so mixins can be applied to them. Different mixin loaders handle this sort of thing in different ways. If your mixin loader can do it better than Campfire Backport, you may be able to disable this.
     Applies to: Witchery
-
-Note: In order for mod compatibility mixins to be applied, the mod's .jar file has to be discovered before Minecraft launches.
-Avoid renaming mod .jar files! If the filename doesn't include the mod name (ignoring case) in it somewhere, the .jar will not be found by Campfire Backport and mixins can't be applied.
+-Skip Mod Checking:
+    If enabled, skips checking for mods before trying to apply mod compatibility mixins. Any mod mixins that are enabled will always try to apply, even if you don't have the target mod! If mod mixins aren't being applied for you, you could try turning this on.
