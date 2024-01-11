@@ -94,6 +94,10 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin, IMixinConfigPl
                 coreLog.error("Could not find mods directory. Mod mixins can't be applied.");
             }
         }
+        else
+        {
+            coreLog.info("Mixins are disabled.");
+        }
     }
 
     /**
