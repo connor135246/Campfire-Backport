@@ -59,7 +59,7 @@ public class CampfireBackportCraftTweaking
     }
 
     /**
-     * Rebakes the Ore Dictionary, then refreshes {@link CampfireBackportConfig#autoRecipe Auto Recipe Discovery} recipes and ensures recipe lists are sorted.
+     * Rebakes the Ore Dictionary, then refreshes {@link CampfireBackportConfig#campfireDropsStacks Campfire Drops} and {@link CampfireBackportConfig#autoRecipe Auto Recipe Discovery} recipes and ensures recipe lists are sorted.
      */
     public static class PostReloadEventHandler implements IEventHandler<ReloadEvent>
     {
@@ -75,10 +75,6 @@ public class CampfireBackportCraftTweaking
             CampfireBackportConfig.checkInvalidOres();
 
             // ores may have changed!
-            CampfireBackportConfig.campfireDropsStacks[0] = ConfigReference.getDefaultRegDrop();
-            CampfireBackportConfig.campfireDropsStacks[1] = ConfigReference.getDefaultSoulDrop();
-            CampfireBackportConfig.campfireDropsStacks[2] = ConfigReference.getDefaultFoxfireDrop();
-            CampfireBackportConfig.campfireDropsStacks[3] = ConfigReference.getDefaultShadowDrop();
 
             if (CampfireBackportConfig.autoRecipe != EnumCampfireType.NEITHER)
             {
@@ -89,6 +85,8 @@ public class CampfireBackportCraftTweaking
 
             CampfireRecipe.sortRecipeLists();
             CampfireStateChanger.sortStateChangerLists();
+
+            CampfireBackportConfig.setCampfireDrops();
         }
     }
 
