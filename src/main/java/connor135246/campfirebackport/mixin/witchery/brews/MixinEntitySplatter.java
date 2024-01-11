@@ -28,10 +28,10 @@ public abstract class MixinEntitySplatter extends Entity
         super(p_i1759_1_);
     }
 
-    @Shadow
+    @Shadow(remap = false)
     private int level;
 
-    @Shadow
+    @Shadow(remap = false)
     public static void splatter(final World world, final Coord coord, final int level)
     {
 
