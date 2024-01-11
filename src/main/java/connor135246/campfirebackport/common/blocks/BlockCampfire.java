@@ -5,7 +5,6 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
-import connor135246.campfirebackport.CampfireBackport;
 import connor135246.campfirebackport.client.rendering.InterpolatedIcon;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
@@ -28,7 +27,6 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -151,7 +149,7 @@ public class BlockCampfire extends BlockContainer implements ICampfire
     }
 
     /** if thaumcraft is installed, this will become EntityPrimalArrow.class. otherwise, it's just null. */
-    private static Class primalArrowClass = CampfireBackport.class;
+    public static Class primalArrowClass = null;
 
     @Override
     public void onEntityCollidedWithBlock(World world, int x, int y, int z, Entity entity)
@@ -162,8 +160,6 @@ public class BlockCampfire extends BlockContainer implements ICampfire
         {
             if (entity instanceof EntityArrow)
             {
-                if (primalArrowClass == CampfireBackport.class)
-                    primalArrowClass = (Class) EntityList.stringToClassMapping.get("Thaumcraft.PrimalArrow");
                 if (primalArrowClass != null && primalArrowClass.isInstance(entity))
                 {
                     thaumcraft.common.entities.projectile.EntityPrimalArrow primalarrow = (thaumcraft.common.entities.projectile.EntityPrimalArrow) entity;
@@ -177,14 +173,15 @@ public class BlockCampfire extends BlockContainer implements ICampfire
                 }
             }
 
+            if (isLit() && entity instanceof EntityLivingBase && CampfireBackportConfig.damaging.matches(this))
+            {
+                if (EnumCampfireType.doDamage(getTypeIndex(), (EntityLivingBase) entity, world.difficultySetting))
+                    world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, 2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
+            }
+
             if (entity.isBurning())
             {
                 igniteOrReigniteCampfire(null, world, x, y, z);
-            }
-            else if (isLit() && entity instanceof EntityLivingBase && CampfireBackportConfig.damaging.matches(this))
-            {
-                if (EnumCampfireType.doDamage(getTypeIndex(), entity, world.difficultySetting))
-                    world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "random.fizz", 0.5F, 2.6F + (RAND.nextFloat() - RAND.nextFloat()) * 0.8F);
             }
         }
     }

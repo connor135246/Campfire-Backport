@@ -19,6 +19,7 @@ import thaumcraft.api.aspects.Aspect;
 import thaumcraft.api.aspects.AspectList;
 import thaumcraft.api.wands.IWandTriggerManager;
 import thaumcraft.api.wands.WandTriggerRegistry;
+import thaumcraft.common.entities.projectile.EntityPrimalArrow;
 
 public class ThaumcraftHandler
 {
@@ -48,6 +49,9 @@ public class ThaumcraftHandler
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
         ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
+
+        // primal arrow extinguishing/igniting compat
+        BlockCampfire.primalArrowClass = EntityPrimalArrow.class;
     }
 
     public static class CampfireBackportWandTriggerManager implements IWandTriggerManager

@@ -169,9 +169,9 @@ public enum EnumCampfireType
     /**
      * tries to do damage effects to the entity with this campfire type. returns true if damage was dealt.
      */
-    public static boolean doDamage(int typeIndex, Entity entity, EnumDifficulty difficulty)
+    public static boolean doDamage(int typeIndex, EntityLivingBase entity, EnumDifficulty difficulty)
     {
-        if (entity instanceof EntityLivingBase && canDamage(typeIndex, entity))
+        if (canDamage(typeIndex, entity))
         {
             switch (typeIndex)
             {
@@ -182,7 +182,7 @@ public enum EnumCampfireType
             case shadowIndex:
             {
                 int blindnessTimer = difficulty == EnumDifficulty.HARD ? 10 : (difficulty == EnumDifficulty.NORMAL ? 5 : 3);
-                ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.blindness.id, blindnessTimer * 20));
+                entity.addPotionEffect(new PotionEffect(Potion.blindness.id, blindnessTimer * 20));
                 return entity.attackEntityFrom(DamageSource.wither, 3.0F);
             }
             }
