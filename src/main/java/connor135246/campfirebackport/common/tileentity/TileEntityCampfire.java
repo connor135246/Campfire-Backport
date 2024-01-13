@@ -316,7 +316,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
      */
     protected void heal()
     {
-        if (CampfireBackportConfig.regenCampfires.matches(this))
+        // TODO it doesn't really match the theme of the netherlicious campfires to give regeneration, so i exclude them here. in the future this will be properly toggleable.
+        if (CampfireBackportConfig.regenCampfires.matches(this) && !EnumCampfireType.isNetherlicious(getTypeIndex()))
         {
             if (getRegenWaitTimer() < 0)
                 resetRegenWaitTimer();

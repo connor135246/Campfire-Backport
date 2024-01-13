@@ -110,7 +110,12 @@ public enum EnumCampfireType
      */
     public static boolean isSoulLike(int typeIndex)
     {
-        return typeIndex == soulIndex || typeIndex == foxfireIndex || typeIndex == shadowIndex;
+        return typeIndex == soulIndex || isNetherlicious(typeIndex);
+    }
+
+    public static boolean isNetherlicious(int typeIndex)
+    {
+        return typeIndex == foxfireIndex || typeIndex == shadowIndex;
     }
 
     public static boolean isValidIndex(int typeIndex)

@@ -113,7 +113,8 @@ public class CampfireBackportEventHandler
         {
             Block block = event.entityPlayer.worldObj.getBlock(event.x, event.y, event.z);
 
-            if (CampfireBackportBlocks.isLitCampfire(block) && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block))
+            // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
+            if (CampfireBackportBlocks.isLitCampfire(block) && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block) && !EnumCampfireType.isNetherlicious(((BlockCampfire) block).getTypeIndex()))
             {
                 event.entityPlayer.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
                 event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false);
