@@ -36,6 +36,9 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin, IMixinConfigPl
 
     public static final Logger coreLog = LogManager.getLogger(NAME);
 
+    /** only init once, obviously */
+    public static boolean inited = false;
+
     public static File mcDir;
     public static File modsDir;
 
@@ -64,6 +67,11 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin, IMixinConfigPl
 
     public CampfireBackportMixins()
     {
+        if (inited)
+            return;
+        else
+            inited = true;
+
         mcDir = (File) FMLInjectionData.data()[6];
 
         doConfig();
