@@ -20,7 +20,8 @@ public class CampfireBackportCompat
             isGalacticraftLoaded = false,
             isAdvancedRocketryLoaded = false,
             isThaumcraftLoaded = false,
-            isBotaniaLoaded = false;
+            isBotaniaLoaded = false,
+            isNetherliciousLoaded = false;
 
     /**
      * checks for mods in preInit, before any content is registered
@@ -32,6 +33,7 @@ public class CampfireBackportCompat
         isThaumcraftLoaded = Loader.isModLoaded("Thaumcraft");
         isBotaniaLoaded = Loader.isModLoaded("Botania");
         isMineTweaker3Loaded = Loader.isModLoaded("MineTweaker3");
+        isNetherliciousLoaded = Loader.isModLoaded("netherlicious");
     }
 
     /**

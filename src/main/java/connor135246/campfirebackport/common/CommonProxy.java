@@ -67,22 +67,24 @@ public class CommonProxy
         FMLInterModComms.sendMessage("Waila", "register", Reference.MOD_PACKAGE + ".client.compat.waila.CampfireBackportWailaDataProvider.register");
 
         sendNEIGTNHHandler(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 65, 166, 5);
-        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:campfire_base", -1);
-        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:soul_campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_RECIPE_ID, "campfirebackport:soul_campfire_base", -1);
-
         sendNEIGTNHHandler(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire_base", 65, 166, 5);
-        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:campfire_base", -1);
-        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:soul_campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_STATECHANGER_ID, "campfirebackport:soul_campfire_base", -1);
-
         sendNEIGTNHHandler(Reference.NEI_SIGNALBLOCKS_ID, "minecraft:hay_block", 130, 166, 5);
-        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:campfire_base", -1);
-        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:soul_campfire", 0);
-        sendNEIGTNHCatalyst(Reference.NEI_SIGNALBLOCKS_ID, "campfirebackport:soul_campfire_base", -1);
+
+        for (String neiID : new String[] { Reference.NEI_RECIPE_ID, Reference.NEI_STATECHANGER_ID, Reference.NEI_SIGNALBLOCKS_ID })
+        {
+            sendNEIGTNHCatalyst(neiID, "campfirebackport:campfire", 0);
+            sendNEIGTNHCatalyst(neiID, "campfirebackport:campfire_base", -1);
+            sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire", 0);
+            sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire_base", -1);
+
+            if (CampfireBackportCompat.isNetherliciousLoaded)
+            {
+                sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire", 0);
+                sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire_base", -1);
+                sendNEIGTNHCatalyst(neiID, "campfirebackport:shadow_campfire", 0);
+                sendNEIGTNHCatalyst(neiID, "campfirebackport:shadow_campfire_base", -1);
+            }
+        }
     }
 
     public void postInit(FMLPostInitializationEvent event)
