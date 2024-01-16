@@ -54,7 +54,9 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
         int inputSize = (Integer) parsed[1];
         int inputMeta = (Integer) parsed[2];
         @Nullable
-        NBTTagCompound data = (NBTTagCompound) ((NBTTagCompound) parsed[3]).copy();
+        NBTTagCompound data = (NBTTagCompound) parsed[3];
+        if (data != null)
+            data = (NBTTagCompound) data.copy();
 
         if (input instanceof Item)
             return new CustomItemStack((Item) input, inputMeta, inputSize, data, inputSizeMatters, clamp);
