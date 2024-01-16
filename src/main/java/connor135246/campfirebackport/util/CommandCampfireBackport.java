@@ -236,6 +236,8 @@ public class CommandCampfireBackport implements ICommand
                         blockEntityTag.removeTag("id");
                         blockEntityTag.removeTag(TileEntityCampfire.KEY_SignalFire);
                         stack.setTagInfo(TileEntityCampfire.KEY_BlockEntityTag, blockEntityTag);
+                        if (blockEntityTag.hasKey(TileEntityCampfire.KEY_CustomName))
+                            stack.setStackDisplayName(blockEntityTag.getString(TileEntityCampfire.KEY_CustomName));
 
                         TileEntityCampfire.popItem(stack, world, x, y, z);
 
