@@ -8,9 +8,9 @@ You can also use the command "/campfirebackport dumpinfo" to create a text file 
 
 ***
 
-##### Building
+#### Building
 
 The "no mixins" version uses nm.build.gradle and nm.mcmod.info. It doesn't have the mixin package, the mixin coremod, or the mixin config jsons.  
 And it doesn't embed [Mixin 0.7.11](https://github.com/SpongePowered/Mixin). Mixin is Copyright (c) SpongePowered & contributors and is licensed under the [MIT License](https://github.com/SpongePowered/Mixin/blob/master/LICENSE.txt).
 
-Compile-time dependencies in the "lib2" folder include Advanced Rocketry, Botania, CodeChickenLib, CraftTweaker, Galacticraft, NEI, Thaumcraft, Waila, and Witchery.
+Compile-time dependencies in the "lib2" folder include Advanced Rocketry, Botania, CodeChickenLib, CraftTweaker, Galacticraft Core, NEI, Thaumcraft, Waila, and Witchery.
