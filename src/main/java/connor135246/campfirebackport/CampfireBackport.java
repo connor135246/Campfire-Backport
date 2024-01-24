@@ -12,8 +12,8 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = Reference.MODID, name = Reference.NAME, version = Reference.VERSION, acceptedMinecraftVersions = Reference.MC_VERSION,
-        guiFactory = Reference.MOD_PACKAGE + ".client.gui.GuiFactoryCampfireBackport")
+@Mod(modid = Reference.MODID, name = Reference.NAME, version = Reference.VERSION, dependencies = Reference.DEPENDENCIES,
+        acceptedMinecraftVersions = Reference.MC_VERSION, guiFactory = Reference.MOD_PACKAGE + ".client.gui.GuiFactoryCampfireBackport")
 public class CampfireBackport
 {
 
