@@ -42,7 +42,7 @@ archivesBaseName = "campfirebackport"
 // https://github.com/makamys/MC-Modding-notes/tree/master/examples/Forge-Mixin-1_7_10
 
 minecraft {
-    version = "1.7.10-10.13.4.1558-1.7.10"
+    version = "1.7.10-10.13.4.1614-1.7.10"
         replace '${version}', project.version
     runDir = "eclipse"
 }
