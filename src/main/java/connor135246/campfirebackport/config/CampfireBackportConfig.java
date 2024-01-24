@@ -221,9 +221,13 @@ public class CampfireBackportConfig
                 StringParsers.translateComment("charcoal")).setRequiresMcRestart(true).getBoolean();
 
         // rename "Soul Soil Only (Netherlicious)" to "Soul Soil Only"
-        config.renameProperty(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly_OLD, ConfigReference.soulSoilOnly);
-
-        soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, false,
+        boolean soulSoilOnlyDefault = false;
+        if (config.getCategory(Configuration.CATEGORY_GENERAL).containsKey(ConfigReference.soulSoilOnly_OLD))
+        {
+            soulSoilOnlyDefault = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly_OLD, false).getBoolean();
+            config.getCategory(Configuration.CATEGORY_GENERAL).remove(ConfigReference.soulSoilOnly_OLD);
+        }
+        soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, soulSoilOnlyDefault,
                 StringParsers.translateComment("soul_soil")).setRequiresMcRestart(true).getBoolean();
 
         regenCampfires = enumFromConfig(ConfigReference.regenCampfires, ConfigReference.NEITHER, "regen");
