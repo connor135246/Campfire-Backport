@@ -28,6 +28,7 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.event.FuelBurnTimeEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public class CampfireBackportEventHandler
@@ -145,6 +146,19 @@ public class CampfireBackportEventHandler
                         ctile.burnOutOrToNothing();
                 }
             }
+        }
+    }
+
+    /**
+     * Prevent campfires from being used as furnace fuel. (By default they're given 1.5 items since they have a Material of wood.)
+     */
+    @SubscribeEvent
+    public void onFuelBurnTime(FuelBurnTimeEvent event)
+    {
+        if (event.fuel.getItem() instanceof ItemBlockCampfire && event.getResult() == Event.Result.DEFAULT)
+        {
+            event.burnTime = 0;
+            event.setResult(Event.Result.DENY);
         }
     }
 
