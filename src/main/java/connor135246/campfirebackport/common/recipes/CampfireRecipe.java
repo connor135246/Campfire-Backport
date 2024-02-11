@@ -171,14 +171,22 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      */
     public static boolean addToRecipeLists(String recipe, EnumCampfireType types)
     {
-        String[] segment = recipe.split("/");
-
         Integer cookingTime = null;
+        CampfireRecipe crecipe = null;
 
-        if (segment.length > 2 && !segment[2].equals("*"))
-            cookingTime = Integer.valueOf(segment[2]);
+        try
+        {
+            String[] segment = recipe.split("/");
 
-        CampfireRecipe crecipe = createCustomRecipe(segment, types, cookingTime);
+            if (segment.length > 2 && !segment[2].equals("*"))
+                cookingTime = Integer.valueOf(segment[2]);
+
+            crecipe = createCustomRecipe(segment, types, cookingTime);
+        }
+        catch (Exception excep)
+        {
+            crecipe = null;
+        }
 
         boolean added = false;
 
