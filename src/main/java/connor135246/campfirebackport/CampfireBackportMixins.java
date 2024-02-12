@@ -121,19 +121,19 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin, IMixinConfigPl
 
         final String CAT_MIXIN = "mixins", CAT_VANILLA = "vanilla mixins", CAT_WITCHERY = "witchery mixins", CAT_THAUMCRAFT = "thaumcraft mixins";
 
-        mixins = getConfigGeneral(CAT_MIXIN, "all");
-        vanillaMixins[0] = getConfigGeneral(CAT_VANILLA, "all vanilla");
+        mixins = getConfigGeneral(CAT_MIXIN);
+        vanillaMixins[0] = getConfigGeneral(CAT_VANILLA);
         vanillaMixins[1] = getConfigMixin(CAT_VANILLA, "EntityPotion");
         vanillaMixins[2] = getConfigMixin(CAT_VANILLA, "EntitySmallFireball");
         vanillaMixins[3] = getConfigMixin(CAT_VANILLA, "PathFinder");
-        witcheryMixins[0] = getConfigGeneral(CAT_WITCHERY, "all Witchery");
+        witcheryMixins[0] = getConfigGeneral(CAT_WITCHERY);
         witcheryMixins[1] = getConfigMixin(CAT_WITCHERY, "TileEntityCauldron");
         witcheryMixins[2] = getConfigMixin(CAT_WITCHERY, "TileEntityKettle");
         witcheryMixins[3] = getConfigMixin(CAT_WITCHERY, "brews.EntitySplatter");
         witcheryMixins[4] = getConfigMixin(CAT_WITCHERY, "brews.Extinguish");
         witcheryMixins[5] = getConfigMixin(CAT_WITCHERY, "symbols.Aguamenti");
         witcheryMixins[6] = getConfigMixin(CAT_WITCHERY, "symbols.Incendio");
-        thaumcraftMixins[0] = getConfigGeneral(CAT_THAUMCRAFT, "all Thaumcraft");
+        thaumcraftMixins[0] = getConfigGeneral(CAT_THAUMCRAFT);
         thaumcraftMixins[1] = getConfigMixin(CAT_THAUMCRAFT, "TileCrucible");
         thaumcraftMixins[2] = getConfigMixin(CAT_THAUMCRAFT, "TileThaumatorium");
         enableLoadEarly = config.get(CAT_MIXIN, "Enable Early Mod Loading", true,
@@ -145,10 +145,10 @@ public class CampfireBackportMixins implements IFMLLoadingPlugin, IMixinConfigPl
         config.save();
     }
 
-    private boolean getConfigGeneral(String category, String commentpart)
+    private boolean getConfigGeneral(String category)
     {
         // reminder for next time: it's category and then name, not name and then category...
-        return config.get(category, Configuration.CATEGORY_GENERAL, true, "Set to false to disable " + commentpart + " mixins")
+        return config.get(category, Configuration.CATEGORY_GENERAL, true, "Set to false to disable all " + category)
                 .setRequiresMcRestart(true).getBoolean();
     }
 
