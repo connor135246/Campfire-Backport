@@ -602,6 +602,9 @@ public class CampfireBackportConfig
             ItemStack inputstack = (ItemStack) inputsit.next();
             ItemStack resultstack = (ItemStack) resultsit.next();
 
+            if (inputstack == null || resultstack == null)
+                continue iteratorLoop;
+
             if (resultstack.getItem() instanceof ItemFood)
             {
                 if (!autoBlacklistStacks.isEmpty())
