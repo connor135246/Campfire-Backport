@@ -631,7 +631,7 @@ public class CampfireBackportConfig
                     boolean addIt = true;
                     for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
                     {
-                        if (CampfireRecipe.doStackRecipesMatch(furnaceCrecipe, masterCrecipe))
+                        if (CampfireRecipe.isAutoRecipeEclipsed(furnaceCrecipe, masterCrecipe))
                         {
                             addIt = false;
                             break;

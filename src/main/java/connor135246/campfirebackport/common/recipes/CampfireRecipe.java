@@ -385,11 +385,11 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     /**
-     * Meant for comparing two CampfireRecipes, the first of which was created from {@link #createAutoDiscoveryRecipe}. The order they're given matters!
-     * 
-     * @return true if the CampfireRecipes are the same, false if they aren't
+     * Meant for comparing two CampfireRecipes, the first of which was created from {@link #createAutoDiscoveryRecipe}. The order they're given matters! <br>
+     * Returns true if the custom crecipe's input encapsulates the auto crecipe's input. This would make the auto crecipe irrelevant since auto crecipes have increased
+     * {@link #sortOrder} so the custom crecipe would always match first. If we left the auto crecipe in the recipe list, it might be confusing for people looking in NEI.
      */
-    public static boolean doStackRecipesMatch(CampfireRecipe crecipeAuto, CampfireRecipe crecipeCustom)
+    public static boolean isAutoRecipeEclipsed(CampfireRecipe crecipeAuto, CampfireRecipe crecipeCustom)
     {
         if (crecipeCustom.getInputs().length == 1)
         {
