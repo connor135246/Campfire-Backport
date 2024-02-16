@@ -386,6 +386,10 @@ public class CampfireBackportConfig
 
         clearInvalidOresNoCT();
 
+        // add crafttweaker recipes before auto recipes, so that auto recipe can check crafttweaker eclipsing
+        for (CampfireRecipe crecipe : CampfireRecipe.getCraftTweakerList())
+            CampfireRecipe.addToRecipeLists(crecipe);
+
         // autoRecipe & autoBlacklistStrings
         CampfireRecipe.getFurnaceList().clear();
 
@@ -430,9 +434,6 @@ public class CampfireBackportConfig
 
             addFurnaceRecipes();
         }
-
-        for (CampfireRecipe crecipe : CampfireRecipe.getCraftTweakerList())
-            CampfireRecipe.addToRecipeLists(crecipe);
 
         CampfireRecipe.sortRecipeLists();
 
@@ -625,27 +626,7 @@ public class CampfireBackportConfig
                     }
                 }
 
-                CampfireRecipe furnaceCrecipe = CampfireRecipe.createAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
-                if (furnaceCrecipe != null && furnaceCrecipe.getInputs().length > 0 && furnaceCrecipe.getInputs()[0] != null && furnaceCrecipe.hasOutputs())
-                {
-                    boolean addIt = true;
-                    for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
-                    {
-                        if (CampfireRecipe.isAutoRecipeEclipsed(furnaceCrecipe, masterCrecipe))
-                        {
-                            addIt = false;
-                            break;
-                        }
-                    }
-                    if (addIt)
-                    {
-                        for (CampfireRecipe splitCrecipe : CampfireRecipe.splitRecipeIfNecessary(furnaceCrecipe, null))
-                        {
-                            CampfireRecipe.getFurnaceList().add(splitCrecipe);
-                            CampfireRecipe.addToRecipeLists(splitCrecipe);
-                        }
-                    }
-                }
+                CampfireRecipe.addAutoDiscoveryRecipe(inputstack, resultstack, autoRecipe);
             }
         }
     }

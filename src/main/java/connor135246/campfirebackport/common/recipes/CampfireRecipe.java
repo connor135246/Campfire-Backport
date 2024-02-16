@@ -285,7 +285,9 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
      */
     public static CampfireRecipe[] splitRecipeIfNecessary(CampfireRecipe crecipe, @Nullable Integer cookingTime)
     {
-        if (crecipe != null && shouldSplitRecipe(crecipe.getTypes(), cookingTime))
+        if (crecipe == null)
+            return new CampfireRecipe[] {};
+        else if (shouldSplitRecipe(crecipe.getTypes(), cookingTime))
         {
             CampfireRecipe crecipeReg = new CampfireRecipe(EnumCampfireType.REG_ONLY, crecipe.getInputs(), crecipe.getOutputs(),
                     CampfireBackportConfig.defaultCookingTimes[0], crecipe.getSignalFire(), crecipe.getByproduct(), crecipe.getByproductChance(),
@@ -385,21 +387,61 @@ public class CampfireRecipe extends GenericRecipe implements Comparable<Campfire
     }
 
     /**
-     * Meant for comparing two CampfireRecipes, the first of which was created from {@link #createAutoDiscoveryRecipe}. The order they're given matters! <br>
-     * Returns true if the custom crecipe's input encapsulates the auto crecipe's input. This would make the auto crecipe irrelevant since auto crecipes have increased
-     * {@link #sortOrder} so the custom crecipe would always match first. If we left the auto crecipe in the recipe list, it might be confusing for people looking in NEI.
+     * Tries to make an auto recipe discovery recipe and add it to the recipe list.
      */
-    public static boolean isAutoRecipeEclipsed(CampfireRecipe crecipeAuto, CampfireRecipe crecipeCustom)
+    public static boolean addAutoDiscoveryRecipe(ItemStack inputstack, ItemStack resultstack, EnumCampfireType types)
     {
-        if (crecipeCustom.getInputs().length == 1)
+        EnumCampfireType remainingTypes = checkAutoDiscoveryRecipeEclipsing(inputstack, types);
+        if (remainingTypes != EnumCampfireType.NEITHER)
         {
-            CustomInput cinputCustom = crecipeCustom.getInputs()[0];
-            CustomInput cinputAuto = crecipeAuto.getInputs()[0];
-
-            if (cinputAuto instanceof CustomItemStack && cinputCustom instanceof CustomItemStack && !cinputCustom.hasExtraData())
-                return ((CustomItemStack) cinputCustom).matchesStack(((CustomItemStack) cinputAuto).getInput());
+            CampfireRecipe furnaceCrecipe = createAutoDiscoveryRecipe(inputstack, resultstack, remainingTypes);
+            if (furnaceCrecipe != null && furnaceCrecipe.getInputs().length > 0 && furnaceCrecipe.getInputs()[0] != null && furnaceCrecipe.hasOutputs())
+            {
+                boolean added = false;
+                for (CampfireRecipe splitCrecipe : splitRecipeIfNecessary(furnaceCrecipe, null))
+                {
+                    getFurnaceList().add(splitCrecipe);
+                    added = addToRecipeLists(splitCrecipe) || added;
+                }
+                return added;
+            }
         }
         return false;
+    }
+
+    /**
+     * Checks if the given auto recipe discovery input stack is eclipsed partially or completely by a custom recipe. <br>
+     * If the custom crecipe's input encapsulates the auto crecipe's input, the auto crecipe would be irrelevant since auto crecipes have increased {@link #sortOrder} so the custom
+     * crecipe would always match first. If we left the auto crecipe in the recipe list, it might be confusing for people looking in NEI.
+     * 
+     * @param inputstack
+     *            - the input of the auto crecipe to be created
+     * @param types
+     *            - auto recipe discovery types
+     * @return the remaining types of auto recipe discovery that haven't been eclipsed
+     */
+    public static EnumCampfireType checkAutoDiscoveryRecipeEclipsing(ItemStack inputstack, EnumCampfireType types)
+    {
+        if (types != EnumCampfireType.NEITHER)
+        {
+            for (CampfireRecipe masterCrecipe : CampfireRecipe.getMasterList())
+            {
+                if (masterCrecipe.getTypes().overlaps(types) && masterCrecipe.getInputs().length == 1)
+                {
+                    CustomInput masterCinput = masterCrecipe.getInputs()[0];
+                    boolean customStack = masterCinput instanceof CustomItemStack && !masterCinput.hasExtraData();
+                    boolean customCTStack = masterCinput instanceof CustomCraftTweakerIngredient
+                            && ((CustomCraftTweakerIngredient) masterCinput).getInput().isSimpleStack();
+                    if ((customStack || customCTStack) && masterCinput.matchesStack(inputstack))
+                    {
+                        types = types.subtract(masterCrecipe.getTypes());
+                        if (types == EnumCampfireType.NEITHER)
+                            break;
+                    }
+                }
+            }
+        }
+        return types;
     }
 
     @Override

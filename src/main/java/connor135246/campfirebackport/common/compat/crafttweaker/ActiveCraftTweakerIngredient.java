@@ -31,6 +31,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     public final IIngredient iingredient;
     public final IIngredient iingredUsable;
     public final boolean isWildcard;
+    public final boolean isSimpleStack;
     public final boolean hasFunctions;
     public final int sortOrder;
 
@@ -40,6 +41,7 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
 
         this.iingredUsable = AbstractItemFunction.reflectIngredientStackInternal(iingredient);
         this.isWildcard = this.iingredUsable instanceof IngredientAny || this.iingredUsable instanceof IngredientAnyAdvanced;
+        this.isSimpleStack = this.iingredUsable instanceof IItemStack;
 
         if (iingredUsable instanceof IngredientItem)
             sortOrder = 20;
@@ -136,6 +138,12 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
     public boolean isWildcard()
     {
         return isWildcard;
+    }
+
+    @Override
+    public boolean isSimpleStack()
+    {
+        return isSimpleStack;
     }
 
     @Override

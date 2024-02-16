@@ -87,6 +87,41 @@ public enum EnumCampfireType
         return acceptsRegular == acceptsSoul;
     }
 
+    /**
+     * @return true if this shares an accept with the other.
+     */
+    public boolean overlaps(EnumCampfireType other)
+    {
+        return (this.acceptsRegular && other.acceptsRegular) || (this.acceptsSoul && other.acceptsSoul);
+    }
+
+    /**
+     * @return this, but with the accepts of other set to false
+     */
+    public EnumCampfireType subtract(EnumCampfireType other)
+    {
+        if (other == EnumCampfireType.BOTH)
+            return EnumCampfireType.NEITHER;
+        else if (other == EnumCampfireType.REG_ONLY)
+            return fromBools(false, this.acceptsSoul);
+        else if (other == EnumCampfireType.SOUL_ONLY)
+            return fromBools(this.acceptsRegular, false);
+        else
+            return this;
+    }
+
+    public static EnumCampfireType fromBools(boolean acceptsRegular, boolean acceptsSoul)
+    {
+        if (acceptsRegular && acceptsSoul)
+            return EnumCampfireType.BOTH;
+        else if (acceptsRegular)
+            return EnumCampfireType.REG_ONLY;
+        else if (acceptsSoul)
+            return EnumCampfireType.SOUL_ONLY;
+        else
+            return EnumCampfireType.NEITHER;
+    }
+
     public boolean matches(ICampfire campfire)
     {
         return campfire != null && matches(campfire.getTypeIndex());

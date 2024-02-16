@@ -168,6 +168,11 @@ public class CampfireBackportCompat
         public boolean isWildcard();
 
         /**
+         * @return true if the IIngredient is an IItemStack
+         */
+        public boolean isSimpleStack();
+
+        /**
          * @return true if the IIngredient had any {@link connor135246.campfirebackport.common.compat.crafttweaker.AbstractItemFunction} applied to it
          */
         public boolean hasFunctions();
@@ -228,6 +233,12 @@ public class CampfireBackportCompat
 
         @Override
         public boolean isWildcard()
+        {
+            return false;
+        }
+
+        @Override
+        public boolean isSimpleStack()
         {
             return false;
         }
