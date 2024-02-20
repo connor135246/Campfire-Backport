@@ -593,9 +593,19 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
      */
     public void readFromNBTIfItExists(NBTTagCompound compound)
     {
-        int[] cookingTimesArray = compound.hasKey(KEY_CookingTimes, 11) ? compound.getIntArray(KEY_CookingTimes) : cookingTimes;
+        if (compound.hasKey(KEY_CookingTimes, 11))
+        {
+            int[] cookingTimesData = compound.getIntArray(KEY_CookingTimes);
+            for (int slot = 0; slot < cookingTimesData.length; ++slot)
+                setCookingTimeInSlot(slot, cookingTimesData[slot]);
+        }
         boolean hasCookingTotalTimes = compound.hasKey(KEY_CookingTotalTimes, 11);
-        int[] cookingTotalTimesArray = hasCookingTotalTimes ? compound.getIntArray(KEY_CookingTotalTimes) : cookingTotalTimes;
+        if (hasCookingTotalTimes)
+        {
+            int[] cookingTotalTimesData = compound.getIntArray(KEY_CookingTotalTimes);
+            for (int slot = 0; slot < cookingTotalTimesData.length; ++slot)
+                setCookingTotalTimeInSlot(slot, cookingTotalTimesData[slot]);
+        }
 
         regenWaitTimer = compound.hasKey(KEY_RegenWaitTimer, 99) ? compound.getInteger(KEY_RegenWaitTimer) : regenWaitTimer;
 
@@ -616,10 +626,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
                 {
                     ItemStack stack = ItemStack.loadItemStackFromNBT(itemCompound);
                     setStackInSlot(slot, stack);
-                    setCookingTimeInSlot(slot, cookingTimesArray[slot]);
-                    if (hasCookingTotalTimes)
-                        setCookingTotalTimeInSlot(slot, cookingTotalTimesArray[slot]);
-                    else
+                    if (!hasCookingTotalTimes)
                         setCookingTotalTimeInSlot(slot, CampfireRecipe.findLowestCookingTimeOrDefault(stack, getTypeIndex(), signalFire));
                 }
             }
