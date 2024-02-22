@@ -21,23 +21,47 @@ import net.minecraft.world.World;
 public class CampfireBackportWailaDataProvider implements IWailaDataProvider
 {
 
+    public static final IWailaDataProvider INSTANCE = new CampfireBackportWailaDataProvider();
+
     public static void register(IWailaRegistrar reg)
     {
-        reg.registerBodyProvider(new CampfireBackportWailaDataProvider(), TileEntityCampfire.class);
+        reg.registerBodyProvider(INSTANCE, TileEntityCampfire.class);
+        reg.registerNBTProvider(INSTANCE, TileEntityCampfire.class);
     }
 
+    /**
+     * Sync cooking times when the player looks at a campfire. Everything else is already synced whenever it changes.
+     */
     @Override
     public NBTTagCompound getNBTData(EntityPlayerMP playerMP, TileEntity tileent, NBTTagCompound tag, World world, int arg4, int arg5, int arg6)
     {
+        if (tileent instanceof TileEntityCampfire)
+        {
+            TileEntityCampfire ctile = (TileEntityCampfire) tileent;
+
+            int[] cookingTimes = new int[ctile.getSizeInventory()];
+            for (int slot = 0; slot < cookingTimes.length; ++slot)
+                cookingTimes[slot] = ctile.getCookingTimeInSlot(slot);
+            tag.setIntArray(TileEntityCampfire.KEY_CookingTimes, cookingTimes);
+
+            int[] cookingTotalTimes = new int[ctile.getSizeInventory()];
+            for (int slot = 0; slot < cookingTotalTimes.length; ++slot)
+                cookingTotalTimes[slot] = ctile.getCookingTotalTimeInSlot(slot);
+            tag.setIntArray(TileEntityCampfire.KEY_CookingTotalTimes, cookingTotalTimes);
+        }
         return tag;
     }
 
+    /**
+     * Displays Custom Name, facing direction, Signal Fire state, Inventory (and Cooking Times / Cooking Total Times), Burn Out Tip, and Rain Out Tip.
+     */
     @Override
     public List<String> getWailaBody(ItemStack wailaStack, List<String> tooltip, IWailaDataAccessor accessor, IWailaConfigHandler arg3)
     {
         if (accessor.getTileEntity() instanceof TileEntityCampfire)
         {
             TileEntityCampfire ctile = (TileEntityCampfire) accessor.getTileEntity();
+            NBTTagCompound data = accessor.getNBTData();
 
             if (accessor.getPlayer().isSneaking())
             {
@@ -67,22 +91,31 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                                 : EnumChatFormatting.RED + StringParsers.translateWAILA("no")));
             }
 
+            int[] cookingTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
+            int[] cookingTotalTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTotalTimes);
             for (int slot = 0; slot < ctile.getSizeInventory(); ++slot)
             {
                 ItemStack stack = ctile.getStackInSlot(slot);
                 if (stack != null)
                 {
-                    int cookTime = ctile.getCookingTimeInSlot(slot);
-                    int cookTotalTime = ctile.getCookingTotalTimeInSlot(slot);
+                    String tip = "-" + stack.getDisplayName();
 
-                    String tip = "-" + stack.getDisplayName() + " (";
+                    if (slot < cookingTimes.length && slot < cookingTotalTimes.length)
+                    {
+                        tip += " (";
 
-                    if (cookTime >= cookTotalTime)
-                        tip += EnumChatFormatting.ITALIC + "100%" + EnumChatFormatting.RESET;
-                    else
-                        tip += Math.min(Math.round((((float) cookTime) / ((float) cookTotalTime)) * 100F), 99) + "%";
+                        int cookTime = cookingTimes[slot];
+                        int cookTotalTime = cookingTotalTimes[slot];
 
-                    tooltip.add(tip + ")");
+                        if (cookTime >= cookTotalTime)
+                            tip += EnumChatFormatting.ITALIC + "100%" + EnumChatFormatting.RESET;
+                        else
+                            tip += Math.min(Math.round((((float) cookTime) / ((float) cookTotalTime)) * 100F), 99) + "%";
+
+                        tip += ")";
+                    }
+
+                    tooltip.add(tip);
                 }
             }
 
