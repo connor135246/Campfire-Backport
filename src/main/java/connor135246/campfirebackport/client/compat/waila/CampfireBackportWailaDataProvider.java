@@ -123,11 +123,18 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
             {
                 boolean canBurnOut = ctile.canBurnOut();
                 boolean canRainOut = canBurnOut && ctile.getRainAndSky() && CampfireBackportConfig.putOutByRain.matches(ctile);
-                if ((canBurnOut && ctile.getBaseBurnOutTimer() > -1) || (canRainOut && ctile.isOnReignitionCooldown()))
-                    tooltip.add(TileEntityCampfire.getBurnOutTip(ctile.getLife(), ctile.getStartingLife()));
-                if (canRainOut && !ctile.isOnReignitionCooldown())
-                    tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC
-                            + StatCollector.translateToLocal(Reference.MODID + ".tooltip.rained_out"));
+                boolean showBurnOutTip = (canBurnOut && ctile.getBaseBurnOutTimer() > -1) || (canRainOut && ctile.isOnReignitionCooldown());
+                boolean showRainOutTip = canRainOut && !ctile.isOnReignitionCooldown();
+                if (ctile.hasClientReignition() && (showBurnOutTip || showRainOutTip))
+                    tooltip.add(TileEntityCampfire.getBurnOutTip(39, -1));
+                else
+                {
+                    if (showBurnOutTip)
+                        tooltip.add(TileEntityCampfire.getBurnOutTip(ctile.getLife(), ctile.getStartingLife()));
+                    if (showRainOutTip)
+                        tooltip.add(EnumChatFormatting.DARK_RED + "" + EnumChatFormatting.ITALIC
+                                + StatCollector.translateToLocal(Reference.MODID + ".tooltip.rained_out"));
+                }
             }
         }
 

@@ -317,30 +317,30 @@ public class BlockCampfire extends BlockContainer implements ICampfire
         {
             stateChanging = true;
 
-            Block newBlock = CampfireBackportBlocks.getBlockFromLitAndType(mode != 0, ((BlockCampfire) oldBlock).getTypeIndex());
-
             if (mode != 2)
+            {
+                Block newBlock = CampfireBackportBlocks.getBlockFromLitAndType(mode != 0, ((BlockCampfire) oldBlock).getTypeIndex());
                 world.setBlock(x, y, z, newBlock, meta, 3);
+            }
 
             if (!world.isRemote)
             {
-                switch (mode)
+                if (mode == 1 || mode == 2)
                 {
-                case 1:
-                    ctile.resetRegenWaitTimer();
-                case 2: // fallthrough
-                {
+                    if (mode == 1)
+                        ctile.resetRegenWaitTimer();
                     ctile.checkSignal();
                     ctile.resetLife(true);
+                    ctile.markForClient();
                     world.playSoundEffect(x + 0.5, y + 0.4375, z + 0.5, "fire.ignite", 1.0F, RAND.nextFloat() * 0.4F + 0.8F);
-                    break;
                 }
-                default:
-                {
+                else
                     ctile.playFizzAndAddSmokeServerSide(20, 0.45);
-                    break;
-                }
-                }
+            }
+            else
+            {
+                if (mode == 1 || mode == 2)
+                    ctile.setClientReigntion();
             }
 
             ctile.markDirty();

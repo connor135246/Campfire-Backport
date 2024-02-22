@@ -73,6 +73,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
     protected int life = -1;
     protected int startingLife = -1;
     protected int baseBurnOutTimer = -2;
+    public static final int REIGNITION_COOLDOWN = 40; // 2 seconds
 
     // variables that don't need to be saved to NBT
     protected boolean firstTick = true;
@@ -80,6 +81,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
 
     // only used client side
     protected boolean rainAndSky = false;
+    protected boolean previousTickLit = false;
+    protected int clientReignition = -1;
 
     @Override
     public void updateEntity()
@@ -97,10 +100,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
 
                     ++invCount;
                 }
-
-            // updates waila display for client every 2.5 sec, if there are items or the campfire is burning out over time
-            if (distributedInterval(50L) && (invCount > 0 || (getBaseBurnOutTimer() > -1 && canBurnOut())))
-                markForClient();
 
             if (invCount > 0)
                 markDirty();
@@ -128,11 +127,15 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
         {
             if (isLit())
             {
-                if (distributedInterval(50L))
+                if (!previousTickLit || distributedInterval(50L))
                     rainAndSky = isBeingRainedOn();
 
                 addParticles();
+
+                decrementClientReignition();
             }
+
+            previousTickLit = isLit();
         }
 
         if (firstTick)
@@ -371,9 +374,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
      */
     protected void burnOutOverTime()
     {
-        boolean onReignitionCooldown = isOnReignitionCooldown();
+        int burnOutTipStage = burnOutTipStage();
         boolean burningOut = getBaseBurnOutTimer() > -1;
-        if (onReignitionCooldown || (burningOut && canBurnOut()))
+        if (isOnReignitionCooldown() || (burningOut && canBurnOut()))
         {
             if (getLife() < 0)
                 resetLife(false);
@@ -384,8 +387,8 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
             decrementLife();
 
             markDirty();
-            if (onReignitionCooldown && !isOnReignitionCooldown())
-                markForClient(); // refresh waila tips when reignition cooldown ends
+            if (burnOutTipStage != burnOutTipStage())
+                markForClient(); // refresh waila tips when burn out tip stage changes
         }
     }
 
@@ -609,7 +612,11 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
 
         regenWaitTimer = compound.hasKey(KEY_RegenWaitTimer, 99) ? compound.getInteger(KEY_RegenWaitTimer) : regenWaitTimer;
 
-        life = compound.hasKey(KEY_Life, 99) ? compound.getInteger(KEY_Life) : life;
+        if (compound.hasKey(KEY_Life, 99))
+        {
+            life = compound.getInteger(KEY_Life);
+            removeClientReignition(); // clear client reignition on data packet containing real life value
+        }
         startingLife = compound.hasKey(KEY_StartingLife, 99) ? compound.getInteger(KEY_StartingLife) : life;
         baseBurnOutTimer = compound.hasKey(KEY_BaseBurnOutTimer, 99) ? compound.getInteger(KEY_BaseBurnOutTimer) : baseBurnOutTimer;
 
@@ -1071,9 +1078,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
             life = startingLife = -1;
 
         if (startReignitionCooldown)
-            life += 40; // 2 seconds
-
-        markForClient(); // refresh waila tips
+            life += REIGNITION_COOLDOWN;
     }
 
     public int getStartingLife()
@@ -1093,7 +1098,10 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
     public int getBaseBurnOutTimer()
     {
         if (baseBurnOutTimer <= -2)
+        {
             resetBaseBurnOutTimer();
+            markForClient(); // refresh waila tips
+        }
 
         return baseBurnOutTimer;
     }
@@ -1103,38 +1111,83 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
         baseBurnOutTimer = BurnOutRule.findBurnOutRule(getWorldObj(), xCoord, yCoord, zCoord, getTypeIndex()).getTimer();
     }
 
+    // for smooth client burnout tips, to bridge the time until we receive the true life from {@link #onDataPacket}
+
+    public void setClientReigntion()
+    {
+        clientReignition = REIGNITION_COOLDOWN - 1;
+    }
+
+    public void decrementClientReignition()
+    {
+        if (clientReignition > -1)
+            --clientReignition;
+    }
+
+    public boolean hasClientReignition()
+    {
+        return clientReignition > -1;
+    }
+
+    public void removeClientReignition()
+    {
+        clientReignition = -1;
+    }
+
+    public int burnOutTipStage()
+    {
+        return burnOutTipStage(life, startingLife);
+    }
+
+    public static int burnOutTipStage(int life, int startingLife)
+    {
+        if (life <= -1) // no time given
+            return -1;
+        else if (life > startingLife) // reignition cooldown
+            return 4;
+        else if (life < 1200) // 1 minute or less
+            return 3;
+        else if (life < 6000) // 5 minutes or less
+            return 2;
+        else if (life < 36000) // 30 minutes or less
+            return 1;
+        else // longer than 30 minutes
+            return 0;
+    }
+
     public static String getBurnOutTip(int life, int startingLife)
     {
         String key;
         EnumChatFormatting color;
-        if (life <= -1)
-        {
-            key = Reference.MODID + ".tooltip.burning_out";
-            color = EnumChatFormatting.GRAY;
-        }
-        else if (life > startingLife)
+        int burnOutTipStage = burnOutTipStage(life, startingLife);
+        if (burnOutTipStage == 4)
         {
             key = Reference.MODID + ".tooltip.reignite";
             color = EnumChatFormatting.GREEN;
         }
-        else if (life < 1200) // 1 minute
+        else if (burnOutTipStage == 3)
         {
             key = Reference.MODID + ".tooltip.burning_out.3";
             color = EnumChatFormatting.DARK_RED;
         }
-        else if (life < 6000) // 5 minutes
+        else if (burnOutTipStage == 2)
         {
             key = Reference.MODID + ".tooltip.burning_out.2";
             color = EnumChatFormatting.RED;
         }
-        else if (life < 36000) // 30 minutes
+        else if (burnOutTipStage == 1)
         {
             key = Reference.MODID + ".tooltip.burning_out.1";
             color = EnumChatFormatting.YELLOW;
         }
-        else
+        else if (burnOutTipStage == 0)
         {
             key = Reference.MODID + ".tooltip.burning_out.0";
+            color = EnumChatFormatting.GRAY;
+        }
+        else
+        {
+            key = Reference.MODID + ".tooltip.burning_out";
             color = EnumChatFormatting.GRAY;
         }
         return color + "" + EnumChatFormatting.ITALIC + StatCollector.translateToLocal(key);
