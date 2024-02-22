@@ -21,12 +21,6 @@ campfirebackport.set_spawn=Respawn point set
 campfirebackport.error.invalid_tile=Found an invalid campfire tile entity in dimension %1$s at %2$s %3$s %4$s. It'll be removed.
 
 
-campfirebackport.reg=regular
-campfirebackport.soul=soul
-campfirebackport.extinguisher=Extinguisher
-campfirebackport.ignitor=Ignitor
-
-
 campfirebackport.compat.error=Error while initializing %s compatibility! Please report this bug!
 
 
@@ -41,7 +35,7 @@ campfirebackport.nei.enchantment_data=With %s or greater
 campfirebackport.nei.fluid_data=With at least %1$s mB of %2$s
 campfirebackport.nei.nbt_data=With NBT:
 campfirebackport.nei.exact_nbt_data=With Exact NBT:
-campfirebackport.nei.dispensable=Works from a dispenser
+campfirebackport.nei.dispensable=Works in a Dispenser
 campfirebackport.nei.anything=Anything
 campfirebackport.nei.unknown=Unknown Item/Ore from CraftTweaker!
 campfirebackport.nei.any_tinkers=Any Tinker's Construct Tool
@@ -201,6 +195,11 @@ campfirebackport.config.packets.apply_error=Error occurred while applying receiv
 campfirebackport.mixin_config.packets.receive_config=Receiving mixin config from server.
 campfirebackport.mixin_config.packets.encode_error=Error occurred while creating mixin config packet. Unable to tell client about mixin config.
 campfirebackport.mixin_config.packets.decode_error=Error occurred while receiving mixin config packet. Assuming mixins are disabled.
+
+campfirebackport.reg=regular
+campfirebackport.soul=soul
+campfirebackport.extinguisher=Extinguisher
+campfirebackport.ignitor=Ignitor
 
 campfirebackport.config.comment.render_3d=Client-side option. If true, campfire items in your inventory will render as a 3D block instead of a 2D item.
 campfirebackport.config.comment.charcoal=If true, regular campfires can be crafted only using charcoal. In vanilla either coal or charcoal can be used, but breaking campfires always drops charcoal. If for some reason you don't want players to be able to turn coal into charcoal, turn this on.
