@@ -38,8 +38,8 @@ version = "1.7.10-1.10.1"
 group= "connor135246" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "campfirebackport"
 
-// add argument "-Psolo" to build solo version (no embedded mixin 0.7)
-def solo = project.hasProperty("solo")
+// add argument "-Pnomixin" to build nomixin version (no embedded mixin 0.7)
+def nomixin = project.hasProperty("nomixin")
 
 // thanks
 // https://github.com/makamys/MC-Modding-notes/tree/master/examples/Forge-Mixin-1_7_10
@@ -54,7 +54,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    if (solo) {
+    if (nomixin) {
         compile 'org.spongepowered:mixin:0.7+'
     }
     else {
@@ -108,8 +108,8 @@ jar {
         it.isDirectory() ? it : zipTree(it)
     }
     
-    if (solo) {
-        version += "-SOLO"
+    if (nomixin) {
+        version += "+nomixin"
     }
 }
 
@@ -129,9 +129,9 @@ processResources
     // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
-    inputs.property "solo", solo
-    if (solo) {
-        project.version += "-SOLO"
+    inputs.property "nomixin", nomixin
+    if (nomixin) {
+        project.version += "+nomixin"
     }
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
