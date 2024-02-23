@@ -137,7 +137,6 @@ public class ItemBlockCampfire extends ItemBlock implements ICampfire
         int particles = 0;
 
         boolean copyTags = false;
-        boolean hasItems = false;
 
         NBTTagCompound droptag = (NBTTagCompound) stack.getTagCompound().copy();
         NBTTagCompound droptiletag = droptag.getCompoundTag(TileEntityCampfire.KEY_BlockEntityTag);
