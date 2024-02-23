@@ -29,6 +29,8 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
         reg.registerNBTProvider(INSTANCE, TileEntityCampfire.class);
     }
 
+    public static final String KEY_WAILAisSynced = "WAILAisSynced";
+
     /**
      * Sync cooking times when the player looks at a campfire. Everything else is already synced whenever it changes.
      */
@@ -48,6 +50,8 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
             for (int slot = 0; slot < cookingTotalTimes.length; ++slot)
                 cookingTotalTimes[slot] = ctile.getCookingTotalTimeInSlot(slot);
             tag.setIntArray(TileEntityCampfire.KEY_CookingTotalTimes, cookingTotalTimes);
+
+            tag.setBoolean(KEY_WAILAisSynced, true);
         }
         return tag;
     }
@@ -58,10 +62,10 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
     @Override
     public List<String> getWailaBody(ItemStack wailaStack, List<String> tooltip, IWailaDataAccessor accessor, IWailaConfigHandler arg3)
     {
-        if (accessor.getTileEntity() instanceof TileEntityCampfire)
+        TileEntity tile = accessor.getTileEntity();
+        if (tile instanceof TileEntityCampfire)
         {
-            TileEntityCampfire ctile = (TileEntityCampfire) accessor.getTileEntity();
-            NBTTagCompound data = accessor.getNBTData();
+            TileEntityCampfire ctile = (TileEntityCampfire) tile;
 
             if (accessor.getPlayer().isSneaking())
             {
@@ -91,8 +95,16 @@ public class CampfireBackportWailaDataProvider implements IWailaDataProvider
                                 : EnumChatFormatting.RED + StringParsers.translateWAILA("no")));
             }
 
-            int[] cookingTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
-            int[] cookingTotalTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTotalTimes);
+            int[] cookingTimes = new int[0];
+            int[] cookingTotalTimes = new int[0];
+
+            NBTTagCompound data = accessor.getNBTData();
+            if (data != null && data.getBoolean(KEY_WAILAisSynced)) // if the server doesn't have waila, cooking times will not be accurate client side.
+            {
+                cookingTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTimes);
+                cookingTotalTimes = data.getIntArray(TileEntityCampfire.KEY_CookingTotalTimes);
+            }
+
             for (int slot = 0; slot < ctile.getSizeInventory(); ++slot)
             {
                 ItemStack stack = ctile.getStackInSlot(slot);
