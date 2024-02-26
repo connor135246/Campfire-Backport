@@ -7,7 +7,6 @@ import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
@@ -27,12 +26,12 @@ public class CampfireBackportRecipes
                 CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex));
 
         GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 1), 'C', "logWood"));
+                " A ", "ABA", "CCC", 'A', "stickWood", 'B', "charcoal", 'C', "logWood"));
 
         if (!CampfireBackportConfig.charcoalOnly)
         {
             GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', new ItemStack(Items.coal, 1, 0), 'C', "logWood"));
+                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', "coal", 'C', "logWood"));
         }
 
         //
