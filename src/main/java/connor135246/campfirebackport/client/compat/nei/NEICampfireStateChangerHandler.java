@@ -38,6 +38,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 {
@@ -328,6 +329,18 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
                 specials.add(new CachedCampfireStateChanger("lens", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(),
                         Lists.newArrayList(new ItemStack(lens, 1, 15)), false)); // meta 15 is kindle lens
             }
+        }
+
+        // gregtech 6 shovels and firestarters
+        if (CampfireBackportCompat.isGT6Loaded)
+        {
+            List<ItemStack> gtShovels = OreDictionary.getOres("craftingToolShovel", false);
+            if (!gtShovels.isEmpty())
+                specials.add(new CachedCampfireStateChanger("gtshovels", EnumCampfireType.BOTH, true, new ArrayList<LinkedList<String>>(), gtShovels, false));
+
+            List<ItemStack> gtFirestarters = OreDictionary.getOres("craftingFirestarter", false);
+            if (!gtFirestarters.isEmpty())
+                specials.add(new CachedCampfireStateChanger("gtfirestarters", EnumCampfireType.BOTH, false, new ArrayList<LinkedList<String>>(), gtFirestarters, false));
         }
 
         return specials;
@@ -636,6 +649,20 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
             GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
 
             String info = StatCollector.translateToLocal("entity.Botania.botania:manaBurst.name");
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
+        }
+        else if (cachedCstate.specialID.equals("gtshovels"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal("gt.lang.tool.name.shovel");
+            fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
+        }
+        else if (cachedCstate.specialID.equals("gtfirestarters"))
+        {
+            GuiDraw.drawTexturedModalRect(56, 0, 120, 59, 52, 41);
+
+            String info = StatCollector.translateToLocal("gt.lang.tool.name.igniter");
             fonty().drawString(info, 82 - fonty().getStringWidth(info) / 2, 6, 0x777777);
         }
 
