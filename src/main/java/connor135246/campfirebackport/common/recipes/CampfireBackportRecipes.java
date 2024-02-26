@@ -7,6 +7,7 @@ import cpw.mods.fml.common.registry.GameData;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
@@ -15,23 +16,26 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 public class CampfireBackportRecipes
 {
 
-    public static final String oreSoulSoil = "soulSoil", oreSoulSand = "soulSand";
+    public static final String oreCoal = "coal", oreCharcoal = "charcoal", oreSoulSand = "soulSand", oreSoulSoil = "soulSoil";
 
     /**
      * adds oredicts. adds the crafting recipes for campfires, which depend on various config settings.
      */
     public static void postInit()
     {
+        OreDictionary.registerOre(oreCoal, new ItemStack(Items.coal, 1, 0));
+        OreDictionary.registerOre(oreCharcoal, new ItemStack(Items.coal, 1, 1));
+
         ItemStack campfireResult = new ItemStack(
                 CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex));
 
         GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                " A ", "ABA", "CCC", 'A', "stickWood", 'B', "charcoal", 'C', "logWood"));
+                " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCharcoal, 'C', "logWood"));
 
         if (!CampfireBackportConfig.charcoalOnly)
         {
             GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', "coal", 'C', "logWood"));
+                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCoal, 'C', "logWood"));
         }
 
         //
