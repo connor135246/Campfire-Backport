@@ -9,6 +9,7 @@ import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
@@ -21,7 +22,8 @@ public class CampfireBackportCompat
             isAdvancedRocketryLoaded = false,
             isThaumcraftLoaded = false,
             isBotaniaLoaded = false,
-            isNetherliciousLoaded = false;
+            isNetherliciousLoaded = false,
+            isGT6Loaded = false;
 
     /**
      * checks for mods in preInit, before any content is registered
@@ -34,6 +36,8 @@ public class CampfireBackportCompat
         isBotaniaLoaded = Loader.isModLoaded("Botania");
         isMineTweaker3Loaded = Loader.isModLoaded("MineTweaker3");
         isNetherliciousLoaded = Loader.isModLoaded("netherlicious");
+        isGT6Loaded = Loader.isModLoaded("gregapi");
+        // isGT5Loaded = !isGT6Loaded && Loader.isModLoaded("gregtech");
     }
 
     /**
@@ -55,6 +59,19 @@ public class CampfireBackportCompat
 
         if (isMineTweaker3Loaded)
             loadModHandler("MineTweaker3", "crafttweaker.CampfireBackportCraftTweaking");
+
+        if (isGT6Loaded)
+        {
+            CampfireBackportCompat.autoRecipeSpecifiers.add(new AutoRecipeSpecifier() {
+
+                @Override
+                public boolean include(ItemStack inputstack, ItemStack resultstack)
+                {
+                    return inputstack != null && resultstack != null && gregapi.util.ST.edible(resultstack);
+                }
+
+            });
+        }
     }
 
     private static void loadModHandler(String modid, String classnamepart)
@@ -78,6 +95,20 @@ public class CampfireBackportCompat
 
     public static ISpaceHandler galacticraftHandler = new DummySpaceHandler();
     public static ISpaceHandler advancedRocketryHandler = new DummySpaceHandler();
+
+    public static List<AutoRecipeSpecifier> autoRecipeSpecifiers = new ArrayList<AutoRecipeSpecifier>();
+    static
+    {
+        autoRecipeSpecifiers.add(new AutoRecipeSpecifier() {
+
+            @Override
+            public boolean include(ItemStack inputstack, ItemStack resultstack)
+            {
+                return inputstack != null && resultstack != null && resultstack.getItem() instanceof ItemFood;
+            }
+
+        });
+    }
 
     /**
      * A question for space handlers.
@@ -118,6 +149,18 @@ public class CampfireBackportCompat
     {
         return advancedRocketryHandler.canGetDimensionProperties(world) ? advancedRocketryHandler.getAtmosphereDensity(world, y)
                 : galacticraftHandler.canGetDimensionProperties(world) ? galacticraftHandler.getAtmosphereDensity(world, y) : 1.0F;
+    }
+
+    /**
+     * A question for auto recipe specifiers.
+     */
+    public static boolean allowAutoRecipe(ItemStack inputstack, ItemStack resultstack)
+    {
+        return inputstack != null && resultstack != null && autoRecipeSpecifiers.stream().anyMatch(specifier -> {
+            return specifier.include(inputstack, resultstack);
+        }) && autoRecipeSpecifiers.stream().noneMatch(specifier -> {
+            return specifier.veto(inputstack, resultstack);
+        });
     }
 
     // Compat Interfaces and their Dummy Implementations
@@ -331,6 +374,26 @@ public class CampfireBackportCompat
         public float getAtmosphereDensity(World world, int y)
         {
             return 1.0F;
+        }
+
+    }
+
+    // Food
+
+    public static interface AutoRecipeSpecifier
+    {
+
+        /**
+         * @return true if the furnace recipe should be added to the campfire recipes when auto recipe discovery is on
+         */
+        public boolean include(ItemStack inputstack, ItemStack resultstack);
+
+        /**
+         * @return true to veto a recipe that the default includer (ItemFoods) or other mods want to include
+         */
+        public default boolean veto(ItemStack inputstack, ItemStack resultstack)
+        {
+            return false;
         }
 
     }

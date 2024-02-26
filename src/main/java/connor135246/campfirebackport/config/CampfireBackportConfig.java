@@ -27,7 +27,6 @@ import connor135246.campfirebackport.util.StringParsers;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
@@ -606,7 +605,7 @@ public class CampfireBackportConfig
             if (inputstack == null || resultstack == null)
                 continue iteratorLoop;
 
-            if (resultstack.getItem() instanceof ItemFood)
+            if (CampfireBackportCompat.allowAutoRecipe(inputstack, resultstack))
             {
                 if (!autoBlacklistStacks.isEmpty())
                 {
