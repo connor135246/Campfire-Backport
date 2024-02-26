@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.Lists;
 
-import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
+import connor135246.campfirebackport.common.compat.BlockCampfireCompat;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
@@ -45,26 +45,7 @@ public class CampfireBackportBlocks
      */
     private static Block createCampfireBlock(boolean lit, int typeIndex, String name, float lightLevel)
     {
-        Block block = null;
-
-        if (CampfireBackportCompat.isBotaniaLoaded)
-        {
-            try
-            {
-                block = (Block) Class.forName(Reference.MOD_PACKAGE + ".common.compat.botania.BlockCampfireBotania").getConstructor(boolean.class, int.class)
-                        .newInstance(lit, typeIndex);
-            }
-            catch (Exception excep)
-            {
-                CampfireBackportCompat.logError("Botania");
-                block = null;
-            }
-        }
-
-        if (block == null)
-            block = new BlockCampfire(lit, typeIndex);
-
-        return block.setLightLevel(lightLevel).setBlockName(name).setBlockTextureName(Reference.MODID + ":" + name);
+        return new BlockCampfireCompat(lit, typeIndex).setLightLevel(lightLevel).setBlockName(name).setBlockTextureName(Reference.MODID + ":" + name);
     }
 
     //

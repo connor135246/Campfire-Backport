@@ -1,4 +1,4 @@
-package connor135246.campfirebackport.common.compat.botania;
+package connor135246.campfirebackport.common.compat.handlers;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
