@@ -220,7 +220,8 @@ public class CampfireBackportCraftTweaking
         try
         {
             EnumCampfireType typesVerified = getTypes(types);
-            if (typesVerified != null && verifyUsageType(usageType))
+            byte usageTypeVerified = getUsageType(usageType);
+            if (typesVerified != null && usageTypeVerified != -2)
             {
                 // campfire state changers don't necessarily use up their inputs, so a .reuse() applied to the input would end up giving you an extra item.
                 // to fix this, if there was a .reuse() applied by an AbstractItemFunction, we add a transform that undoes it.
@@ -234,13 +235,13 @@ public class CampfireBackportCraftTweaking
                     AbstractItemFunction.rememberFunctions(input, functions);
                 }
 
-                boolean damageable = usageType.equals(CampfireStateChanger.DAMAGEABLE);
+                boolean damageable = usageTypeVerified == 2;
 
                 CustomInput[] cinputs = new CustomInput[] { new CustomCraftTweakerIngredient(new ActiveCraftTweakerIngredient(input),
                         damageable ? Math.max(damageOrReduceBy, 1) : MathHelper.clamp_int(damageOrReduceBy, 1, 64), null, !damageable, -1) };
                 ItemStack[] outputs = output == null ? null : new ItemStack[] { MineTweakerMC.getItemStack(output) };
 
-                CampfireStateChanger cstate = new CampfireStateChanger(typesVerified, cinputs, leftClick, extinguisher, usageType, outputs, false, 0);
+                CampfireStateChanger cstate = new CampfireStateChanger(typesVerified, cinputs, leftClick, extinguisher, usageTypeVerified, outputs, false, 0);
 
                 MineTweakerAPI.apply(new AddCampfireStateChangerAction(cstate));
             }
@@ -414,19 +415,20 @@ public class CampfireBackportCraftTweaking
     }
 
     /**
-     * Verifies that the given string is a valid usage type for a CampfireStateChanger. Logs an error in CraftTweaker if it isn't.
+     * Gets a byte representing the usage type for a CampfireStateChanger from a String. Logs an error in CraftTweaker if it can't.
      */
-    private static boolean verifyUsageType(String usageType)
+    private static byte getUsageType(String usageType)
     {
-        if (usageType.equals(CampfireStateChanger.DAMAGEABLE) || usageType.equals(CampfireStateChanger.STACKABLE)
-                || usageType.equals(CampfireStateChanger.NONE))
-        {
-            return true;
-        }
+        if (usageType == null || usageType.equals(CampfireStateChanger.NONE))
+            return 0;
+        else if (usageType.equals(CampfireStateChanger.STACKABLE))
+            return 1;
+        else if (usageType.equals(CampfireStateChanger.DAMAGEABLE))
+            return 2;
         else
         {
             MineTweakerAPI.logError(StringParsers.translateCT("error.usage", usageType));
-            return false;
+            return -2;
         }
     }
 

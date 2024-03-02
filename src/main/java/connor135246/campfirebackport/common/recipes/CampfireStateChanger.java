@@ -23,7 +23,7 @@ import net.minecraft.util.MathHelper;
 public class CampfireStateChanger extends GenericRecipe implements Comparable<CampfireStateChanger>
 {
 
-    public static final String DAMAGEABLE = "damageable", STACKABLE = "stackable", NONE = "none";
+    public static final String STACKABLE = "stackable", DAMAGEABLE = "damageable", NONE = "none";
 
     /** dispensable CampfireStateChangers work from a dispenser. */
     protected final boolean dispensable;
@@ -31,8 +31,8 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
     protected final boolean leftClick;
     /** true for extinguishers, false for ignitors. */
     protected final boolean extinguisher;
-    /** controls how the input is consumed. */
-    protected final String usageType;
+    /** controls how the input is consumed. 1 = stackable, 2 = damageable, 0 = none. */
+    protected final byte usageType;
 
     /** the master list of state changers! */
     private static List<CampfireStateChanger> masterStateChangerList = new ArrayList<CampfireStateChanger>();
@@ -70,8 +70,18 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
             String[] afterUse = segment[2].split(">");
 
-            String usageType = afterUse[0];
-            boolean damageable = usageType.equals(DAMAGEABLE);
+            byte usageType;
+
+            if (afterUse[0].equals(NONE))
+                usageType = 0;
+            else if (afterUse[0].equals(STACKABLE))
+                usageType = 1;
+            else if (afterUse[0].equals(DAMAGEABLE))
+                usageType = 2;
+            else
+                throw new Exception();
+
+            boolean damageable = usageType == 2;
 
             // outputs
             ItemStack[] outputs = null;
@@ -117,14 +127,14 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
         }
     }
 
-    public CampfireStateChanger(EnumCampfireType types, CustomInput[] inputs, boolean leftClick, boolean extinguisher, String usageType,
+    public CampfireStateChanger(EnumCampfireType types, CustomInput[] inputs, boolean leftClick, boolean extinguisher, byte usageType,
             @Nullable ItemStack[] outputs, boolean dispensable, int sortOrder)
     {
         super(types, inputs, outputs, sortOrder);
 
         this.leftClick = leftClick;
         this.extinguisher = extinguisher;
-        this.usageType = usageType;
+        this.usageType = (byte) MathHelper.clamp_int(usageType, 0, 2);
         this.dispensable = dispensable;
 
         // damageable tooltip
@@ -344,19 +354,19 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
         return extinguisher;
     }
 
-    public String getUsageType()
+    public byte getUsageType()
     {
         return usageType;
     }
 
-    public boolean isUsageTypeDamageable()
-    {
-        return usageType.equals(DAMAGEABLE);
-    }
-
     public boolean isUsageTypeStackable()
     {
-        return usageType.equals(STACKABLE);
+        return usageType == 1;
+    }
+
+    public boolean isUsageTypeDamageable()
+    {
+        return usageType == 2;
     }
 
     // Sorting
