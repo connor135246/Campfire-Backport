@@ -61,29 +61,21 @@ public class BlockCampfireCompat extends BlockCampfire implements vazkii.botania
     public long onToolClick(String aTool, long aRemainingDurability, long aQuality, Entity aPlayer, List<String> aChatReturn, IInventory aPlayerInventory,
             boolean aSneaking, ItemStack aStack, World aWorld, byte aSide, int aX, int aY, int aZ, float aHitX, float aHitY, float aHitZ)
     {
-        if (!aSneaking)
+        if (!aWorld.isRemote && !aSneaking)
         {
             EntityPlayer maybeplayer = aPlayer instanceof EntityPlayer ? (EntityPlayer) aPlayer : null;
+
+            int result = 0;
+
             if (gregapi.data.CS.TOOL_igniter.equals(aTool))
-            {
-                switch (igniteOrReigniteCampfire(maybeplayer, aWorld, aX, aY, aZ))
-                {
-                case 1:
-                    return 10000;
-                case 2:
-                    return 0;
-                }
-            }
+                result = igniteOrReigniteCampfire(maybeplayer, aWorld, aX, aY, aZ);
             else if (gregapi.data.CS.TOOL_shovel.equals(aTool))
-            {
-                switch (extinguishCampfire(maybeplayer, aWorld, aX, aY, aZ))
-                {
-                case 1:
-                    return 10000;
-                case 2:
-                    return 0;
-                }
-            }
+                result = extinguishCampfire(maybeplayer, aWorld, aX, aY, aZ);
+
+            if (result == 1)
+                return 10000;
+            else if (result == 2)
+                return 0;
         }
         return gregapi.block.ToolCompat.onToolClick(this, aTool, aRemainingDurability, aQuality, aPlayer, aChatReturn, aPlayerInventory, aSneaking, aStack,
                 aWorld, aSide, aX, aY, aZ, aHitX, aHitY, aHitZ);
