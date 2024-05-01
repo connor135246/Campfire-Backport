@@ -108,17 +108,17 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !event.entityPlayer.worldObj.isRemote
+        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !event.world.isRemote
                 && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK
                 && event.entityPlayer.isSneaking() && event.entityPlayer.getCurrentEquippedItem() == null)
         {
-            Block block = event.entityPlayer.worldObj.getBlock(event.x, event.y, event.z);
+            Block block = event.world.getBlock(event.x, event.y, event.z);
 
             // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
             if (CampfireBackportBlocks.isLitCampfire(block) && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block) && !EnumCampfireType.isNetherlicious(((BlockCampfire) block).getTypeIndex()))
             {
                 event.entityPlayer.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
-                event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false);
+                event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false, event.world.provider.dimensionId);
                 event.setCanceled(true);
             }
         }
