@@ -28,7 +28,7 @@ public class BlockCampfireCompat extends BlockCampfire implements vazkii.botania
     @Override
     public void onBurstCollision(vazkii.botania.api.internal.IManaBurst burst, World world, int x, int y, int z)
     {
-        if (!world.isRemote && !burst.isFake() && shouldLensLightCampfire(burst.getSourceLens()) && igniteOrReigniteCampfire(null, world, x, y, z) != 0)
+        if (!burst.isFake() && shouldLensLightCampfire(burst.getSourceLens()) && igniteOrReigniteCampfire(null, world, x, y, z) != 0)
             burst.setFake(true); // to stop the burst from creating a fire block afterwards
     }
 
