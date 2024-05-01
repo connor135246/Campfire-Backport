@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import connor135246.campfirebackport.common.recipes.CampfireRecipe;
+import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.config.ConfigReference;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -54,14 +56,16 @@ public class StringParsers
                     + toolAnyData + ")|(&" + clazzAnyData + ")|(&" + anyDataTinkers + "))" + size + ")?",
             itemMetaAnyDataSize = itemMetaAnyData + size;
 
-    public static final Pattern recipePat = Pattern.compile(itemMetaOreToolClassAnyDataSizeStart + itemMetaOreToolClassAnyDataSizeAnd
-            + itemMetaOreToolClassAnyDataSizeAnd + itemMetaOreToolClassAnyDataSizeAnd + "\\/" + itemMetaAnyDataSize
-            + "(\\/((\\d+)|(\\*)))?(\\/((signal)|(notsignal)|(any)))?" + "(\\/(" + itemMetaAnyDataSize + "))?(\\/" + betweenZeroAndOne + ")?"),
+    public static final Pattern recipePat = Pattern
+            .compile(itemMetaOreToolClassAnyDataSizeStart + itemMetaOreToolClassAnyDataSizeAnd + itemMetaOreToolClassAnyDataSizeAnd
+                    + itemMetaOreToolClassAnyDataSizeAnd + "\\/" + itemMetaAnyDataSize + "(\\/((\\d+)|(\\*)))?(\\/((" + CampfireRecipe.SIGNAL + ")|("
+                    + CampfireRecipe.NOTSIGNAL + ")|(" + CampfireRecipe.ANY + ")))?" + "(\\/(" + itemMetaAnyDataSize + "))?(\\/" + betweenZeroAndOne + ")?"),
             itemMetaOrePat = Pattern.compile(itemMetaOreStart),
             itemPat = Pattern.compile(item),
             itemMetaAnySimpleDataSizeOREmptyPat = Pattern.compile("(" + itemMetaAnyDataSize + ")|()"),
-            stateChangePat = Pattern.compile("((^right)|(^left))(\\+dispensable)?" + itemMetaOreToolClassAnyDataSizeSlash
-                    + "\\/((none)|(damageable)|(stackable))(>" + itemMetaAnyDataSize + ")?"),
+            stateChangePat = Pattern
+                    .compile("((^right)|(^left))(\\+dispensable)?" + itemMetaOreToolClassAnyDataSizeSlash + "\\/((" + CampfireStateChanger.STACKABLE + ")|("
+                            + CampfireStateChanger.DAMAGEABLE + ")|(" + CampfireStateChanger.NONE + "))(>" + itemMetaAnyDataSize + ")?"),
             burnOutRulesPat = Pattern.compile(
                     "((regular)|(soul)|(both))\\/((biome:\\d+)|(dimension:-?\\d+)|(biome:\\d+&dimension:-?\\d+)|(dimension:-?\\d+&biome:\\d+))\\/((-1)|(\\d+))"),
             enchPattern = Pattern.compile(ench),
