@@ -52,7 +52,7 @@ public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngre
     @Override
     public String toStringName()
     {
-        return "Unknown CraftTweaker IIngredient (check NEI)";
+        return this.input.toString();
     }
 
     @Override

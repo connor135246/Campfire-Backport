@@ -202,4 +202,10 @@ public class ActiveCraftTweakerIngredient implements ICraftTweakerIngredient
                 && OreDictionary.doesOreNameExist((String) iingredient.getInternal());
     }
 
+    @Override
+    public String toString()
+    {
+        return iingredient.toString() + (hasTransforms() ? " (has transformers)" : "");
+    }
+
 }
