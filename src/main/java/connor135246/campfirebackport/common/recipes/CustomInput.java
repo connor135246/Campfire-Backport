@@ -344,13 +344,10 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
                 if (emptyContainer != null)
                 {
                     stack.stackSize--;
-                    if (!MiscUtil.putStackInExistingSlots(player.inventory, emptyContainer, true))
-                    {
-                        if (stack.stackSize <= 0)
-                            stack = emptyContainer;
-                        else if (!player.inventory.addItemStackToInventory(emptyContainer))
-                            player.dropPlayerItemWithRandomChoice(emptyContainer, false);
-                    }
+                    if (stack.stackSize <= 0)
+                        stack = emptyContainer;
+                    else if (!player.inventory.addItemStackToInventory(emptyContainer))
+                        player.dropPlayerItemWithRandomChoice(emptyContainer, false);
                 }
             }
         }

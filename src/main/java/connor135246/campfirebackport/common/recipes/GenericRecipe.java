@@ -5,11 +5,9 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 
 import connor135246.campfirebackport.util.EnumCampfireType;
-import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.StringParsers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.event.ForgeEventFactory;
 
 public abstract class GenericRecipe
 {
@@ -65,7 +63,7 @@ public abstract class GenericRecipe
             {
                 stack = useAndHandleContainer(cinput, stack, player);
 
-                if (stack.stackSize < 0)
+                if (stack != null && stack.stackSize < 0)
                     stack.stackSize = 0;
             }
         }
@@ -81,26 +79,20 @@ public abstract class GenericRecipe
 
     /**
      * Does {@link #use(CustomInput, ItemStack, EntityPlayer)}. <br>
-     * If {@link #returnContainer} is true, checks if the stack has a container item. If the container item is broken, posts the PlayerDestroyItemEvent. If the stack's size is
-     * zero, returns the container item. Otherwise, adds it to the player's inventory.
+     * If {@link #returnContainer} is true, checks if the stack has a container. If the stack's size is zero, returns the container. Otherwise, adds it to the player's inventory.
      */
     protected ItemStack useAndHandleContainer(CustomInput cinput, ItemStack stack, EntityPlayer player)
     {
-        if (returnContainer && stack != null && stack.getItem().hasContainerItem(stack))
+        if (returnContainer && stack != null)
         {
             ItemStack containerStack = stack.getItem().getContainerItem(stack);
             if (containerStack != null)
             {
-                if (containerStack.isItemStackDamageable() && containerStack.getItemDamage() > containerStack.getMaxDamage())
-                    ForgeEventFactory.onPlayerDestroyItem(player, containerStack);
-                else if (!MiscUtil.putStackInExistingSlots(player.inventory, containerStack, true))
-                {
-                    // it looks odd to copy the stack here, but ultimately this simulates how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it.
-                    if (use(cinput, stack.copy(), player).stackSize <= 0)
-                        return containerStack;
-                    else if (!player.inventory.addItemStackToInventory(containerStack))
-                        player.dropPlayerItemWithRandomChoice(containerStack, false);
-                }
+                // it looks odd to copy the stack here, but ultimately this simulates how {@link net.minecraft.inventory.SlotCrafing#onPickupFromSlot} does it.
+                if (use(cinput, stack.copy(), player).stackSize <= 0)
+                    return containerStack;
+                else if (!player.inventory.addItemStackToInventory(containerStack))
+                    player.dropPlayerItemWithRandomChoice(containerStack, false);
             }
         }
         return use(cinput, stack, player);

@@ -12,7 +12,6 @@ import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.ICampfire;
-import connor135246.campfirebackport.util.MiscUtil;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
@@ -261,13 +260,10 @@ public class BlockCampfire extends BlockContainer implements ICampfire
                 if (cstate.hasOutputs())
                 {
                     ItemStack outputStack = ItemStack.copyItemStack(cstate.getOutput());
-                    if (!MiscUtil.putStackInExistingSlots(player.inventory, outputStack, true))
-                    {
-                        if (returnStack.stackSize <= 0)
-                            returnStack = outputStack;
-                        else if (!player.inventory.addItemStackToInventory(outputStack))
-                            player.dropPlayerItemWithRandomChoice(outputStack, false);
-                    }
+                    if (returnStack.stackSize <= 0)
+                        returnStack = outputStack;
+                    else if (!player.inventory.addItemStackToInventory(outputStack))
+                        player.dropPlayerItemWithRandomChoice(outputStack, false);
                 }
 
                 if (returnStack != stack || returnStack.stackSize <= 0)
