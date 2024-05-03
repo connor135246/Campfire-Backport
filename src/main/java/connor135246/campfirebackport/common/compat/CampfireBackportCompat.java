@@ -23,7 +23,8 @@ public class CampfireBackportCompat
             isThaumcraftLoaded = false,
             isBotaniaLoaded = false,
             isNetherliciousLoaded = false,
-            isGT6Loaded = false;
+            isGT6Loaded = false,
+            isTConstructLoaded = false;
 
     /**
      * checks for mods in preInit, before any content is registered
@@ -38,6 +39,7 @@ public class CampfireBackportCompat
         isNetherliciousLoaded = Loader.isModLoaded("netherlicious");
         isGT6Loaded = Loader.isModLoaded("gregapi");
         // isGT5Loaded = !isGT6Loaded && Loader.isModLoaded("gregtech");
+        isTConstructLoaded = Loader.isModLoaded("TConstruct");
     }
 
     /**

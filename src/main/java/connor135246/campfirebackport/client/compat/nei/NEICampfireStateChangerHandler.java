@@ -187,6 +187,10 @@ public class NEICampfireStateChangerHandler extends NEIGenericRecipeHandler
 
     public void loadValidRecipe(CampfireStateChanger cstate)
     {
+        // hide tinker's recipes if you don't have tinker's.
+        if (cstate.getInput().getDataType() == 4 && !CampfireBackportCompat.isTConstructLoaded)
+            return;
+
         CachedCampfireStateChanger cachedCstate = new CachedCampfireStateChanger(cstate);
         if (cachedCstate.types != null && cachedCstate.types != EnumCampfireType.NEITHER)
             arecipes.add(cachedCstate);
