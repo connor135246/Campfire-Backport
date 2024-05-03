@@ -56,7 +56,8 @@ Galacticraft / Advanced Rocketry:
 -Campfire smoke will move faster or slower depending on the atmosphere.
 
 Netherlicious:
--Soul campfires can be crafted with Soul Soil.
+-Soul campfires can be crafted with Soul Soil and will drop it when broken.
+-You can craft foxfire campfires and shadow campfires. Most config options that apply to soul campfires will apply to these as well.
 
 CraftTweaker:
 -Campfire recipes, extinguishers/ignitors, and burn out timers can be made using CraftTweaker (v3.1.0 or later). See # Recipes Overview.
@@ -76,10 +77,12 @@ https://raw.githubusercontent.com/connor135246/Campfire-Backport/master/enviromi
 Manual Method:
 1. Launch Minecraft with EnviroMine and Campfire Backport.
 2. Go to EnviroMine's config.
-3. Go to "Profile Settings" -> "default_Settings.cfg" -> "Config" and set "Generate Blank Configs" to "true". When you click done, EnviroMine will generate configs for all of your mods and set the option back to "false". This can take a while if you have a lot of mods! But once it's done, you'll be able to configure everything you want for every mod you have.  
+3. Go to "Profile Settings" -> "default_Settings.cfg" -> "Config" and set "Generate Blank Configs" to "true". 
+When you click done, EnviroMine will generate configs for all of your mods and set the option back to "false". This can take a while if you have a lot of mods! But once it's done, you'll be able to configure everything you want for every mod you have.  
 Now that EnviroMine has generated default settings for campfires, you can enable temperature. 
 4. Go to "Custom Configs" -> "campfirebackport.cfg" -> "blocks". 
-5. For lit campfires, open "tile_campfire_campfire". For lit soul campfires, open "tile_soul_campfire_soul_campfire". I'd recommend setting the campfires to the same values as torches. That would be "Enable Temperature" to "true", "Temperature" to "75.0", and "Air Quality" to "-0.25". You could also set "Sanity" to "0.1" for regular campfires (since they're meant to be cozy) and "-0.1" for soul campfires (since that's the value for Soul Sand).
+5. For lit campfires, open "tile_campfire_campfire". For lit soul campfires, open "tile_soul_campfire_soul_campfire". For lit foxfire campfires, open "tile_foxfire_campfire_foxfire_campfire". For lit shadow campfires, open "tile_shadow_campfire_shadow_campfire".
+I'd recommend setting the campfires to the same values as torches. That would be "Enable Temperature" to "true", "Temperature" to "75.0", and "Air Quality" to "-0.25". You could also set "Sanity" to "0.1" for regular campfires (since they're meant to be cozy) and "-0.1" for soul campfires (since that's the value for Soul Sand).
 
 See also:
 AstroTibs' EnviroMine for Galaxy Odyssey has some bug fixes and improvements to EnviroMine. It also has some compatibility with Campfire Backport: by default, campfires can heat cauldrons to purify dirty water. Thanks, AstroTibs!
@@ -253,7 +256,7 @@ The campfire types this extinguisher / ignitor applies to. Must be "regular", "s
 The input used to extinguish / ignite the campfire.
 -String usageType
 How the input is used up. Must be "damageable", "stackable", or "none".
-If "damageable", the input will be damaged. Use this one if the input has durability.
+If "damageable", attempts to damage the input. Use this one if the input has durability.
 If "stackable", the input will be reduced in stack size.
 If "none", neither will happen.
 -@Optional int damageOrReduceBy
@@ -414,6 +417,7 @@ Some examples of this method:
 In most cases, it'll be easier and cleaner to do these with CraftTweaker.
 Tips:
 -Check the console for error messages if your input didn't parse! 
+-If a mod adds an item with unusual characters in its id, the in-game config GUI may prevent you from entering it. In that case, you'll have to edit the config file directly.
 -The NBT modifier doesn't check for valid NBT formatting! All it checks is that there's something between two {} curly brackets. Error messages will be printed to console if your NBT failed to parse.
 -Recipes and Extinguishers/Ignitors are sorted based on their input. 
 Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by tool class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
@@ -493,7 +497,7 @@ When you add a dispensable recipe from the in-game config screen, it won't actua
 In the same way, if you remove a dispensable recipe, it won't actually stop being dispensable until you quit and reload!
 Also, dispenser behaviours are registered before any CraftTweaker scripts are run! So if you add "+dispensable" to an Ore Dictionary input but also try to change the contents of that Ore Dictionary entry in CraftTweaker, the dispenser behaviours will only be added to whatever was in that Ore Dictionary entry before you changed it.
 -The third section is what should happen after extinguishing / igniting the campfire.
-"damageable" means the item used will be damaged by the "@number" from the # [Custom Input].
+"damageable" will attempt to damage the item by the "@number" from the # [Custom Input].
 "stackable" means the item used will be reduced in stack size by the "@number" from the # [Custom Input].
 "none" means neither of these things will happen.
 Additionally, you can specify an item to be added to the inventory afterward by putting a >, and then a # [Custom Output] (see below).
@@ -650,7 +654,7 @@ Some examples:
 # Campfire Backport Mixin Config
 The config file "campfirebackportmixins.cfg" lets you toggle which mixins will be used. 
 There's no in-game GUI for this config, and Minecraft must be restarted if you want to change the settings.
-If you're using the no-mixins version of Campfire Backport (the version number ends with -NM), this file won't exist.
+If you're using the "nomixin" .jar of Campfire Backport (the version number ends with "+nomixin"), you will need a separate mixin mod such as UniMixins to launch the game. (https://github.com/LegacyModdingMC/UniMixins) 
 
 Here's an overview of the options in this file.
 -Mixins: 
