@@ -41,7 +41,7 @@ public class CampfireBackportBlocks
     }
 
     /**
-     * makes the campfire block, or the botania campfire block if botania is installed
+     * makes the campfire block
      */
     private static Block createCampfireBlock(boolean lit, int typeIndex, String name, float lightLevel)
     {

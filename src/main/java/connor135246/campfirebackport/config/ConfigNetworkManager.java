@@ -169,7 +169,7 @@ public class ConfigNetworkManager
 
     /**
      * Currently applicable mixin config settings. The client receives a packet from the server. <br>
-     * Since all mixins exclusively affect the logical server, the physical client doesn't care if it has mixins enabled or not, even if it's the -NM version.
+     * Since all mixins exclusively affect the logical server, the physical client doesn't care if it has mixins enabled or not.
      */
     public static boolean mixins;
     public static boolean[] vanillaMixins = new boolean[4];
