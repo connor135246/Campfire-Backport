@@ -1,0 +1,241 @@
+###########
+#由对方大v的舒服翻译。 BY dfdvdsf
+###########
+tile.campfire_base.name=未点燃的营火
+tile.campfire.name=营火
+tile.soul_campfire_base.name=未点燃的灵魂营火
+tile.soul_campfire.name=灵魂营火
+tile.foxfire_campfire_base.name=未点燃的狐火营火
+tile.foxfire_campfire.name=狐火营火
+tile.shadow_campfire_base.name=未点燃的暗影营火
+tile.shadow_campfire.name=暗影营火
+tile.campfire.inventory.name=营火烹饪
+
+campfirebackport.tooltip.burning_out=它已经熄灭了。
+campfirebackport.tooltip.burning_out.0=还会燃烧一段时间,但是它还是会渐渐熄灭的。
+campfirebackport.tooltip.burning_out.1=还会燃烧一会。
+campfirebackport.tooltip.burning_out.2=还要燃烧一小会。
+campfirebackport.tooltip.burning_out.3=快燃烧完了。
+campfirebackport.tooltip.rained_out=它将会被雨浇灭。
+campfirebackport.tooltip.reignite=重燃这营火。
+
+campfirebackport.set_spawn=重生点已设置。
+
+campfirebackport.error.invalid_tile=在%1$s维度 (%2$s, %3$s, %4$s) 处发现一无效营火。将会被移除。
+
+
+campfirebackport.reg=普通营火
+campfirebackport.soul=灵魂营火
+campfirebackport.extinguisher=点火物品
+campfirebackport.ignitor=灭火物品
+
+
+campfirebackport.compat.error=初始化 %s 的兼容时有误!  请报告这个 BUG ! 
+
+
+campfirebackport.nei.cooking_recipe=营火烹饪
+campfirebackport.nei.state_changer_recipe=点燃/熄灭
+campfirebackport.nei.signal_fire_blocks=令营火成为信号营火的方块
+campfirebackport.nei.ore_input=任意 %s
+campfirebackport.nei.tool_input=任意 %s 类型的工具
+campfirebackport.nei.class_input=任意 %s 的 .class 文件
+campfirebackport.nei.burns_away=如果加热时间太久,将会被烧掉。
+campfirebackport.nei.enchantment_data=需要 %s 或更高
+campfirebackport.nei.fluid_data=需要至少 %1$s mB 的 %2$s
+campfirebackport.nei.nbt_data=需要 NBT :
+campfirebackport.nei.exact_nbt_data=需要额外的 NBT :
+campfirebackport.nei.dispensable=使用发射器来工作
+campfirebackport.nei.anything=任意
+campfirebackport.nei.unknown=来自于 CraftTweaker 的未知物品/矿石。
+campfirebackport.nei.any_tinkers=任意匠魂的工具
+campfirebackport.nei.tinkers_mods=强化:
+campfirebackport.nei.damage_by=消耗物品 %s 点耐久。
+campfirebackport.nei.num_ticks=%s Ticks
+campfirebackport.nei.num_secs=%s 秒
+campfirebackport.nei.num_mins=%s 分
+campfirebackport.nei.num_hours=%s 小时
+campfirebackport.nei.chance=几率:
+campfirebackport.nei.onlysignal=必须是信号营火! 
+campfirebackport.nei.notsignal=必须§o不! 是! §r信号营火! 
+campfirebackport.nei.burn_out=熄灭
+campfirebackport.nei.approx_burn_out=在 ~%s 后熄灭
+campfirebackport.nei.approx_burn_out_in=在 ~%s 后熄灭,在以下生物群系中:
+campfirebackport.nei.no_burn_out=一直燃烧
+campfirebackport.nei.biome=-生物群系:
+campfirebackport.nei.dimension=维度:
+campfirebackport.nei.rained_out=被雨浇灭
+campfirebackport.nei.signals_die=信号营火熄灭
+campfirebackport.nei.signals_live=信号营火一直燃烧
+campfirebackport.nei.vis_cost=魔力消耗:
+campfirebackport.nei.signal_fire_desc1=置于一个营火下,
+campfirebackport.nei.signal_fire_desc2=使其成为一个信号营火。
+campfirebackport.nei.see_signal_fire_blocks=点击此处来查看令营火成为信号营火的方块。
+campfirebackport.nei.no_block_render=无法渲染此方块!
+
+
+campfirebackport.waila.empty=空
+campfirebackport.waila.facing=朝向:
+campfirebackport.waila.south=南
+campfirebackport.waila.north=北
+campfirebackport.waila.east=东
+campfirebackport.waila.west=西
+campfirebackport.waila.signal_fire=信号营火:
+campfirebackport.waila.yes=是
+campfirebackport.waila.no=否
+
+
+campfirebackport.crafttweaker.version_warning=[Campfire Backport] CraftTweaker 版本过低! 使用早于 3.1.0 的 CraftTweaker 有可能会有此问题。
+campfirebackport.crafttweaker.recipe.add=[Campfire Backport] CraftTweaker 添加了输出为 %s 的配方。
+campfirebackport.crafttweaker.recipe.remove=[Campfire Backport] CraftTweaker 移除了输出为 %s 的配方。
+campfirebackport.crafttweaker.recipe.error=[Campfire Backport] 当创建以下配方时出现错误:
+campfirebackport.crafttweaker.state_changer.add=[Campfire Backport] CraftTweaker 添加了名为:  %s 的营火点火/灭火物品。
+campfirebackport.crafttweaker.state_changer.remove=[Campfire Backport] CraftTweaker 移除了名为:  %s 的营火点火/灭火物品。
+campfirebackport.crafttweaker.state_changer.error=[Campfire Backport] 当创建以下点火/灭火物品时出现错误:
+campfirebackport.crafttweaker.burn_out_rule.add=[Campfire Backport] CraftTweaker 添加了一个 %s 的燃尽/浇灭计时器。
+campfirebackport.crafttweaker.burn_out_rule.remove=[Campfire Backport] CraftTweaker 移除了一个 %s 的燃尽/浇灭计时器。
+campfirebackport.crafttweaker.burn_out_rule.error=[Campfire Backport] 当创建以下燃尽/浇灭计时器时出现错误:
+campfirebackport.crafttweaker.error.types=[Campfire Backport] 无效营火类型: "%s"。 应当为:  "普通营火 ( regular )"、"灵魂营火 ( soul )"、"两个都可 ( both )"。
+campfirebackport.crafttweaker.error.signal=[Campfire Backport] 无效信号营火设置: "%s"。 应当为:  "任意 ( any ) "、 "信号 ( signal ) "、 "非信号 (notsignal) "。
+campfirebackport.crafttweaker.error.empty_array=[Campfire Backport] 无效营火烹饪配方:  输入物品(组)为空。
+campfirebackport.crafttweaker.error.usage=[Campfire Backport] 无效营火点火/灭火物品类型: "%s" 。应当为: "可损坏(damageable)"、 "可堆叠(stackable)" 、 "均不是(none)"。
+campfirebackport.crafttweaker.error.biome_id=[Campfire Backport] 无效燃尽/浇灭计时器: "%s" 为无效生物群系 ID 。
+campfirebackport.crafttweaker.error.null_ids=[Campfire Backport] 无效燃尽/浇灭计时器: 维度和生物群系均为空。
+campfirebackport.crafttweaker.error.invalid_timer=[Campfire Backport] 无效燃尽/浇灭计时器: 将燃烧时间设为 "%s" 是无效的。-- 其必须为大于等于 0 的整数,或设为 -1 以禁用。
+campfirebackport.crafttweaker.nbt.error=[Campfire Backport] 在解析一个 onlyWithTagAdvanced 语句时出错。
+campfirebackport.crafttweaker.nbt.caught_error=解析 "%s" NBT 标签时出错, 更多信息详见 minetweaker.log 。
+campfirebackport.crafttweaker.nbt.multiple_tops=有多个顶 Tag 修饰了一个物品，仅可以有一个 Tag。
+campfirebackport.crafttweaker.nbt.not_compound=顶 Tag 必须为一个未命名组合。
+campfirebackport.crafttweaker.nbt.illegal_escaped_quote=非法书写方式 \": %s
+campfirebackport.crafttweaker.nbt.unbalanced_brackets=不对称的括弧%1$s: %2$s
+campfirebackport.crafttweaker.nbt.unbalanced_quotation=不对称的括弧 "": %s
+campfirebackport.crafttweaker.nbt.missing_bracket=无法定位 %s 的结束括弧。
+campfirebackport.crafttweaker.nbt.unexpected_char=于 '%1$s' 处设定之外的字符: %2$s
+campfirebackport.crafttweaker.nbt.inconsistent_array_type=数组类型不一致 (字节或整数): [%s]
+campfirebackport.crafttweaker.nbt.missing_name_value_sep=无法定位以下字符串名称/值分选器: %s
+campfirebackport.crafttweaker.nbt.name_error=名称错误: %s 
+campfirebackport.crafttweaker.nbt.cannot_have_comparison=合成物或合成列表不应该有相比的强化: %s
+campfirebackport.crafttweaker.nbt.list_type_mismatch=添加不匹配的 Tag 类型: %1$s (类型 %2$s) 应为 Tag 列表的 %3$s 类型。
+campfirebackport.crafttweaker.fluid.unregistered=[Campfire Backport] 流体 "%s" 未被注册。
+campfirebackport.crafttweaker.fluid.invalid_amount=[Campfire Backport] "%s" 容量的流体是无效的,其必须为大于等于 0 的整数。
+
+
+campfirebackport.command.usage=/campfirebackport help
+campfirebackport.command.help.0=/campfirebackport dumpinfo
+#campfirebackport.command.help.1=   在配置文件夹(config/campfirebackport)中生成一个文本文件来提供详细的 config 文件详解和 CraftTweaker 支持。(这个是英文且亦可在此处: https://github.com/connor135246/Campfire-Backport/wiki 找到)
+campfirebackport.command.help.1=   将一个文本文件导出至配置文件夹(config/campfirebackport)中,来提供详细的 config 文件详解和 CraftTweaker 支持。(亦可在此处: https://github.com/connor135246/Campfire-Backport/wiki 找到)
+campfirebackport.command.help.2=/campfirebackport nbt [player] 或 /campfirebackport nbt <x> <y> <z>
+campfirebackport.command.help.3=   导出玩家所持物品或者某一坐标处方块的NBT。
+campfirebackport.command.help.4=/campfirebackport getcampfire [player] 或 /campfirebackport getcampfire <x> <y> <z>
+campfirebackport.command.help.5=   复制得到一个(在某一位置的)营火方块,包括NBT。
+campfirebackport.command.help.6=/campfirebackport locationinfo [player] 或 /campfirebackport locationinfo <x> <z>
+campfirebackport.command.help.7=   导出生物群系的ID和其所处的维度。
+campfirebackport.command.help.8=/campfirebackport reload
+campfirebackport.command.help.9=   热重加载配置文件,并向全服(包括/或者是你)发送加载完成的信息。
+campfirebackport.command.dumpinfo=已将 "%s"  文件导出至配置文件夹中。
+campfirebackport.command.dumpinfo.error.0=创建文件时出现错误。
+campfirebackport.command.dumpinfo.error.1=你可以在Github上(https://github.com/connor135246/Campfire-Backport/wiki)看。
+campfirebackport.command.nbt.item=%1$s 的 "%2$s" NBT:
+campfirebackport.command.nbt.tile=方块的NBT:
+campfirebackport.command.nbt.no_held_item=选中的玩家没拿着任何东西。
+campfirebackport.command.nbt.block_out_of_world=选中的方块在世界外。
+campfirebackport.command.nbt.no_tile_entity=选中的方块未有方块实体。
+campfirebackport.command.get.not_campfire=选中的方块不是营火。
+campfirebackport.command.get.result=创建一个营火的复制品。命令:
+campfirebackport.command.get.hover.0=T在聊天栏中使用此命令太长。
+campfirebackport.command.get.hover.1=但在在命令方块中也有效。
+campfirebackport.command.get.hover.2=从控制台处复制-粘贴此命令。
+campfirebackport.command.locationinfo.biome=生物群系: "%1$s", ID: %2$s
+campfirebackport.command.locationinfo.dimension=维度: "%1$s", ID: %2$s
+campfirebackport.command.reload=已经加载完毕且向全服玩家发送已加载成功的消息。
+campfirebackport.command.clickme=点击将其复制至聊天栏中。
+
+
+campfirebackport.config.info.setting_config=已设置配置文件选项! 
+campfirebackport.config.info.parsing_recipes=解析自定义配方中...
+campfirebackport.config.info.parsing_auto_blacklist=解析 Auto Recipe Discovery 的黑名单中...
+campfirebackport.config.info.discovering_autos=发现熔炉配方中...
+campfirebackport.config.info.parsing_dispenser_blacklist=解析发射器行为黑名单中...
+campfirebackport.config.info.parsing_state_changers=解析点火物品/灭火物品中...
+campfirebackport.config.info.parsing_signal_blocks=解析信号营火中...
+campfirebackport.config.info.parsing_drops=解析营火掉落物中...
+campfirebackport.config.info.parsing_burn_out_rules=解析生物群落/维度计时器中...
+campfirebackport.config.info.done=完成所有设置! 
+
+campfirebackport.config.info.print_recipes=-营火配方:
+campfirebackport.config.info.print_state_changers=-营火点火/灭火物品:
+campfirebackport.config.info.print_burn_out_rules=生物群系/维度燃尽计时器:
+
+campfirebackport.config.inputerror.invalid_types=    "%s" 的营火类型是无效的! 
+campfirebackport.config.inputerror.invalid_ench_id=    ID 为 "%s" 的附魔未找到! 
+campfirebackport.config.inputerror.invalid_fluid=    名为 "%s" 的流体未找到! 
+campfirebackport.config.inputerror.invalid_fluid_amount=    "%s" 的流体消耗量是无效的!其必须为大于等于 0 的整数! 
+campfirebackport.config.inputerror.invalid_nbt=    输入中 "%s" 有无效的 NBT! 
+campfirebackport.config.inputerror.invalid_class=    "%s" Class 文件未找到! 
+campfirebackport.config.inputerror.invalid_item=    物品 "%s" 未找到! 
+campfirebackport.config.inputerror.invalid_block=    方块 "%s" 未找到! 
+campfirebackport.config.inputerror.invalid_block_meta=    值为 "%s" 方块元数据是无效的!  其为 0-15 之间的整数! 
+campfirebackport.config.inputerror.invalid_state_changer=    无效 %1$s 营火 "%2$s"! 
+campfirebackport.config.inputerror.invalid_recipe=    无效营火配方 "%s"! 
+campfirebackport.config.inputerror.invalid_auto_blacklist=    Auto Recipe Discovery 黑名单条目 "%s" 是无效的! 
+campfirebackport.config.inputerror.invalid_signal_fire_block=    "%s" 信号营火条目是无效的! 
+campfirebackport.config.inputerror.invalid_drops=    掉落物品 "%s" 是无效的! 将替换为默认掉落物品!
+campfirebackport.config.inputerror.invalid_dispenser_blacklist=    发射器行为黑名单条目 "%s" 是无效的! 
+campfirebackport.config.inputerror.invalid_dispensable=    无需指定营火 %1$s "%2$s"，但需 NBT 的输入需要。无视它。
+campfirebackport.config.inputerror.no_matches_tool=   在此输入未找到匹配物品！ 工具 Class 文件 "%s" 是否正确？
+campfirebackport.config.inputerror.no_matches_class=  在此输入未找到匹配物品！ Java 类 Class 文件 "%s" 是否正确？
+campfirebackport.config.inputerror.invalid_burn_out_rule=    生物群系/维度燃尽计时器值 "%s" 是无效的！ 
+campfirebackport.config.inputerror.invalid_biome_id=   值为 "%s" 生物群系 ID 是无效的！ 
+campfirebackport.config.inputerror.unknown_ore=  矿物辞典条目 "%s" 未找到！其是否存在？
+campfirebackport.config.inputerror.empty_ore=  矿物辞典条目 "%s" 为空！是否忘记Did someone forget to add items to it?
+
+campfirebackport.config.rename_old_config=重命名旧版本 (v1.3 或更早) 的配置文件并且重新建一个! 
+campfirebackport.config.rename_old_config.error=在游戏加载中，有旧版本 (v1.3 或更早) 的配置文件! 自打那以后配置文件布局已截然不同。
+campfirebackport.config.rename_old_config.error.0=无法重命名旧版本 (v1.3 或更早) 的配置文件。将会加载默认配置文件!
+campfirebackport.config.rename_old_config.error.1=重命名或者删除旧版本 (v1.3 或更早) 的配置文件，然后重启游戏。
+campfirebackport.config.rename_old_config.error.2=游戏内配置界面不会将所改动的这些设置保存到配置文件中。
+
+campfirebackport.config.packets.send_config=将服务器上的配置同步至客户端。
+campfirebackport.config.packets.send_config_to_all=将服务器上的配置同步至所有客户端。
+campfirebackport.config.packets.receive_config=接收来自于服务端的配置。
+campfirebackport.config.packets.restore_config=恢复客户端配置。
+campfirebackport.config.packets.encode_error=在创建配置文件数据包时发生错误，尝试重新连接。如果仍旧失败，请在 GitHub 上报告此 BUG。
+campfirebackport.config.packets.decode_error=在接收配置文件数据包时发生错误，尝试重新连接。如果仍旧失败，请在 GitHub 上报告此 BUG。
+campfirebackport.config.packets.apply_error=在解码应用配置文件数据包时发生错误，尝试重新连接。如果仍旧失败，请在 GitHub 上报告此 BUG。
+
+campfirebackport.config.comment.render_3d=若设为 True，营火将会以 3D 模型形式渲染。 (该配置仅客户端)
+campfirebackport.config.comment.charcoal=若设为 True，普通营火将只能由木炭合成。原版营火只能由煤炭或木炭合成，若不想让玩家用煤炭转化成木炭，请打开此选项。
+campfirebackport.config.comment.soul_soil=若设为 True，灵魂营火将只能由 Netherlicious 的灵魂土合成。原版灵魂营火只能由灵魂沙或灵魂土合成，若不想让玩家用煤炭转化成木炭，请打开此选项。 (若 Netherlicious 未安装，这个选项不会工作) 
+campfirebackport.config.comment.regen=点燃的营火将会给附近的玩家提供一个再生效果。
+campfirebackport.config.comment.regen_settings=第一个值为再生等级 (0-31 的整数) ，第二个值是再生时长 (单位为 Tick)，第三个值是生效半径 (在半径多少的范围内，玩家会受到此效果)，第四个值是生效间隔 (每隔多少 Tick 将会再次给予玩家再生效果)。
+campfirebackport.config.comment.auto=该种营火将会遍历每一个熔炉配方来寻找一个继承了 ItemFood 的物品，并将其添加进该营火的配方列表。
+campfirebackport.config.comment.auto_blacklist=若输入中有该列表中的物品，Auto Recipe Discovery 将不会添加该配方至配方列表中。 【其模式较为固定。模式为: "ore:矿物辞典名" 抑或 "modid:注册名" 、 "modid:注册名:元数据"。若没有元数据 (即注册名后无冒号)，则默认元数据为0；若元数据为空 (即注册名后的冒号后没有数) ，所有在该注册名下的物品都将会被拒绝使用。】
+campfirebackport.config.comment.default_cooking_times=由 Auto Recipe Discovery 添加或由自定义营火配方添加的烹饪时间 (单位为 Tick) 并不一定一样。第一个值是对于营火而言的，第二个值则是对于灵魂营火而言的。
+campfirebackport.config.comment.recipes=%s 营火的自定义食谱列表。 (你亦可以用 CraftTweaker 来自定义。在 GitHub 上查看 Wiki，或使用命令 "/campfirebackport dumpinfo" 来学习如何做。)
+campfirebackport.config.comment.recipes_inheritance=可使一种类型的自定义配方继承另一种。这样以后就无需再打一遍。
+campfirebackport.config.comment.spawnpointable=该种营火在点燃的状态下时，可在蹲下的同时，用空手右键点击，设置一个重生点。 来自于 Home Camp ，链接: https://www.curseforge.com/minecraft/mc-mods/home-camp
+campfirebackport.config.comment.burn_out_on_respawn=当你用该种营火重生时，该种营火将会燃尽。默认情况下信号营火将不会燃尽，详见燃尽 (信号营火)。
+campfirebackport.config.comment.automation=漏斗和其他自动化装置会将物品从该种营火的侧面输入到该种营火中。
+campfirebackport.config.comment.default_unlit=默认合成未点燃的营火，而非点燃的；破坏该营火亦是如此掉落。（需重启游戏以应用此更改) 
+campfirebackport.config.comment.remember_state=该种营火将会在破坏后掉落破坏时的状态的物品。 (例: 破坏不点燃的就掉不点燃的，不管 Unlit by Default设置)
+campfirebackport.config.comment.silk=是否需要精准采集来获得营火。
+campfirebackport.config.comment.rained_out=该种营火在雨中会被浇灭；其特别慢... 默认情况下信号营火将不会燃尽，详见燃尽 (信号营火)。
+campfirebackport.config.comment.works_underwater=该种营火就算被水浇也不会熄灭。
+campfirebackport.config.comment.damaging=走在该种营火上面的生物将不会燃烧。 (该设置在村庄中很有用)
+campfirebackport.config.comment.vis_costs=当安装有神秘时代时，用法杖点燃/熄灭营火时所需多少火要素/水要素。顺序为: 熄灭营火所需水要素量；熄灭灵魂营火所需水要素量；点燃营火所需火要素量；点燃灵魂营火所需火要素量。将其中一种设为 0 以禁用。
+campfirebackport.config.comment.burn_out_timer=营火燃尽所需时间 (单位为 Tick)，设为 -1 以禁用并使其永久存在，第一个值是对于营火而言的，第二个值则是对于灵魂营火而言的。 随着所给值而有不同。默认情况下信号营火将不会燃尽，详见燃尽 (信号营火)。
+campfirebackport.config.comment.burn_out_rules=此处你可设置仅针对生物群系或维度的计时器。 (你亦可以用 CraftTweaker 来自定义。在 GitHub 上查看 Wiki，或使用命令 "/campfirebackport dumpinfo" 来学习如何做。)
+campfirebackport.config.comment.signals_burn_out=信号萤火将不会或因雨而浇灭燃尽计时器或在重生时燃尽。该设置可以使其燃尽。
+campfirebackport.config.comment.burn_to_nothing=该设置可以设置燃尽/浇灭时，被破坏的几率。当用精准采集破坏时营火将会掉落其物品形式，或者是掉落合成它的物品.(浮点值，0.0-1.0，0.1=10%，第一个值是对于营火而言的，第二个值则是对于灵魂营火而言的)
+campfirebackport.config.comment.burn_out_as_item=该种营火于其被取代前开始燃尽。 其将会计算其燃尽后成为一物品所需时间，不管是在世界中，亦或在玩家物品栏内。 (值得注意的是，其不在前述所处的位置时，计时器将会暂停；但若再到前述位置，则又会开始。)
+campfirebackport.config.comment.signal_fire_blocks=能够置于营火下的且使其变为信号营火的方块。信号营火的烟相较于普通的飘的更高。【其模式较为固定。模式为: "ore:矿物辞典名" 抑或 "modid:注册名" 、 "modid:注册名:元数据"。若没有元数据 (即注册名后无冒号)，则该注册名下所有物品均可；若元数据为空 (即注册名后的冒号后没有数) ，所有在该注册名下的物品都将会被拒绝使用。】
+campfirebackport.config.comment.campfire_drops=非精准采集工具破坏营火的掉落物。第一行条目是对于营火而言的，第二行条目则是对于灵魂营火而言的。若条目为空或无此物品，将会用原版的物品。 (原版物品为普通营火对应两个木炭，灵魂营火对应一个灵魂沙) 【其模式较为固定。模式为: "ore:矿物辞典名" 抑或 "modid:注册名@数量" 、 "modid:注册名:元数据@数量" 。若没有元数据 (即注册名后无冒号)，则默认元数据为0；若元数据为空 (即注册名后的冒号后没有数) ，所有在该注册名下的物品都将会被拒绝使用。你亦可以用 CraftTweaker 来自定义。在 GitHub 上查看 Wiki，或使用命令 "/campfirebackport dumpinfo" 来学习如何做。】 
+campfirebackport.config.comment.colourful_smoke=被红石充能时，该营火将会升起与下方方块相对应颜色的烟 (颜色基于地图上该方块的颜色)。与自定义信号营火相搭配效果更佳。来自于 Colorful Campfire Smoke, 链接: https://www.curseforge.com/minecraft/mc-mods/colorful-campfire-smoke
+campfirebackport.config.comment.dispenser_blacklist=不接受来自于自定义点火物品/灭火物品的发射器行为中，发射器行为是可发射的。 【其模式较为固定。模式为: "modid:注册名"】
+campfirebackport.config.comment.state_changers=%2$s营火的自定义%1$s。 (你亦可以用 CraftTweaker 来自定义。在 GitHub 上查看 Wiki，或使用命令 "/campfirebackport dumpinfo" 来学习如何做。)
+campfirebackport.config.comment.extinguishers_inheritance=可使一种类型的自定义点火物品继承另一种。这样以后就无需再打一遍。
+campfirebackport.config.comment.ignitors_inheritance=可使一种类型的自定义灭火物品继承另一种。这样以后就无需再打一遍。
+campfirebackport.config.comment.print_recipes=若设为 True, 在重载配置时，最终生成一个有着以下内容的列表:自定义配方、自定义点火物品/灭火物品和维度/生物群系的计时器。
+campfirebackport.config.comment.suppress_errors=若设为 True, 在重载配置时，不生成一个有着以下内容的列表:自定义配方、自定义点火物品/灭火物品和维度/生物群系的计时器。但会提醒前述内容中的无效值。
+
+
+
