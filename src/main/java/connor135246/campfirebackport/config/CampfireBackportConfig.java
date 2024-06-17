@@ -67,6 +67,7 @@ public class CampfireBackportConfig
     public static int[] defaultCookingTimes;
 
     public static EnumCampfireType spawnpointable;
+    public static boolean spawnpointableAltTrigger;
     public static EnumCampfireType burnOutOnRespawn;
 
     public static EnumCampfireType automation;
@@ -254,6 +255,9 @@ public class CampfireBackportConfig
                 StringParsers.translateComment("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).getIntList();
 
         spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
+        
+        spawnpointableAltTrigger = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.spawnpointableAltTrigger, false,
+                StringParsers.translateComment("spawnpointable_alt_trigger")).getBoolean();
 
         burnOutOnRespawn = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
 
@@ -722,6 +726,7 @@ public class CampfireBackportConfig
         defaultCookingTimes = ConfigReference.defaultDefaultCookingTimes;
 
         spawnpointable = EnumCampfireType.NEITHER;
+        spawnpointableAltTrigger = false;
         burnOutOnRespawn = EnumCampfireType.NEITHER;
 
         automation = EnumCampfireType.BOTH;

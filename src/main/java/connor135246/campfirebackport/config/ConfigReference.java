@@ -150,6 +150,7 @@ public class ConfigReference
             recipeListInheritance = "Custom Recipe Inheritance",
             defaultCookingTimes = "Default Cooking Times",
             spawnpointable = "Set Respawn Point",
+            spawnpointableAltTrigger = "Set Respawn Point - Alternate Activation",
             burnOutOnRespawn = "Burn Out on Respawn",
             automation = "Automation",
             startUnlit = "Unlit by Default",
@@ -193,6 +194,7 @@ public class ConfigReference
         configOrder.add(worksUnderwater);
         configOrder.add(damaging);
         configOrder.add(spawnpointable);
+        configOrder.add(spawnpointableAltTrigger);
         configOrder.add(burnOutOnRespawn);
         configOrder.add(visCosts);
         configOrder.add(signalFireStrings);

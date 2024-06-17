@@ -36,6 +36,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
@@ -208,10 +210,14 @@ public class BlockCampfire extends BlockContainer implements ICampfire
             {
                 if (((TileEntityCampfire) tile).tryInventoryAdd(survival ? stack : ItemStack.copyItemStack(stack)))
                     return true;
-                else
-                    return doStateChangers(survival, stack, false, (TileEntityCampfire) tile, player);
+                else if (doStateChangers(survival, stack, false, (TileEntityCampfire) tile, player))
+                    return true;
             }
         }
+
+        if (CampfireBackportConfig.spawnpointableAltTrigger)
+            return setRespawnPoint(world, x, y, z, player);
+
         return false;
     }
 
@@ -628,6 +634,24 @@ public class BlockCampfire extends BlockContainer implements ICampfire
     public boolean isBed(IBlockAccess world, int x, int y, int z, EntityLivingBase player)
     {
         return isLit() && CampfireBackportConfig.spawnpointable.matches(this);
+    }
+
+    /**
+     * sets the player's respawn point here if the campfire is correct
+     */
+    public boolean setRespawnPoint(World world, int x, int y, int z, EntityPlayer player)
+    {
+        // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
+        if (isBed(world, x, y, z, player) && !EnumCampfireType.isNetherlicious(getTypeIndex()))
+        {
+            if (!world.isRemote)
+            {
+                player.setSpawnChunk(new ChunkCoordinates(x, y, z), false, world.provider.dimensionId);
+                player.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override
