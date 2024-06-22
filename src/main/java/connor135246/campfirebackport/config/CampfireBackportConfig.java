@@ -2,6 +2,7 @@ package connor135246.campfirebackport.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -67,7 +68,7 @@ public class CampfireBackportConfig
     public static int[] defaultCookingTimes;
 
     public static EnumCampfireType spawnpointable;
-    public static boolean spawnpointableAltTrigger;
+    public static boolean spawnpointableAltTriggerObj;
     public static EnumCampfireType burnOutOnRespawn;
 
     public static EnumCampfireType automation;
@@ -81,7 +82,7 @@ public class CampfireBackportConfig
 
     public static EnumCampfireType damaging;
 
-    public static double[] visCosts;
+    public static double[] visCostsObj;
 
     public static int[] burnOutTimer;
     public static String[] burnOutRules;
@@ -119,8 +120,12 @@ public class CampfireBackportConfig
     public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
     public static Set<String> autoBlacklistOres = new HashSet<String>();
 
+    public static boolean spawnpointableAltTrigger = false;
+
     public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
     public static Set<String> signalFireOres = new LinkedHashSet<String>();
+
+    public static double[] visCosts = new double[4];
 
     public static ItemStack[] campfireDropsStacks = new ItemStack[4];
 
@@ -255,8 +260,8 @@ public class CampfireBackportConfig
                 StringParsers.translateComment("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).getIntList();
 
         spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
-        
-        spawnpointableAltTrigger = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.spawnpointableAltTrigger, false,
+
+        spawnpointableAltTriggerObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.spawnpointableAltTriggerObj, false,
                 StringParsers.translateComment("spawnpointable_alt_trigger")).getBoolean();
 
         burnOutOnRespawn = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
@@ -275,7 +280,7 @@ public class CampfireBackportConfig
 
         damaging = enumFromConfig(ConfigReference.damaging, ConfigReference.BOTH, "damaging");
 
-        visCosts = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.visCosts, ConfigReference.defaultVisCosts,
+        visCostsObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.visCostsObj, ConfigReference.defaultVisCosts,
                 StringParsers.translateComment("vis_costs"), 0.0, Double.MAX_VALUE, true, 4).getDoubleList();
 
         burnOutTimer = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnOutTimer, ConfigReference.defaultBurnOuts,
@@ -368,6 +373,12 @@ public class CampfireBackportConfig
 
         soulRegen[0] = MathHelper.clamp_int(soulRegen[0], 0, 31);
         soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 100);
+
+        // spawnpointableAltTriggerObj
+        spawnpointableAltTrigger = spawnpointableAltTriggerObj;
+
+        // visCostsObj
+        visCosts = Arrays.copyOf(visCostsObj, visCostsObj.length);
 
         // regularRecipeList & soulRecipeList & recipeListInheritance
         CampfireRecipe.clearRecipeLists();
@@ -726,7 +737,7 @@ public class CampfireBackportConfig
         defaultCookingTimes = ConfigReference.defaultDefaultCookingTimes;
 
         spawnpointable = EnumCampfireType.NEITHER;
-        spawnpointableAltTrigger = false;
+        spawnpointableAltTriggerObj = false;
         burnOutOnRespawn = EnumCampfireType.NEITHER;
 
         automation = EnumCampfireType.BOTH;
@@ -740,7 +751,7 @@ public class CampfireBackportConfig
 
         damaging = EnumCampfireType.BOTH;
 
-        visCosts = ConfigReference.defaultVisCosts;
+        visCostsObj = ConfigReference.defaultVisCosts;
 
         burnOutTimer = ConfigReference.defaultBurnOuts;
         burnOutRules = ConfigReference.empty;

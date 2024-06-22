@@ -24,8 +24,8 @@ public class ConfigNetworkManager
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
             LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "signalFireStrings", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
-            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCosts" },
-            BOOLEANS = new String[] { "spawnpointableAltTrigger" };
+            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCostsObj" },
+            BOOLEANS = new String[] { "spawnpointableAltTriggerObj" };
 
     /**
      * packet that contains config settings to sync
@@ -39,8 +39,8 @@ public class ConfigNetworkManager
         public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, signalFireStrings, campfireDropsStrings,
                 dispenserBlacklistStrings, regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
         public int[] burnOutTimer, defaultCookingTimes;
-        public double[] visCosts;
-        public boolean spawnpointableAltTrigger;
+        public double[] visCostsObj;
+        public boolean spawnpointableAltTriggerObj;
 
         @Override
         public void toBytes(ByteBuf buf)
