@@ -107,13 +107,17 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !event.world.isRemote && !CampfireBackportConfig.spawnpointableAltTrigger
+        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !CampfireBackportConfig.spawnpointableAltTrigger
                 && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK
                 && event.entityPlayer.isSneaking() && event.entityPlayer.getCurrentEquippedItem() == null)
         {
             Block block = event.world.getBlock(event.x, event.y, event.z);
             if (block instanceof BlockCampfire && ((BlockCampfire) block).setRespawnPoint(event.world, event.x, event.y, event.z, event.entityPlayer))
-                event.setCanceled(true);
+            {
+                if (!event.world.isRemote)
+                    event.setCanceled(true);
+                event.entityPlayer.swingItem();
+            }
         }
     }
 
