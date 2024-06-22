@@ -215,8 +215,8 @@ public class BlockCampfire extends BlockContainer implements ICampfire
             }
         }
 
-        if (CampfireBackportConfig.spawnpointableAltTrigger)
-            return setRespawnPoint(world, x, y, z, player);
+        if (CampfireBackportConfig.spawnpointableAltTrigger && setRespawnPoint(world, x, y, z, player))
+            return true;
 
         return false;
     }
