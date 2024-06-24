@@ -45,6 +45,8 @@ public class CampfireBackportConfig
     public static Configuration config;
     public static File configDirectory;
 
+    public static final String CONFIGPREFIX = Reference.MODID + ".config.";
+
     public static boolean useDefaults = false;
     public static boolean initialLoad = true;
 
@@ -220,10 +222,10 @@ public class CampfireBackportConfig
         config.setCategoryPropertyOrder(Configuration.CATEGORY_GENERAL, ConfigReference.configOrder);
 
         renderItem3D = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.renderItem3D, false,
-                StringParsers.translateComment("render_3d")).getBoolean();
+                StringParsers.translateTooltip("render_3d")).setLanguageKey(CONFIGPREFIX + "render_3d").getBoolean();
 
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
-                StringParsers.translateComment("charcoal")).setRequiresMcRestart(true).getBoolean();
+                StringParsers.translateTooltip("charcoal")).setLanguageKey(CONFIGPREFIX + "charcoal").setRequiresMcRestart(true).getBoolean();
 
         // rename "Soul Soil Only (Netherlicious)" to "Soul Soil Only"
         boolean soulSoilOnlyDefault = false;
@@ -233,15 +235,15 @@ public class CampfireBackportConfig
             config.getCategory(Configuration.CATEGORY_GENERAL).remove(ConfigReference.soulSoilOnly_OLD);
         }
         soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, soulSoilOnlyDefault,
-                StringParsers.translateComment("soul_soil")).setRequiresMcRestart(true).getBoolean();
+                StringParsers.translateTooltip("soul_soil")).setLanguageKey(CONFIGPREFIX + "soul_soil").setRequiresMcRestart(true).getBoolean();
 
         regenCampfires = enumFromConfig(ConfigReference.regenCampfires, ConfigReference.NEITHER, "regen");
 
         regularRegen = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.regularRegen, ConfigReference.defaultRegRegen,
-                StringParsers.translateComment("regen_settings"), 0, 10000, true, 4).getIntList();
+                StringParsers.translateTooltip("regen_settings.reg"), 0, 10000, true, 4).setLanguageKey(CONFIGPREFIX + "regen_settings.reg").getIntList();
 
         soulRegen = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulRegen, ConfigReference.defaultSoulRegen,
-                StringParsers.translateComment("regen_settings"), 0, 10000, true, 4).getIntList();
+                StringParsers.translateTooltip("regen_settings.soul"), 0, 10000, true, 4).setLanguageKey(CONFIGPREFIX + "regen_settings.soul").getIntList();
 
         autoRecipe = enumFromConfig(ConfigReference.autoRecipe, ConfigReference.BOTH, "auto");
 
@@ -249,20 +251,21 @@ public class CampfireBackportConfig
                 StringParsers.itemMetaOrePat, "auto_blacklist");
 
         regularRecipeList = listFromConfig(ConfigReference.regularRecipeList, ConfigReference.defaultRecipeList,
-                StringParsers.recipePat, "recipes", ConfigReference.regular());
+                StringParsers.recipePat, "recipes.reg");
 
         soulRecipeList = listFromConfig(ConfigReference.soulRecipeList, ConfigReference.empty,
-                StringParsers.recipePat, "recipes", ConfigReference.soul());
+                StringParsers.recipePat, "recipes.soul");
 
         recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
 
         defaultCookingTimes = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.defaultCookingTimes, ConfigReference.defaultDefaultCookingTimes,
-                StringParsers.translateComment("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).getIntList();
+                StringParsers.translateTooltip("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).setLanguageKey(CONFIGPREFIX + "default_cooking_times")
+                .getIntList();
 
         spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
 
         spawnpointableAltTriggerObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.spawnpointableAltTriggerObj, false,
-                StringParsers.translateComment("spawnpointable_alt_trigger")).getBoolean();
+                StringParsers.translateTooltip("spawnpointable_alt_trigger")).setLanguageKey(CONFIGPREFIX + "spawnpointable_alt_trigger").getBoolean();
 
         burnOutOnRespawn = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
 
@@ -281,10 +284,10 @@ public class CampfireBackportConfig
         damaging = enumFromConfig(ConfigReference.damaging, ConfigReference.BOTH, "damaging");
 
         visCostsObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.visCostsObj, ConfigReference.defaultVisCosts,
-                StringParsers.translateComment("vis_costs"), 0.0, Double.MAX_VALUE, true, 4).getDoubleList();
+                StringParsers.translateTooltip("vis_costs"), 0.0, Double.MAX_VALUE, true, 4).setLanguageKey(CONFIGPREFIX + "vis_costs").getDoubleList();
 
         burnOutTimer = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnOutTimer, ConfigReference.defaultBurnOuts,
-                StringParsers.translateComment("burn_out_timer"), -1, Integer.MAX_VALUE, true, 2).getIntList();
+                StringParsers.translateTooltip("burn_out_timer"), -1, Integer.MAX_VALUE, true, 2).setLanguageKey(CONFIGPREFIX + "burn_out_timer").getIntList();
 
         burnOutRules = listFromConfig(ConfigReference.burnOutRules, ConfigReference.empty,
                 StringParsers.burnOutRulesPat, "burn_out_rules");
@@ -292,7 +295,7 @@ public class CampfireBackportConfig
         signalFiresBurnOut = enumFromConfig(ConfigReference.signalFiresBurnOut, ConfigReference.NEITHER, "signals_burn_out");
 
         burnToNothingChances = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnToNothingChances, ConfigReference.defaultBurnToNothingChances,
-                StringParsers.translateComment("burn_to_nothing"), 0.0, 1.0, true, 2).getDoubleList();
+                StringParsers.translateTooltip("burn_to_nothing"), 0.0, 1.0, true, 2).setLanguageKey(CONFIGPREFIX + "burn_to_nothing").getDoubleList();
 
         burnOutAsItem = enumFromConfig(ConfigReference.burnOutAsItem, ConfigReference.NEITHER, "burn_out_as_item");
 
@@ -300,20 +303,21 @@ public class CampfireBackportConfig
                 StringParsers.itemMetaOrePat, "signal_fire_blocks");
 
         campfireDropsStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.campfireDropsStrings, ConfigReference.defaultCampfireDrops,
-                StringParsers.translateComment("campfire_drops"), true, 2, StringParsers.itemMetaAnySimpleDataSizeOREmptyPat)
-                .getStringList();
+                StringParsers.translateTooltip("campfire_drops"), true, 2, StringParsers.itemMetaAnySimpleDataSizeOREmptyPat)
+                .setLanguageKey(CONFIGPREFIX + "campfire_drops").getStringList();
 
         colourfulSmoke = enumFromConfig(ConfigReference.colourfulSmoke, ConfigReference.NEITHER, "colourful_smoke");
 
         dispenserBlacklistStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.dispenserBlacklistStrings, ConfigReference.empty,
-                StringParsers.translateComment("dispenser_blacklist"), StringParsers.itemPat).setRequiresMcRestart(true).getStringList();
+                StringParsers.translateTooltip("dispenser_blacklist"), StringParsers.itemPat).setLanguageKey(CONFIGPREFIX + "dispenser_blacklist")
+                .setRequiresMcRestart(true).getStringList();
 
         // due to recipe updates, the old default extinguisher "right/minecraft:water_bucket/stackable>minecraft:bucket" is no longer necessary.
         // also, it would end up giving the player back 2 buckets with the new system. so we remove it here.
         Property regularExtinguishersListProperty = config.get(Configuration.CATEGORY_GENERAL,
                 ConfigReference.regularExtinguishersList, ConfigReference.defaultExtinguishersList,
-                StringParsers.translateComment("state_changers", ConfigReference.extinguisher(), ConfigReference.regular()),
-                StringParsers.stateChangePat);
+                StringParsers.translateTooltip("state_changers.extinguisher.reg"),
+                StringParsers.stateChangePat).setLanguageKey(CONFIGPREFIX + "state_changers.extinguisher.reg");
 
         regularExtinguishersList = ArrayUtils.removeElement(regularExtinguishersListProperty.getStringList(),
                 "right/minecraft:water_bucket/stackable>minecraft:bucket");
@@ -322,42 +326,42 @@ public class CampfireBackportConfig
         //
 
         soulExtinguishersList = listFromConfig(ConfigReference.soulExtinguishersList, ConfigReference.empty,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.extinguisher(), ConfigReference.soul());
+                StringParsers.stateChangePat, "state_changers.extinguisher.soul");
 
         extinguishersListInheritance = inheritanceFromConfig(ConfigReference.extinguishersListInheritance, "extinguishers_inheritance");
 
         regularIgnitorsList = listFromConfig(ConfigReference.regularIgnitorsList, ConfigReference.defaultIgnitorsList,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor(), ConfigReference.regular());
+                StringParsers.stateChangePat, "state_changers.ignitor.reg");
 
         soulIgnitorsList = listFromConfig(ConfigReference.soulIgnitorsList, ConfigReference.empty,
-                StringParsers.stateChangePat, "state_changers", ConfigReference.ignitor(), ConfigReference.soul());
+                StringParsers.stateChangePat, "state_changers.ignitor.soul");
 
         ignitorsListInheritance = inheritanceFromConfig(ConfigReference.ignitorsListInheritance, "ignitors_inheritance");
 
         printCustomRecipes = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.printCustomRecipes, false,
-                StringParsers.translateComment("print_recipes")).getBoolean();
+                StringParsers.translateTooltip("print_recipes")).setLanguageKey(CONFIGPREFIX + "print_recipes").getBoolean();
 
         suppressInputErrors = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.suppressInputErrors, false,
-                StringParsers.translateComment("suppress_errors")).getBoolean();
+                StringParsers.translateTooltip("suppress_errors")).setLanguageKey(CONFIGPREFIX + "suppress_errors").getBoolean();
     }
 
     private static EnumCampfireType enumFromConfig(String key, String defaultValue, String translationKey)
     {
         return Optional.ofNullable(EnumCampfireType.FROM_NAME.get(config.get(Configuration.CATEGORY_GENERAL, key, defaultValue,
-                StringParsers.translateComment(translationKey), ConfigReference.enumSettings).getString()))
+                StringParsers.translateTooltip(translationKey), ConfigReference.enumSettings).setLanguageKey(CONFIGPREFIX + translationKey).getString()))
                 .orElse(EnumCampfireType.FROM_NAME.get(defaultValue));
     }
 
     private static String inheritanceFromConfig(String key, String translationKey)
     {
-        return config.get(Configuration.CATEGORY_GENERAL, key, ConfigReference.SOUL_GETS_REG, StringParsers.translateComment(translationKey),
-                ConfigReference.inheritanceSettings).getString();
+        return config.get(Configuration.CATEGORY_GENERAL, key, ConfigReference.SOUL_GETS_REG, StringParsers.translateTooltip(translationKey),
+                ConfigReference.inheritanceSettings).setLanguageKey(CONFIGPREFIX + translationKey).getString();
     }
 
-    private static String[] listFromConfig(String key, String[] defaultList, Pattern pat, String translationKey, Object... translationArgs)
+    private static String[] listFromConfig(String key, String[] defaultList, Pattern pat, String translationKey)
     {
-        return config.get(Configuration.CATEGORY_GENERAL, key, defaultList, StringParsers.translateComment(translationKey, translationArgs), pat)
-                .getStringList();
+        return config.get(Configuration.CATEGORY_GENERAL, key, defaultList, StringParsers.translateTooltip(translationKey), pat)
+                .setLanguageKey(CONFIGPREFIX + translationKey).getStringList();
     }
 
     /**
