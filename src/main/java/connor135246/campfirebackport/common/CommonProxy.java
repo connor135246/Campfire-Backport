@@ -77,7 +77,7 @@ public class CommonProxy
             sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire", 0);
             sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire_base", -1);
 
-            if (CampfireBackportCompat.isNetherliciousLoaded)
+            if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.showExtraCampfires)
             {
                 sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire", 0);
                 sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire_base", -1);

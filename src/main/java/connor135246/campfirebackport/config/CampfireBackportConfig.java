@@ -57,6 +57,8 @@ public class CampfireBackportConfig
 
     public static boolean renderItem3D;
 
+    public static boolean showExtraCampfires;
+
     public static EnumCampfireType regenCampfires;
     public static int[] regularRegen;
     public static int[] soulRegen;
@@ -223,6 +225,10 @@ public class CampfireBackportConfig
 
         renderItem3D = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.renderItem3D, false,
                 StringParsers.translateTooltip("render_3d")).setLanguageKey(CONFIGPREFIX + "render_3d").getBoolean();
+
+        showExtraCampfires = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.showExtraCampfires, false,
+                StringParsers.translateTooltip("show_extra_campfires")).setLanguageKey(CONFIGPREFIX + "show_extra_campfires").setRequiresMcRestart(true)
+                .getBoolean();
 
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
                 StringParsers.translateTooltip("charcoal")).setLanguageKey(CONFIGPREFIX + "charcoal").setRequiresMcRestart(true).getBoolean();
@@ -727,6 +733,8 @@ public class CampfireBackportConfig
 
         charcoalOnly = false;
         soulSoilOnly = false;
+
+        showExtraCampfires = false;
 
         regenCampfires = EnumCampfireType.NEITHER;
         regularRegen = ConfigReference.defaultRegRegen;

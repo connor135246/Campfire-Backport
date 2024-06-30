@@ -140,6 +140,7 @@ public class ConfigReference
             soulSoilOnly = "Soul Soil Only",
             soulSoilOnly_OLD = "Soul Soil Only (Netherlicious)",
             renderItem3D = "Render Item in 3D",
+            showExtraCampfires = "Show Extra Campfires",
             regenCampfires = "Regeneration Campfires",
             regularRegen = "Regeneration Settings (Regular Campfires)",
             soulRegen = "Regeneration Settings (Soul Campfires)",
@@ -184,6 +185,7 @@ public class ConfigReference
     static
     {
         configOrder.add(renderItem3D);
+        configOrder.add(showExtraCampfires);
         configOrder.add(charcoalOnly);
         configOrder.add(soulSoilOnly);
         configOrder.add(automation);
