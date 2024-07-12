@@ -24,7 +24,8 @@ public class ConfigNetworkManager
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
             LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "signalFireStrings", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
-            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCosts" };
+            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCostsObj" },
+            BOOLEANS = new String[] { "spawnpointableAltTriggerObj" };
 
     /**
      * packet that contains config settings to sync
@@ -38,7 +39,8 @@ public class ConfigNetworkManager
         public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, signalFireStrings, campfireDropsStrings,
                 dispenserBlacklistStrings, regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
         public int[] burnOutTimer, defaultCookingTimes;
-        public double[] visCosts;
+        public double[] visCostsObj;
+        public boolean spawnpointableAltTriggerObj;
 
         @Override
         public void toBytes(ByteBuf buf)
@@ -74,6 +76,9 @@ public class ConfigNetworkManager
                     for (double element : list)
                         buf.writeDouble(element);
                 }
+
+                for (String name : BOOLEANS)
+                    buf.writeBoolean((boolean) CampfireBackportConfig.class.getDeclaredField(name).get(null));
             }
             catch (Exception excep)
             {
@@ -119,6 +124,9 @@ public class ConfigNetworkManager
                         list[i] = buf.readDouble();
                     SendConfigMessage.class.getDeclaredField(name).set(this, list);
                 }
+
+                for (String name : BOOLEANS)
+                    SendConfigMessage.class.getDeclaredField(name).set(this, buf.readBoolean());
             }
             catch (Exception excep)
             {
@@ -146,6 +154,8 @@ public class ConfigNetworkManager
                     for (String name : INTLISTS)
                         CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
                     for (String name : DOUBLELISTS)
+                        CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
+                    for (String name : BOOLEANS)
                         CampfireBackportConfig.class.getDeclaredField(name).set(null, SendConfigMessage.class.getDeclaredField(name).get(message));
 
                     CampfireBackportConfig.doConfig(4, true, true);

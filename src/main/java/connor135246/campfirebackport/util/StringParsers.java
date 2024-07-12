@@ -726,19 +726,11 @@ public class StringParsers
     }
 
     /**
-     * @return the key translated using the "config.comment" prefix
+     * @return the key translated using "config.{key}.tooltip"
      */
-    public static String translateComment(String key)
+    public static String translateTooltip(String key)
     {
-        return StatCollector.translateToLocal(Reference.MODID + ".config.comment." + key);
-    }
-
-    /**
-     * @return the key/args translated using the "config.comment" prefix
-     */
-    public static String translateComment(String key, Object... args)
-    {
-        return StatCollector.translateToLocalFormatted(Reference.MODID + ".config.comment." + key, args);
+        return StatCollector.translateToLocal(Reference.MODID + ".config." + key + ".tooltip");
     }
 
     /**

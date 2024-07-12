@@ -23,7 +23,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
@@ -108,18 +107,16 @@ public class CampfireBackportEventHandler
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !event.world.isRemote
+        if (event.useBlock != Event.Result.DENY && event.entityPlayer != null && !CampfireBackportConfig.spawnpointableAltTrigger
                 && CampfireBackportConfig.spawnpointable != EnumCampfireType.NEITHER && event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK
                 && event.entityPlayer.isSneaking() && event.entityPlayer.getCurrentEquippedItem() == null)
         {
             Block block = event.world.getBlock(event.x, event.y, event.z);
-
-            // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
-            if (CampfireBackportBlocks.isLitCampfire(block) && CampfireBackportConfig.spawnpointable.matches((BlockCampfire) block) && !EnumCampfireType.isNetherlicious(((BlockCampfire) block).getTypeIndex()))
+            if (block instanceof BlockCampfire && ((BlockCampfire) block).setRespawnPoint(event.world, event.x, event.y, event.z, event.entityPlayer))
             {
-                event.entityPlayer.addChatComponentMessage(new ChatComponentTranslation(Reference.MODID + ".set_spawn"));
-                event.entityPlayer.setSpawnChunk(new ChunkCoordinates(event.x, event.y, event.z), false, event.world.provider.dimensionId);
-                event.setCanceled(true);
+                if (!event.world.isRemote)
+                    event.setCanceled(true);
+                event.entityPlayer.swingItem();
             }
         }
     }
