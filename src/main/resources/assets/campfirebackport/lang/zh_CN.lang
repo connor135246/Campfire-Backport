@@ -186,7 +186,8 @@ campfirebackport.config.inputerror.no_matches_class=  在此输入未找到匹�
 campfirebackport.config.inputerror.invalid_burn_out_rule=    生物群系/维度燃尽计时器值 "%s" 是无效的！ 
 campfirebackport.config.inputerror.invalid_biome_id=   值为 "%s" 生物群系 ID 是无效的！ 
 campfirebackport.config.inputerror.unknown_ore=  矿物辞典条目 "%s" 未找到！其是否存在？
-campfirebackport.config.inputerror.empty_ore=  矿物辞典条目 "%s" 为空！是否忘记Did someone forget to add items to it?
+campfirebackport.config.inputerror.empty_ore=  矿物辞典条目 "%s" 为空！是否忘记添加？
+
 
 campfirebackport.config.rename_old_config=重命名旧版本 (v1.3 或更早) 的配置文件并且重新建一个! 
 campfirebackport.config.rename_old_config.error=在游戏加载中，有旧版本 (v1.3 或更早) 的配置文件! 自打那以后配置文件布局已截然不同。
