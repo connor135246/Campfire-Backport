@@ -11,6 +11,8 @@ import net.minecraft.util.EnumChatFormatting;
 
 public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngredient>
 {
+    
+    protected final String stackNameKey;
 
     public CustomCraftTweakerIngredient(ICraftTweakerIngredient iingredient, int inputSize, @Nullable NBTTagCompound data, boolean inputSizeMatters, int clamp) throws Exception
     {
@@ -19,17 +21,16 @@ public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngre
         inputList.addAll(iingredient.getItems());
         if (inputList.isEmpty())
         {
-            String name = StringParsers.translateNEI(iingredient.isWildcard() ? "anything" : "unknown");
-
-            neiTooltip.add(EnumChatFormatting.GOLD + name);
+            stackNameKey = iingredient.isWildcard() ? "anything" : "unknown";
+            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI(stackNameKey)));
 
             ItemStack listStack = new ItemStack(Items.written_book);
-            listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
-
             inputList.add(listStack);
         }
+        else
+            stackNameKey = "";
 
-        neiTooltip.addAll(iingredient.getNEITooltip());
+        neiTooltipFillers.add((list) -> list.addAll(iingredient.getNEITooltip()));
 
         finishTooltips();
     }
@@ -43,6 +44,8 @@ public class CustomCraftTweakerIngredient extends CustomInput<ICraftTweakerIngre
     @Override
     public ItemStack modifyStackForDisplay(ItemStack stack)
     {
+        if (stack != null && !stackNameKey.isEmpty())
+            stack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + StringParsers.translateNEI(stackNameKey) + ">");
         stack = super.modifyStackForDisplay(stack);
         if (stack != null)
             stack = this.input.modifyStackForDisplay(stack);

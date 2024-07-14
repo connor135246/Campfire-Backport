@@ -13,14 +13,13 @@ public class CustomData extends CustomInput<NBTTagCompound>
     {
         super(data, inputSize, data, inputSizeMatters, clamp);
 
-        String name = StringParsers.translateNEI(getDataType() != 4 ? "anything" : "any_tinkers");
-
         if (getDataType() != 4)
-            neiTooltip.add(EnumChatFormatting.GOLD + name);
+        {
+            String key = getDataType() != 4 ? "anything" : "any_tinkers";
+            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI(key)));
+        }
 
         ItemStack listStack = new ItemStack(Items.written_book);
-        listStack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + name + ">");
-
         inputList.add(listStack);
 
         finishTooltips();
@@ -30,6 +29,18 @@ public class CustomData extends CustomInput<NBTTagCompound>
     public boolean matchesStack(ItemStack stack)
     {
         return true; // the stack is always considered to match - data is checked afterward.
+    }
+
+    @Override
+    public ItemStack modifyStackForDisplay(ItemStack stack)
+    {
+        if (stack != null)
+        {
+            String key = getDataType() != 4 ? "anything" : "any_tinkers";
+            stack.setStackDisplayName(EnumChatFormatting.ITALIC + "<" + StringParsers.translateNEI(key) + ">");
+        }
+
+        return super.modifyStackForDisplay(stack);
     }
 
     @Override

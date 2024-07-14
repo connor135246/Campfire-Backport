@@ -3,6 +3,7 @@ package connor135246.campfirebackport.common.recipes;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -39,8 +40,8 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
     protected final byte dataType;
     /** the list of ItemStacks to be used for NEI displaying (and for making dispenser behaviours for a {@link CampfireStateChanger}). not used by oredict inputs. */
     protected List<ItemStack> inputList = new ArrayList<ItemStack>();
-    /** lines of text to use for displaying extra info in NEI. */
-    protected LinkedList<String> neiTooltip = new LinkedList<String>();
+    /** so that nei tooltips can be translated on the fly. */
+    protected List<Consumer<LinkedList<String>>> neiTooltipFillers = new LinkedList<Consumer<LinkedList<String>>>();
 
     /**
      * Returns a new CustomInput using a recipe from config.
@@ -129,7 +130,7 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
             NBTTagList typeList = cinputData.getTagList(StringParsers.KEY_TypeSet, 8);
 
             if (keyList.tagCount() > 0)
-                neiTooltip.add(EnumChatFormatting.ITALIC + StringParsers.translateNEI("tinkers_mods"));
+                neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.ITALIC + StringParsers.translateNEI("tinkers_mods")));
 
             for (int i = 0; i < keyList.tagCount(); ++i)
             {
@@ -150,10 +151,10 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
 
                 String tip = StringParsers.convertTinkersNBTForDisplay(key, value);
                 if (!tip.isEmpty())
-                    neiTooltip.add(tip);
+                    neiTooltipFillers.add((list) -> list.add(tip));
             }
 
-            neiTooltip.add("");
+            neiTooltipFillers.add((list) -> list.add(""));
             break;
         }
         case 3:
@@ -162,27 +163,31 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
             int fluidAmount = fluidData.getInteger(StringParsers.KEY_Amount);
 
             FluidStack fluid = new FluidStack(FluidRegistry.getFluid(fluidData.getString(StringParsers.KEY_FluidName)), fluidAmount);
-            neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("fluid_data", fluidAmount, fluid.getLocalizedName()));
+            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("fluid_data", fluidAmount, fluid.getLocalizedName())));
             break;
         }
         case 2:
         {
             NBTTagCompound ench = getExtraData().getTagList(StringParsers.KEY_ench, 10).getCompoundTagAt(0);
-            neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("enchantment_data",
-                    Enchantment.enchantmentsList[ench.getInteger(StringParsers.KEY_id)].getTranslatedName(ench.getInteger(StringParsers.KEY_lvl))));
+            int enchid = ench.getInteger(StringParsers.KEY_id);
+            int enchlvl = ench.getInteger(StringParsers.KEY_lvl);
+            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("enchantment_data", Enchantment.enchantmentsList[enchid].getTranslatedName(enchlvl))));
             break;
         }
         case 1:
         {
-            String firstLinePrefix = EnumChatFormatting.GOLD + StringParsers.translateNEI("exact_nbt_data") + " ";
-            String otherLinePrefix = EnumChatFormatting.GOLD + "   ";
-            neiTooltip.addAll(StringParsers.lineifyString(getExtraData().toString(), ",", firstLinePrefix, otherLinePrefix, 50));
+            String string = getExtraData().toString();
+            neiTooltipFillers.add((list) -> {
+                String firstLinePrefix = EnumChatFormatting.GOLD + StringParsers.translateNEI("exact_nbt_data") + " ";
+                String otherLinePrefix = EnumChatFormatting.GOLD + "   ";
+                list.addAll(StringParsers.lineifyString(string, ",", firstLinePrefix, otherLinePrefix, 50));
+            });
             break;
         }
         }
 
-        if (!neiTooltip.isEmpty())
-            neiTooltip.add(0, "");
+        if (!neiTooltipFillers.isEmpty())
+            neiTooltipFillers.add((list) -> list.add(0, ""));
     }
 
     /**
@@ -441,9 +446,11 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
         return dataType;
     }
 
-    public LinkedList<String> getNEITooltip()
+    public LinkedList<String> createNEITooltips()
     {
-        return neiTooltip;
+        LinkedList<String> list = new LinkedList<String>();
+        neiTooltipFillers.forEach((filler) -> filler.accept(list));
+        return list;
     }
 
     public boolean doesInputSizeMatter()

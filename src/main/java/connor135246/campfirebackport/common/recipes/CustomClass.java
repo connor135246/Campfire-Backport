@@ -40,7 +40,8 @@ public class CustomClass extends CustomInput<Class>
             throw new Exception();
         }
 
-        neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("class_input", clazz.getSimpleName()));
+        String name = clazz.getSimpleName();
+        neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("class_input", name)));
 
         finishTooltips();
     }
@@ -77,7 +78,7 @@ public class CustomClass extends CustomInput<Class>
         {
             CustomClass otherClass = (CustomClass) other;
             // keeps the same classes together.
-            String name =  this.input.getCanonicalName();
+            String name = this.input.getCanonicalName();
             if (name == null)
                 name = "";
             String otherName = otherClass.input.getCanonicalName();

@@ -2,7 +2,6 @@ package connor135246.campfirebackport.common.recipes;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -142,11 +141,11 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
 
         if (isUsageTypeDamageable())
         {
-            LinkedList<String> tip = getInput().getNEITooltip();
-            if (tip.isEmpty())
-                tip.add("");
+            if (getInput().neiTooltipFillers.isEmpty())
+                getInput().neiTooltipFillers.add((list) -> list.add(""));
 
-            tip.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("damage_by", getInput().getInputSize()));
+            int damage = getInput().getInputSize();
+            getInput().neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + "" + EnumChatFormatting.ITALIC + StringParsers.translateNEI("damage_by", damage)));
         }
 
         // register dispensables (only on initial load)

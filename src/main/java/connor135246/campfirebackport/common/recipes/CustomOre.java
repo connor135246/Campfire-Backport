@@ -22,7 +22,7 @@ public class CustomOre extends CustomInput<String>
         if (OreDictionary.getOres(ore, false).isEmpty())
             CampfireBackportConfig.possiblyInvalidOres.add(ore);
 
-        neiTooltip.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore));
+        neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("ore_input", ore)));
 
         finishTooltips();
     }

@@ -69,7 +69,7 @@ public abstract class NEIGenericRecipeHandler extends TemplateRecipeHandler
                 for (int cinputIndex = 0; cinputIndex < numInputs; ++cinputIndex)
                 {
                     tooltips.add(new LinkedList<String>());
-                    tooltips.get(cinputIndex).addAll(grecipe.getInputs()[cinputIndex].getNEITooltip());
+                    tooltips.get(cinputIndex).addAll(grecipe.getInputs()[cinputIndex].createNEITooltips());
                 }
 
                 inputs = new ArrayList<PositionedStack>(numInputs);
