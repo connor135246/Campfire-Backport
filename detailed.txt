@@ -606,7 +606,7 @@ It's set to 1 by default if not included.
 # [Tinker's Construct Modifiers Format]
 I'd recommend using the mod TiC Tooltips to see more information about modifiers.
 -General Format:
-	[Tinkers:[I:{integer modifiers}B:{byte modifiers}F:{float modifiers}IA:{integer array modifiers}]
+	[Tinkers:[I:{integer modifiers}B:{byte modifiers}F:{float modifiers}IA:{integer array modifiers}]]
 Each section is optional, but they must be in the order Integer, Byte, Float, Integer Array.
 Each section can contain multiple modifiers separated by commas. But note that the sections themselves are not separated by commas!
 Below are the supported modifiers organized by section.
