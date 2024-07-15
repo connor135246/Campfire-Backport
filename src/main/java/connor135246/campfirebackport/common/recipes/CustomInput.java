@@ -134,9 +134,9 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
 
             for (int i = 0; i < keyList.tagCount(); ++i)
             {
-                String key = keyList.getStringTagAt(i);
-                String type = typeList.getStringTagAt(i);
-                Object value = null;
+                final String key = keyList.getStringTagAt(i);
+                final String type = typeList.getStringTagAt(i);
+                final Object value;
 
                 if (type.equals(StringParsers.KEY_INT_PREFIX))
                     value = cinputData.getInteger(key);
@@ -149,9 +149,11 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
                 else
                     continue;
 
-                String tip = StringParsers.convertTinkersNBTForDisplay(key, value);
-                if (!tip.isEmpty())
-                    neiTooltipFillers.add((list) -> list.add(tip));
+                neiTooltipFillers.add((list) -> {
+                    String tip = StringParsers.convertTinkersNBTForDisplay(key, value);
+                    if (!tip.isEmpty())
+                        list.add(tip);
+                });
             }
 
             neiTooltipFillers.add((list) -> list.add(""));

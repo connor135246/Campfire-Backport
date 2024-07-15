@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
@@ -529,17 +530,18 @@ public class StringParsers
         if (key.equals("Shoddy"))
         {
             if ((Float) value > 0.0F)
-                returned.append(EnumChatFormatting.GRAY + "Stonebound Modifier: " + EnumChatFormatting.AQUA
+                returned.append(EnumChatFormatting.GRAY + translateTinkers("Stonebound") + ": " + EnumChatFormatting.AQUA
                         + (Float) value + EnumChatFormatting.GRAY + " or greater");
             else if ((Float) value < 0.0F)
-                returned.append(EnumChatFormatting.GREEN + "Jagged Modifier: " + EnumChatFormatting.AQUA
+                returned.append(EnumChatFormatting.GREEN + translateTinkers("Jagged") + ": " + EnumChatFormatting.AQUA
                         + Math.abs((Float) value) + EnumChatFormatting.GRAY + " or greater");
             else
-                returned.append(not + EnumChatFormatting.GRAY + "Stonebound" + EnumChatFormatting.RESET + " or " + EnumChatFormatting.GREEN + "Jagged");
+                returned.append(not + EnumChatFormatting.GRAY + translateTinkers("Stonebound") + EnumChatFormatting.RESET + " or "
+                        + EnumChatFormatting.GREEN + translateTinkers("Jagged"));
         }
         else if (key.equals("Knockback"))
         {
-            returned.append(EnumChatFormatting.DARK_GRAY + "Knockback");
+            returned.append(EnumChatFormatting.DARK_GRAY + translateTinkers("Knockback"));
             if ((Float) value > 0.0F)
                 returned.append(": " + EnumChatFormatting.GREEN + (Float) value + EnumChatFormatting.GRAY + " or greater");
             else if ((Float) value < 0.0F)
@@ -550,145 +552,202 @@ public class StringParsers
         else if (key.equals("HarvestLevel"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GRAY + "Harvest Level: " + EnumChatFormatting.GREEN
+                returned.append(EnumChatFormatting.GRAY + translateTinkers("Harvest Levels:") + " " + EnumChatFormatting.GREEN
                         + (Integer) value + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("MiningSpeed"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GRAY + "Mining Speed: " + EnumChatFormatting.GREEN
+                returned.append(EnumChatFormatting.GRAY + translateTinkers("Mining Speed: ") + EnumChatFormatting.GREEN
                         + (Integer) value + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("Moss"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GREEN + "Auto-Repair");
+                returned.append(EnumChatFormatting.GREEN + translateTinkers("Auto-Repair"));
         }
         else if (key.equals("Unbreaking"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GRAY + "Reinforced");
+                returned.append(EnumChatFormatting.DARK_PURPLE + translateTinkers("Reinforced"));
             if ((Integer) value > 1)
                 returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("Necrotic"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.DARK_GRAY + "Life Steal");
+                returned.append(EnumChatFormatting.DARK_GRAY + translateTinkers("Life Steal"));
             if ((Integer) value > 1)
                 returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("Beheading"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.LIGHT_PURPLE + "Beheading");
+                returned.append(EnumChatFormatting.LIGHT_PURPLE + translateTinkers("Beheading"));
             if ((Integer) value > 1)
                 returned.append(" " + StatCollector.translateToLocal("enchantment.level." + (Integer) value) + EnumChatFormatting.GRAY + " or greater");
         }
         else if (key.equals("SilkTouch"))
         {
-            returned.append(EnumChatFormatting.YELLOW + "Silky");
+            returned.append(EnumChatFormatting.YELLOW + translateTinkers("Silky"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Emerald"))
         {
-            returned.append(EnumChatFormatting.GREEN + "Durability +50%");
+            returned.append(EnumChatFormatting.GREEN + translateTinkers("Durability +50%"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Diamond"))
         {
-            returned.append(EnumChatFormatting.AQUA + "Durability +500");
+            returned.append(EnumChatFormatting.AQUA + translateTinkers("Durability +500"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Lava"))
         {
-            returned.append(EnumChatFormatting.DARK_RED + "Auto-Smelt");
+            returned.append(EnumChatFormatting.DARK_RED + translateTinkers("Auto-Smelt"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Broken"))
         {
-            returned.append(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + "Broken");
+            returned.append(EnumChatFormatting.GRAY + "" + EnumChatFormatting.ITALIC + translateTinkers("Broken"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Flux"))
         {
-            returned.append(EnumChatFormatting.GRAY + "Uses RF");
+            returned.append(EnumChatFormatting.YELLOW + translateTinkers("Flux"));
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (key.equals("Fiery"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GOLD + "Fiery");
+                returned.append(EnumChatFormatting.GOLD + translateTinkers("Fiery"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 25) + 1) * 25 + ")");
         }
         else if (key.equals("ModAntiSpider"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.GREEN + "Bane of Arthropods");
+                returned.append(EnumChatFormatting.GREEN + translateTinkers("Bane of Arthropods"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 4) + 1) * 4 + ")");
         }
         else if (key.equals("Redstone"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.RED + "Haste");
+                returned.append(EnumChatFormatting.RED + translateTinkers("Haste"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 50) + 1) * 50 + ")");
         }
         else if (key.equals("ModSmite"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.YELLOW + "Smite");
+                returned.append(EnumChatFormatting.YELLOW + translateTinkers("Smite"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 36) + 1) * 36 + ")");
         }
         else if (key.equals("ModAttack"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.WHITE + "Sharpness");
+                returned.append(EnumChatFormatting.WHITE + translateTinkers("Sharpness"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / " + ((((Integer) value) / 72) + 1) * 72 + ")");
         }
         else if (key.equals("Lapis"))
         {
             if ((Integer) value > 0)
-                returned.append(EnumChatFormatting.BLUE + "Luck");
+                returned.append(EnumChatFormatting.BLUE + translateTinkers("Luck"));
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater / 450)");
         }
         else if (value instanceof Integer)
         {
             if ((Integer) value > 0)
-                returned.append(key);
+                returned.append(EnumChatFormatting.GRAY + key);
             if ((Integer) value > 1)
                 returned.append(" (" + (Integer) value + " or greater)");
         }
         else if (value instanceof Byte)
         {
-            returned.append(key);
+            returned.append(EnumChatFormatting.GRAY + key);
             if ((Byte) value == 0)
                 returned.insert(0, not);
         }
         else if (value instanceof Float)
         {
             if ((Float) value > 0.0F)
-                returned.append(key + ": " + (Float) value + " or greater");
+                returned.append(EnumChatFormatting.GRAY + key + ": " + (Float) value + " or greater");
             else if ((Float) value < 0.0F)
-                returned.append(key + ": " + (Float) value + " or smaller");
+                returned.append(EnumChatFormatting.GRAY + key + ": " + (Float) value + " or smaller");
             else
-                returned.append(not + key);
+                returned.append(not + EnumChatFormatting.GRAY + key);
         }
         else
-            returned.append(key);
+            returned.append(EnumChatFormatting.GRAY + key);
 
         return returned.toString();
+    }
+
+    /**
+     * tinkers translated tooltips
+     */
+    public static String translateTinkers(String name)
+    {
+        if (!CampfireBackportCompat.isTConstructLoaded)
+            return name;
+
+        final String key;
+        if ("Stonebound".equals(name))
+            key = "material.stone.ability";
+        else if ("Jagged".equals(name))
+            key = "material.cactus.ability";
+        else if ("Knockback".equals(name))
+            key = "modifier.tooltip.Knockback";
+        else if ("Harvest Levels:".equals(name))
+            key = "gui.toolstation13";
+        else if ("Mining Speed: ".equals(name))
+            key = "gui.toolstation14";
+        else if ("Auto-Repair".equals(name))
+            key = "modifier.tool.moss";
+        else if ("Reinforced".equals(name))
+            key = "tool.reinforced";
+        else if ("Life Steal".equals(name))
+            key = "modifier.tool.necro";
+        else if ("Beheading".equals(name))
+            key = "modifier.tooltip.Beheading";
+        else if ("Silky".equals(name))
+            key = "modifier.tooltip.Silky";
+        else if ("Durability +50%".equals(name))
+            key = "modifier.tool.emerald";
+        else if ("Durability +500".equals(name))
+            key = "modifier.tool.diamond";
+        else if ("Auto-Smelt".equals(name))
+            key = "modifier.tool.lava";
+        else if ("Broken".equals(name))
+            key = "tool.core.broken";
+        else if ("Flux".equals(name))
+            key = "modifier.toolstation.Flux";
+        else if ("Fiery".equals(name))
+            key = "modifier.tool.blaze";
+        else if ("Bane of Arthropods".equals(name))
+            key = "modifier.toolstation.ModAntiSpider";
+        else if ("Haste".equals(name))
+            key = "modifier.tool.haste";
+        else if ("Smite".equals(name))
+            key = "modifier.toolstation.Smite";
+        else if ("Sharpness".equals(name))
+            key = "modifier.tooltip.Sharpness";
+        else if ("Luck".equals(name))
+            key = "modifier.tooltip.Luck";
+        else
+            return name;
+
+        return StatCollector.translateToLocal(key);
     }
 
     // Translators
