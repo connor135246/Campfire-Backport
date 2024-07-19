@@ -70,8 +70,7 @@ public class BlockCampfire extends BlockContainer implements ICampfire
         this.setHardness(2.0F);
         this.setResistance(2.0F);
         this.setStepSound(Block.soundTypeWood);
-        if (!EnumCampfireType.isNetherlicious(typeIndex) || CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.showExtraCampfires)
-            this.setCreativeTab(CreativeTabs.tabDecorations);
+        this.setCreativeTab(CreativeTabs.tabDecorations);
 
         this.lit = lit;
         this.typeIndex = typeIndex;

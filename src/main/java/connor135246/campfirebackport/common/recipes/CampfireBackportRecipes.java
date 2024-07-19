@@ -1,6 +1,7 @@
 package connor135246.campfirebackport.common.recipes;
 
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import cpw.mods.fml.common.registry.GameData;
@@ -62,26 +63,29 @@ public class CampfireBackportRecipes
 
         //
 
-        ItemStack foxfirecampfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.foxfireIndex));
-
-        Item foxfirePowder = GameData.getItemRegistry().getObject("netherlicious:FoxfirePowder");
-        if (foxfirePowder != null)
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
         {
-            GameRegistry.addRecipe(new ShapedOreRecipe(foxfirecampfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', foxfirePowder, 'C', "logWood"));
-        }
+            ItemStack foxfirecampfireResult = new ItemStack(
+                    CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.foxfireIndex));
 
-        //
+            Item foxfirePowder = GameData.getItemRegistry().getObject("netherlicious:FoxfirePowder");
+            if (foxfirePowder != null)
+            {
+                GameRegistry.addRecipe(new ShapedOreRecipe(foxfirecampfireResult.copy(),
+                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', foxfirePowder, 'C', "logWood"));
+            }
 
-        ItemStack shadowcampfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.shadowIndex));
+            //
 
-        Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
-        if (cryingBlackstone != Blocks.air)
-        {
-            GameRegistry.addRecipe(new ShapedOreRecipe(shadowcampfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', cryingBlackstone, 'C', "logWood"));
+            ItemStack shadowcampfireResult = new ItemStack(
+                    CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.shadowIndex));
+
+            Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
+            if (cryingBlackstone != Blocks.air)
+            {
+                GameRegistry.addRecipe(new ShapedOreRecipe(shadowcampfireResult.copy(),
+                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', cryingBlackstone, 'C', "logWood"));
+            }
         }
     }
 

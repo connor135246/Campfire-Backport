@@ -57,7 +57,7 @@ public class CampfireBackportConfig
 
     public static boolean renderItem3D;
 
-    public static boolean showExtraCampfires;
+    public static boolean enableExtraCampfiresObj;
 
     public static EnumCampfireType regenCampfires;
     public static int[] regularRegen;
@@ -118,6 +118,8 @@ public class CampfireBackportConfig
     }
 
     // lists made from config settings
+
+    public static boolean enableExtraCampfires = false;
 
     public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
 
@@ -226,9 +228,12 @@ public class CampfireBackportConfig
         renderItem3D = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.renderItem3D, false,
                 StringParsers.translateTooltip("render_3d")).setLanguageKey(CONFIGPREFIX + "render_3d").getBoolean();
 
-        showExtraCampfires = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.showExtraCampfires, false,
+        enableExtraCampfiresObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.enableExtraCampfires, false,
                 StringParsers.translateTooltip("show_extra_campfires")).setLanguageKey(CONFIGPREFIX + "show_extra_campfires").setRequiresMcRestart(true)
                 .getBoolean();
+        // this has to happen before blocks are registered, and it can't change afterward.
+        if (initialLoad)
+            enableExtraCampfires = enableExtraCampfiresObj;
 
         charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
                 StringParsers.translateTooltip("charcoal")).setLanguageKey(CONFIGPREFIX + "charcoal").setRequiresMcRestart(true).getBoolean();
@@ -734,7 +739,7 @@ public class CampfireBackportConfig
         charcoalOnly = false;
         soulSoilOnly = false;
 
-        showExtraCampfires = false;
+        enableExtraCampfiresObj = false;
 
         regenCampfires = EnumCampfireType.NEITHER;
         regularRegen = ConfigReference.defaultRegRegen;

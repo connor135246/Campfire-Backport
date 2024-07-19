@@ -15,6 +15,7 @@ import connor135246.campfirebackport.client.rendering.RenderTileEntityCampfire;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -56,8 +57,11 @@ public class ClientProxy extends CommonProxy
 
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.campfire), RenderItemBlockCampfire.INSTANCE);
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.soul_campfire), RenderItemBlockCampfire.INSTANCE);
-        MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.foxfire_campfire), RenderItemBlockCampfire.INSTANCE);
-        MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.shadow_campfire), RenderItemBlockCampfire.INSTANCE);
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+        {
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.foxfire_campfire), RenderItemBlockCampfire.INSTANCE);
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CampfireBackportBlocks.shadow_campfire), RenderItemBlockCampfire.INSTANCE);
+        }
 
         BlockCampfire.renderId = RenderingRegistry.getNextAvailableRenderId();
         RenderingRegistry.registerBlockHandler(RenderBlockCampfire.INSTANCE);

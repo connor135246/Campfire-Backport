@@ -6,7 +6,9 @@ import java.util.function.Consumer;
 import com.google.common.collect.Lists;
 
 import connor135246.campfirebackport.common.compat.BlockCampfireCompat;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.items.ItemBlockCampfire;
+import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import connor135246.campfirebackport.util.Reference;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -26,7 +28,9 @@ public class CampfireBackportBlocks
 
     /** lists containing the campfires */
     public static final List<Block> LIT_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, foxfire_campfire, shadow_campfire),
-            UNLIT_CAMPFIRES = Lists.newArrayList(campfire_base, soul_campfire_base, foxfire_campfire_base, shadow_campfire_base);
+            UNLIT_CAMPFIRES = Lists.newArrayList(campfire_base, soul_campfire_base, foxfire_campfire_base, shadow_campfire_base),
+            DEFAULT_CAMPFIRES = Lists.newArrayList(campfire, soul_campfire, campfire_base, soul_campfire_base),
+            NETHERLICIOUS_CAMPFIRES = Lists.newArrayList(foxfire_campfire, shadow_campfire, foxfire_campfire_base, shadow_campfire_base);
 
     /**
      * registers campfire blocks
@@ -36,8 +40,9 @@ public class CampfireBackportBlocks
         Consumer<? super Block> register = cblock -> {
             GameRegistry.registerBlock(cblock, ItemBlockCampfire.class, cblock.getUnlocalizedName().substring(5));
         };
-        LIT_CAMPFIRES.forEach(register);
-        UNLIT_CAMPFIRES.forEach(register);
+        DEFAULT_CAMPFIRES.forEach(register);
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+            NETHERLICIOUS_CAMPFIRES.forEach(register);
     }
 
     /**
@@ -59,6 +64,8 @@ public class CampfireBackportBlocks
      */
     public static Block getBlockFromLitAndType(boolean lit, int typeIndex)
     {
+        if (EnumCampfireType.isNetherlicious(typeIndex) && !(CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires))
+            typeIndex = EnumCampfireType.soulIndex;
         return (lit ? LIT_CAMPFIRES : UNLIT_CAMPFIRES).get(EnumCampfireType.isValidIndex(typeIndex) ? typeIndex : 0);
     }
 

@@ -22,6 +22,8 @@ campfirebackport.error.invalid_tile=Found an invalid campfire tile entity in dim
 
 
 campfirebackport.compat.error=Error while initializing %s compatibility! Please report this bug!
+campfirebackport.compat.disabled_extra_campfires.0=*** Extra campfires are disabled! ***
+campfirebackport.compat.disabled_extra_campfires.1=You can enable them by setting the config option "%s" to true and restarting.
 
 
 campfirebackport.nei.cooking_recipe=Campfire Cooking
@@ -203,8 +205,8 @@ campfirebackport.ignitor=Ignitor
 
 campfirebackport.config.render_3d=Render Item in 3D
 campfirebackport.config.render_3d.tooltip=Client-side option. If true, campfire items in your inventory will render as a 3D block instead of a 2D item.
-campfirebackport.config.show_extra_campfires=Show Extra Campfires
-campfirebackport.config.show_extra_campfires.tooltip=Foxfire and shadow campfires are extra campfire types that are inspired by the Netherlicious mod. They are treated as soul campfires for the purposes of most config options. If you don't have Netherlicious, they will be hidden from NEI. Set this to true to make them show up anyway.
+campfirebackport.config.show_extra_campfires=Enable Extra Campfires
+campfirebackport.config.show_extra_campfires.tooltip=Foxfire and shadow campfires are extra campfire types that are inspired by the Netherlicious mod. They are treated as soul campfires for the purposes of most config options. If you don't have Netherlicious, they will be disabled. Set this to true to enable them anyway.
 campfirebackport.config.charcoal=Charcoal Only
 campfirebackport.config.charcoal.tooltip=If true, regular campfires can be crafted only using charcoal. In vanilla either coal or charcoal can be used, but breaking campfires always drops charcoal. If for some reason you don't want players to be able to turn coal into charcoal, turn this on.
 campfirebackport.config.soul_soil=Soul Soil Only

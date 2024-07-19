@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import connor135246.campfirebackport.common.blocks.BlockCampfire;
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
+import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.tileentity.TileEntityCampfire;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.Reference;
@@ -29,8 +30,8 @@ public class ThaumcraftHandler
         Consumer<? super Block> register = cblock -> {
             WandTriggerRegistry.registerWandBlockTrigger(CampfireBackportWandTriggerManager.INSTANCE, 0, cblock, -1, Reference.MODID);
         };
-        CampfireBackportBlocks.LIT_CAMPFIRES.forEach(register);
-        CampfireBackportBlocks.UNLIT_CAMPFIRES.forEach(register);
+
+        CampfireBackportBlocks.DEFAULT_CAMPFIRES.forEach(register);
 
         ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.campfire, 1, OreDictionary.WILDCARD_VALUE),
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9));
@@ -41,14 +42,19 @@ public class ThaumcraftHandler
         ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.soul_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
                 new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.SOUL, 1));
 
-        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire, 1, OreDictionary.WILDCARD_VALUE),
-                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
-        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
-                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
-        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire, 1, OreDictionary.WILDCARD_VALUE),
-                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
-        ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
-                new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+        {
+            CampfireBackportBlocks.NETHERLICIOUS_CAMPFIRES.forEach(register);
+
+            ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire, 1, OreDictionary.WILDCARD_VALUE),
+                    new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
+            ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.foxfire_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
+                    new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.MAGIC, 1));
+            ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire, 1, OreDictionary.WILDCARD_VALUE),
+                    new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
+            ThaumcraftApi.registerObjectTag(new ItemStack(CampfireBackportBlocks.shadow_campfire_base, 1, OreDictionary.WILDCARD_VALUE),
+                    new AspectList().add(Aspect.FIRE, 2).add(Aspect.TREE, 9).add(Aspect.DARKNESS, 1));
+        }
 
         // primal arrow extinguishing/igniting compat
         BlockCampfire.primalArrowClass = EntityPrimalArrow.class;

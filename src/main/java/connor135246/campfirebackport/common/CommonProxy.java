@@ -18,6 +18,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
+import cpw.mods.fml.common.event.FMLMissingMappingsEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -27,6 +28,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -77,7 +79,7 @@ public class CommonProxy
             sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire", 0);
             sendNEIGTNHCatalyst(neiID, "campfirebackport:soul_campfire_base", -1);
 
-            if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.showExtraCampfires)
+            if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
             {
                 sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire", 0);
                 sendNEIGTNHCatalyst(neiID, "campfirebackport:foxfire_campfire_base", -1);
@@ -102,6 +104,26 @@ public class CommonProxy
     public void serverLoad(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new CommandCampfireBackport());
+    }
+
+    public void missingMapping(FMLMissingMappingsEvent event)
+    {
+        if (!CampfireBackportConfig.enableExtraCampfires)
+        {
+            for (FMLMissingMappingsEvent.MissingMapping missing : event.get())
+            {
+                for (String name : new String[] { "campfirebackport:foxfire_campfire", "campfirebackport:foxfire_campfire_base",
+                        "campfirebackport:shadow_campfire", "campfirebackport:shadow_campfire_base" })
+                {
+                    if (missing.name.equals(name))
+                    {
+                        modlog.error(StatCollector.translateToLocal("campfirebackport.compat.disabled_extra_campfires.0"));
+                        modlog.error(StatCollector.translateToLocalFormatted("campfirebackport.compat.disabled_extra_campfires.1", StatCollector.translateToLocal("campfirebackport.config.show_extra_campfires")));
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     //
