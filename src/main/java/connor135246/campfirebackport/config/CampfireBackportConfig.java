@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import connor135246.campfirebackport.common.CommonProxy;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.common.recipes.BurnOutRule;
+import connor135246.campfirebackport.common.recipes.CampfireBackportRecipes;
 import connor135246.campfirebackport.common.recipes.CampfireRecipe;
 import connor135246.campfirebackport.common.recipes.CampfireStateChanger;
 import connor135246.campfirebackport.util.EnumCampfireType;
@@ -51,56 +52,81 @@ public class CampfireBackportConfig
     public static boolean initialLoad = true;
 
     // config settings
+    // ones ending with "Obj" are for the config object for separating client config while connected to server
+    // @formatter:off
 
     public static boolean charcoalOnly;
+        public static boolean charcoalOnlyObj;
     public static boolean soulSoilOnly;
+        public static boolean soulSoilOnlyObj;
 
     public static boolean renderItem3D;
 
-    public static boolean enableExtraCampfiresObj;
+    public static boolean enableExtraCampfires;
+        public static boolean enableExtraCampfiresObj;
 
     public static EnumCampfireType regenCampfires;
     public static int[] regularRegen;
     public static int[] soulRegen;
 
     public static EnumCampfireType autoRecipe;
+        public static EnumCampfireType autoRecipeObj;
     public static String[] autoBlacklistStrings;
+    public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
+    public static Set<String> autoBlacklistOres = new HashSet<String>();
 
     public static String[] regularRecipeList;
     public static String[] soulRecipeList;
     public static String recipeListInheritance;
     public static int[] defaultCookingTimes;
+        public static int[] defaultCookingTimesObj;
 
     public static EnumCampfireType spawnpointable;
-    public static boolean spawnpointableAltTriggerObj;
+        public static EnumCampfireType spawnpointableObj;
+    public static boolean spawnpointableAltTrigger;
+        public static boolean spawnpointableAltTriggerObj;
     public static EnumCampfireType burnOutOnRespawn;
+        public static EnumCampfireType burnOutOnRespawnObj;
 
     public static EnumCampfireType automation;
 
     public static EnumCampfireType startUnlit;
+        public static EnumCampfireType startUnlitObj;
     public static EnumCampfireType rememberState;
+        public static EnumCampfireType rememberStateObj;
     public static EnumCampfireType silkNeeded;
+        public static EnumCampfireType silkNeededObj;
 
     public static EnumCampfireType putOutByRain;
+        public static EnumCampfireType putOutByRainObj;
     public static EnumCampfireType worksUnderwater;
+        public static EnumCampfireType worksUnderwaterObj;
 
     public static EnumCampfireType damaging;
 
-    public static double[] visCostsObj;
+    public static double[] visCosts;
+        public static double[] visCostsObj;
 
     public static int[] burnOutTimer;
     public static String[] burnOutRules;
     public static EnumCampfireType signalFiresBurnOut;
+        public static EnumCampfireType signalFiresBurnOutObj;
     public static double[] burnToNothingChances;
     public static EnumCampfireType burnOutAsItem;
+        public static EnumCampfireType burnOutAsItemObj;
 
     public static String[] signalFireStrings;
+    public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
+    public static Set<String> signalFireOres = new LinkedHashSet<String>();
 
     public static String[] campfireDropsStrings;
+    public static ItemStack[] campfireDropsStacks = new ItemStack[4];
 
     public static EnumCampfireType colourfulSmoke;
+        public static EnumCampfireType colourfulSmokeObj;
 
     public static String[] dispenserBlacklistStrings;
+    public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
 
     public static String[] regularExtinguishersList;
     public static String[] soulExtinguishersList;
@@ -112,28 +138,12 @@ public class CampfireBackportConfig
     public static boolean printCustomRecipes;
     public static boolean suppressInputErrors;
 
+    // @formatter:on
+
     static
     {
         getConfigDefaults();
     }
-
-    // lists made from config settings
-
-    public static boolean enableExtraCampfires = false;
-
-    public static Set<Item> dispenserBlacklistItems = new HashSet<Item>();
-
-    public static Map<Item, Set<Integer>> autoBlacklistStacks = new HashMap<Item, Set<Integer>>();
-    public static Set<String> autoBlacklistOres = new HashSet<String>();
-
-    public static boolean spawnpointableAltTrigger = false;
-
-    public static Map<Block, Set<Integer>> signalFireBlocks = new LinkedHashMap<Block, Set<Integer>>();
-    public static Set<String> signalFireOres = new LinkedHashSet<String>();
-
-    public static double[] visCosts = new double[4];
-
-    public static ItemStack[] campfireDropsStacks = new ItemStack[4];
 
     public static Set<String> possiblyInvalidOres = new HashSet<String>();
 
@@ -231,12 +241,9 @@ public class CampfireBackportConfig
         enableExtraCampfiresObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.enableExtraCampfires, false,
                 StringParsers.translateTooltip("show_extra_campfires")).setLanguageKey(CONFIGPREFIX + "show_extra_campfires").setRequiresMcRestart(true)
                 .getBoolean();
-        // this has to happen before blocks are registered, and it can't change afterward.
-        if (initialLoad)
-            enableExtraCampfires = enableExtraCampfiresObj;
 
-        charcoalOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
-                StringParsers.translateTooltip("charcoal")).setLanguageKey(CONFIGPREFIX + "charcoal").setRequiresMcRestart(true).getBoolean();
+        charcoalOnlyObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.charcoalOnly, false,
+                StringParsers.translateTooltip("charcoal")).setLanguageKey(CONFIGPREFIX + "charcoal").getBoolean();
 
         // rename "Soul Soil Only (Netherlicious)" to "Soul Soil Only"
         boolean soulSoilOnlyDefault = false;
@@ -245,8 +252,8 @@ public class CampfireBackportConfig
             soulSoilOnlyDefault = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly_OLD, false).getBoolean();
             config.getCategory(Configuration.CATEGORY_GENERAL).remove(ConfigReference.soulSoilOnly_OLD);
         }
-        soulSoilOnly = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, soulSoilOnlyDefault,
-                StringParsers.translateTooltip("soul_soil")).setLanguageKey(CONFIGPREFIX + "soul_soil").setRequiresMcRestart(true).getBoolean();
+        soulSoilOnlyObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulSoilOnly, soulSoilOnlyDefault,
+                StringParsers.translateTooltip("soul_soil")).setLanguageKey(CONFIGPREFIX + "soul_soil").getBoolean();
 
         regenCampfires = enumFromConfig(ConfigReference.regenCampfires, ConfigReference.NEITHER, "regen");
 
@@ -256,7 +263,7 @@ public class CampfireBackportConfig
         soulRegen = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.soulRegen, ConfigReference.defaultSoulRegen,
                 StringParsers.translateTooltip("regen_settings.soul"), 0, 10000, true, 4).setLanguageKey(CONFIGPREFIX + "regen_settings.soul").getIntList();
 
-        autoRecipe = enumFromConfig(ConfigReference.autoRecipe, ConfigReference.BOTH, "auto");
+        autoRecipeObj = enumFromConfig(ConfigReference.autoRecipe, ConfigReference.BOTH, "auto");
 
         autoBlacklistStrings = listFromConfig(ConfigReference.autoBlacklistStrings, ConfigReference.empty,
                 StringParsers.itemMetaOrePat, "auto_blacklist");
@@ -269,28 +276,28 @@ public class CampfireBackportConfig
 
         recipeListInheritance = inheritanceFromConfig(ConfigReference.recipeListInheritance, "recipes_inheritance");
 
-        defaultCookingTimes = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.defaultCookingTimes, ConfigReference.defaultDefaultCookingTimes,
+        defaultCookingTimesObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.defaultCookingTimes, ConfigReference.defaultDefaultCookingTimes,
                 StringParsers.translateTooltip("default_cooking_times"), 1, Integer.MAX_VALUE, true, 2).setLanguageKey(CONFIGPREFIX + "default_cooking_times")
                 .getIntList();
 
-        spawnpointable = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
+        spawnpointableObj = enumFromConfig(ConfigReference.spawnpointable, ConfigReference.NEITHER, "spawnpointable");
 
         spawnpointableAltTriggerObj = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.spawnpointableAltTriggerObj, false,
                 StringParsers.translateTooltip("spawnpointable_alt_trigger")).setLanguageKey(CONFIGPREFIX + "spawnpointable_alt_trigger").getBoolean();
 
-        burnOutOnRespawn = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
+        burnOutOnRespawnObj = enumFromConfig(ConfigReference.burnOutOnRespawn, ConfigReference.NEITHER, "burn_out_on_respawn");
 
         automation = enumFromConfig(ConfigReference.automation, ConfigReference.BOTH, "automation");
 
-        startUnlit = enumFromConfig(ConfigReference.startUnlit, ConfigReference.NEITHER, "default_unlit");
+        startUnlitObj = enumFromConfig(ConfigReference.startUnlit, ConfigReference.NEITHER, "default_unlit");
 
-        rememberState = enumFromConfig(ConfigReference.rememberState, ConfigReference.NEITHER, "remember_state");
+        rememberStateObj = enumFromConfig(ConfigReference.rememberState, ConfigReference.NEITHER, "remember_state");
 
-        silkNeeded = enumFromConfig(ConfigReference.silkNeeded, ConfigReference.BOTH, "silk");
+        silkNeededObj = enumFromConfig(ConfigReference.silkNeeded, ConfigReference.BOTH, "silk");
 
-        putOutByRain = enumFromConfig(ConfigReference.putOutByRain, ConfigReference.NEITHER, "rained_out");
+        putOutByRainObj = enumFromConfig(ConfigReference.putOutByRain, ConfigReference.NEITHER, "rained_out");
 
-        worksUnderwater = enumFromConfig(ConfigReference.worksUnderwater, ConfigReference.NEITHER, "works_underwater");
+        worksUnderwaterObj = enumFromConfig(ConfigReference.worksUnderwater, ConfigReference.NEITHER, "works_underwater");
 
         damaging = enumFromConfig(ConfigReference.damaging, ConfigReference.BOTH, "damaging");
 
@@ -303,12 +310,12 @@ public class CampfireBackportConfig
         burnOutRules = listFromConfig(ConfigReference.burnOutRules, ConfigReference.empty,
                 StringParsers.burnOutRulesPat, "burn_out_rules");
 
-        signalFiresBurnOut = enumFromConfig(ConfigReference.signalFiresBurnOut, ConfigReference.NEITHER, "signals_burn_out");
+        signalFiresBurnOutObj = enumFromConfig(ConfigReference.signalFiresBurnOut, ConfigReference.NEITHER, "signals_burn_out");
 
         burnToNothingChances = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.burnToNothingChances, ConfigReference.defaultBurnToNothingChances,
                 StringParsers.translateTooltip("burn_to_nothing"), 0.0, 1.0, true, 2).setLanguageKey(CONFIGPREFIX + "burn_to_nothing").getDoubleList();
 
-        burnOutAsItem = enumFromConfig(ConfigReference.burnOutAsItem, ConfigReference.NEITHER, "burn_out_as_item");
+        burnOutAsItemObj = enumFromConfig(ConfigReference.burnOutAsItem, ConfigReference.NEITHER, "burn_out_as_item");
 
         signalFireStrings = listFromConfig(ConfigReference.signalFireStrings, ConfigReference.defaultSignalFireBlocks,
                 StringParsers.itemMetaOrePat, "signal_fire_blocks");
@@ -317,7 +324,7 @@ public class CampfireBackportConfig
                 StringParsers.translateTooltip("campfire_drops"), true, 2, StringParsers.itemMetaAnySimpleDataSizeOREmptyPat)
                 .setLanguageKey(CONFIGPREFIX + "campfire_drops").getStringList();
 
-        colourfulSmoke = enumFromConfig(ConfigReference.colourfulSmoke, ConfigReference.NEITHER, "colourful_smoke");
+        colourfulSmokeObj = enumFromConfig(ConfigReference.colourfulSmoke, ConfigReference.NEITHER, "colourful_smoke");
 
         dispenserBlacklistStrings = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.dispenserBlacklistStrings, ConfigReference.empty,
                 StringParsers.translateTooltip("dispenser_blacklist"), StringParsers.itemPat).setLanguageKey(CONFIGPREFIX + "dispenser_blacklist")
@@ -354,6 +361,16 @@ public class CampfireBackportConfig
 
         suppressInputErrors = config.get(Configuration.CATEGORY_GENERAL, ConfigReference.suppressInputErrors, false,
                 StringParsers.translateTooltip("suppress_errors")).setLanguageKey(CONFIGPREFIX + "suppress_errors").getBoolean();
+
+        // some values have to be applied immediately on initial load instead of waiting for setConfig().
+        if (initialLoad)
+        {
+            charcoalOnly = charcoalOnlyObj;
+            soulSoilOnly = soulSoilOnlyObj;
+            startUnlit = startUnlitObj;
+
+            enableExtraCampfires = enableExtraCampfiresObj; // this is ONLY applied here.
+        }
     }
 
     private static EnumCampfireType enumFromConfig(String key, String defaultValue, String translationKey)
@@ -389,13 +406,55 @@ public class CampfireBackportConfig
         soulRegen[0] = MathHelper.clamp_int(soulRegen[0], 0, 31);
         soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 100);
 
-        // spawnpointableAltTriggerObj
+        // spawnpointableObj & spawnpointableAltTriggerObj & burnOutOnRespawnObj
+        spawnpointable = spawnpointableObj;
         spawnpointableAltTrigger = spawnpointableAltTriggerObj;
+        burnOutOnRespawn = burnOutOnRespawnObj;
+
+        // charcoalOnlyObj & soulSoilOnlyObj & startUnlitObj
+        boolean resetCoal = charcoalOnly != charcoalOnlyObj;
+        boolean resetSoulSand = soulSoilOnly != soulSoilOnlyObj;
+        EnumCampfireType startUnlitDiff = startUnlit.xor(startUnlitObj);
+        charcoalOnly = charcoalOnlyObj;
+        soulSoilOnly = soulSoilOnlyObj;
+        startUnlit = startUnlitObj;
+
+        // only need to reset recipes when config is being reloaded after initial load.
+        if (!initialLoad)
+        {
+            // and only reset if the recipe-changing configs changed - otherwise reloading the config would re-add a recipe that might have been removed using crafttweaker.
+            if (startUnlitDiff.acceptsRegular())
+            {
+                CampfireBackportRecipes.charcoalRecipe.reset();
+                CampfireBackportRecipes.coalRecipe.reset();
+            }
+            else if (resetCoal)
+                CampfireBackportRecipes.coalRecipe.reset();
+
+            if (startUnlitDiff.acceptsSoul())
+            {
+                CampfireBackportRecipes.soulSoilRecipe.reset();
+                CampfireBackportRecipes.soulSandRecipe.reset();
+                CampfireBackportRecipes.foxfireRecipe.reset();
+                CampfireBackportRecipes.shadowRecipe.reset();
+            }
+            else if (resetSoulSand)
+                CampfireBackportRecipes.soulSandRecipe.reset();
+        }
+
+        // rememberStateObj & silkNeededObj
+        rememberState = rememberStateObj;
+        silkNeeded = silkNeededObj;
+
+        // putOutByRainObj & worksUnderwaterObj
+        putOutByRain = putOutByRainObj;
+        worksUnderwater = worksUnderwaterObj;
 
         // visCostsObj
         visCosts = Arrays.copyOf(visCostsObj, visCostsObj.length);
 
-        // regularRecipeList & soulRecipeList & recipeListInheritance
+        // defaultCookingTimesObj & regularRecipeList & soulRecipeList & recipeListInheritance
+        defaultCookingTimes = Arrays.copyOf(defaultCookingTimesObj, defaultCookingTimesObj.length);
         CampfireRecipe.clearRecipeLists();
 
         if (regularRecipeList.length != 0 || soulRecipeList.length != 0)
@@ -419,7 +478,8 @@ public class CampfireBackportConfig
         for (CampfireRecipe crecipe : CampfireRecipe.getCraftTweakerList())
             CampfireRecipe.addToRecipeLists(crecipe);
 
-        // autoRecipe & autoBlacklistStrings
+        // autoRecipeObj & autoBlacklistStrings
+        autoRecipe = autoRecipeObj;
         CampfireRecipe.getFurnaceList().clear();
 
         if (autoRecipe != EnumCampfireType.NEITHER)
@@ -580,6 +640,14 @@ public class CampfireBackportConfig
         for (BurnOutRule brule : BurnOutRule.getCraftTweakerRules())
             BurnOutRule.addToRules(brule);
 
+        // signalFiresBurnOutObj & burnOutAsItemObj
+        signalFiresBurnOut = signalFiresBurnOutObj;
+        burnOutAsItem = burnOutAsItemObj;
+
+        // colourfulSmokeObj
+        colourfulSmoke = colourfulSmokeObj;
+
+        // campfireDropsStrings
         setCampfireDrops();
 
         ConfigReference.logInfo("done");
@@ -736,8 +804,8 @@ public class CampfireBackportConfig
     {
         renderItem3D = false;
 
-        charcoalOnly = false;
-        soulSoilOnly = false;
+        charcoalOnlyObj = false;
+        soulSoilOnlyObj = false;
 
         enableExtraCampfiresObj = false;
 
@@ -745,26 +813,26 @@ public class CampfireBackportConfig
         regularRegen = ConfigReference.defaultRegRegen;
         soulRegen = ConfigReference.defaultSoulRegen;
 
-        autoRecipe = EnumCampfireType.BOTH;
+        autoRecipeObj = EnumCampfireType.BOTH;
         autoBlacklistStrings = ConfigReference.empty;
 
         regularRecipeList = ConfigReference.defaultRecipeList;
         soulRecipeList = ConfigReference.empty;
         recipeListInheritance = ConfigReference.SOUL_GETS_REG;
-        defaultCookingTimes = ConfigReference.defaultDefaultCookingTimes;
+        defaultCookingTimesObj = ConfigReference.defaultDefaultCookingTimes;
 
-        spawnpointable = EnumCampfireType.NEITHER;
+        spawnpointableObj = EnumCampfireType.NEITHER;
         spawnpointableAltTriggerObj = false;
-        burnOutOnRespawn = EnumCampfireType.NEITHER;
+        burnOutOnRespawnObj = EnumCampfireType.NEITHER;
 
         automation = EnumCampfireType.BOTH;
 
-        startUnlit = EnumCampfireType.NEITHER;
-        rememberState = EnumCampfireType.NEITHER;
-        silkNeeded = EnumCampfireType.BOTH;
+        startUnlitObj = EnumCampfireType.NEITHER;
+        rememberStateObj = EnumCampfireType.NEITHER;
+        silkNeededObj = EnumCampfireType.BOTH;
 
-        putOutByRain = EnumCampfireType.NEITHER;
-        worksUnderwater = EnumCampfireType.NEITHER;
+        putOutByRainObj = EnumCampfireType.NEITHER;
+        worksUnderwaterObj = EnumCampfireType.NEITHER;
 
         damaging = EnumCampfireType.BOTH;
 
@@ -772,15 +840,15 @@ public class CampfireBackportConfig
 
         burnOutTimer = ConfigReference.defaultBurnOuts;
         burnOutRules = ConfigReference.empty;
-        signalFiresBurnOut = EnumCampfireType.NEITHER;
+        signalFiresBurnOutObj = EnumCampfireType.NEITHER;
         burnToNothingChances = ConfigReference.defaultBurnToNothingChances;
-        burnOutAsItem = EnumCampfireType.NEITHER;
+        burnOutAsItemObj = EnumCampfireType.NEITHER;
 
         signalFireStrings = ConfigReference.defaultSignalFireBlocks;
 
         campfireDropsStrings = ConfigReference.defaultCampfireDrops;
 
-        colourfulSmoke = EnumCampfireType.NEITHER;
+        colourfulSmokeObj = EnumCampfireType.NEITHER;
 
         dispenserBlacklistStrings = ConfigReference.empty;
 

@@ -110,6 +110,14 @@ public enum EnumCampfireType
             return this;
     }
 
+    /**
+     * @return accepts are true where this differs from other. basically a xor?
+     */
+    public EnumCampfireType xor(EnumCampfireType other)
+    {
+        return fromBools(this.acceptsRegular != other.acceptsRegular, this.acceptsSoul != other.acceptsSoul);
+    }
+
     public static EnumCampfireType fromBools(boolean acceptsRegular, boolean acceptsSoul)
     {
         if (acceptsRegular && acceptsSoul)

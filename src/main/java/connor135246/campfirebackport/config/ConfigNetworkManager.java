@@ -19,13 +19,13 @@ public class ConfigNetworkManager
     // Normal Config
 
     /** config settings that must be synced */
-    private static final String[] ENUMS = new String[] { "autoRecipe", "startUnlit", "rememberState", "silkNeeded", "putOutByRain", "worksUnderwater",
-            "signalFiresBurnOut", "burnOutAsItem", "colourfulSmoke", "spawnpointable", "burnOutOnRespawn" },
+    private static final String[] ENUMS = new String[] { "autoRecipeObj", "startUnlitObj", "rememberStateObj", "silkNeededObj", "putOutByRainObj",
+            "worksUnderwaterObj", "signalFiresBurnOutObj", "burnOutAsItemObj", "colourfulSmokeObj", "spawnpointableObj", "burnOutOnRespawnObj" },
             INHERITS = new String[] { "recipeListInheritance", "extinguishersListInheritance", "ignitorsListInheritance" },
             LISTS = new String[] { "autoBlacklistStrings", "regularRecipeList", "soulRecipeList", "burnOutRules", "signalFireStrings", "campfireDropsStrings",
                     "dispenserBlacklistStrings", "regularExtinguishersList", "soulExtinguishersList", "regularIgnitorsList", "soulIgnitorsList" },
-            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimes" }, DOUBLELISTS = new String[] { "visCostsObj" },
-            BOOLEANS = new String[] { "spawnpointableAltTriggerObj" };
+            INTLISTS = new String[] { "burnOutTimer", "defaultCookingTimesObj" }, DOUBLELISTS = new String[] { "visCostsObj" },
+            BOOLEANS = new String[] { "charcoalOnlyObj", "soulSoilOnlyObj", "spawnpointableAltTriggerObj" };
 
     /**
      * packet that contains config settings to sync
@@ -33,14 +33,14 @@ public class ConfigNetworkManager
     public static class SendConfigMessage implements IMessage
     {
 
-        public EnumCampfireType autoRecipe, startUnlit, rememberState, silkNeeded, putOutByRain, worksUnderwater,
-                signalFiresBurnOut, burnOutAsItem, colourfulSmoke, spawnpointable, burnOutOnRespawn;
+        public EnumCampfireType autoRecipeObj, startUnlitObj, rememberStateObj, silkNeededObj, putOutByRainObj, worksUnderwaterObj, signalFiresBurnOutObj,
+                burnOutAsItemObj, colourfulSmokeObj, spawnpointableObj, burnOutOnRespawnObj;
         public String recipeListInheritance, extinguishersListInheritance, ignitorsListInheritance;
         public String[] autoBlacklistStrings, regularRecipeList, soulRecipeList, burnOutRules, signalFireStrings, campfireDropsStrings,
                 dispenserBlacklistStrings, regularExtinguishersList, soulExtinguishersList, regularIgnitorsList, soulIgnitorsList;
-        public int[] burnOutTimer, defaultCookingTimes;
+        public int[] burnOutTimer, defaultCookingTimesObj;
         public double[] visCostsObj;
-        public boolean spawnpointableAltTriggerObj;
+        public boolean charcoalOnlyObj, soulSoilOnlyObj, spawnpointableAltTriggerObj;
 
         @Override
         public void toBytes(ByteBuf buf)

@@ -1,45 +1,101 @@
 package connor135246.campfirebackport.common.recipes;
 
+import java.util.List;
+import java.util.function.Supplier;
+
+import javax.annotation.Nullable;
+
+import com.google.common.collect.Lists;
+
 import connor135246.campfirebackport.common.blocks.CampfireBackportBlocks;
 import connor135246.campfirebackport.common.compat.CampfireBackportCompat;
 import connor135246.campfirebackport.config.CampfireBackportConfig;
 import connor135246.campfirebackport.util.EnumCampfireType;
 import cpw.mods.fml.common.registry.GameData;
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
 public class CampfireBackportRecipes
 {
 
+    // oredicts
+
     public static final String oreCoal = "coal", oreCharcoal = "charcoal", oreSoulSand = "soulSand", oreSoulSoil = "soulSoil";
 
+    // recipe suppliers
+
+    public static final RecipeHolder charcoalRecipe = new RecipeHolder(() -> new ShapedOreRecipe(
+            CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex),
+            " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCharcoal, 'C', "logWood"));
+
+    public static final RecipeHolder coalRecipe = new RecipeHolder(() -> {
+        if (CampfireBackportConfig.charcoalOnly)
+            return null;
+
+        return new ShapedOreRecipe(
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex),
+                " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCoal, 'C', "logWood");
+
+    });
+
+    public static final RecipeHolder soulSoilRecipe = new RecipeHolder(() -> new ShapedOreRecipe(
+            CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.soulIndex),
+            " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreSoulSoil, 'C', "logWood"));
+
+    public static final RecipeHolder soulSandRecipe = new RecipeHolder(() -> {
+        if (CampfireBackportConfig.soulSoilOnly)
+            return null;
+
+        return new ShapedOreRecipe(
+                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.soulIndex),
+                " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreSoulSand, 'C', "logWood");
+    });
+
+    public static final RecipeHolder foxfireRecipe = new RecipeHolder(() -> {
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+        {
+            Item foxfirePowder = GameData.getItemRegistry().getObject("netherlicious:FoxfirePowder");
+            if (foxfirePowder != null)
+            {
+                return new ShapedOreRecipe(
+                        CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.foxfireIndex),
+                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', foxfirePowder, 'C', "logWood");
+            }
+        }
+        return null;
+    });
+
+    public static final RecipeHolder shadowRecipe = new RecipeHolder(() -> {
+        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+        {
+            Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
+            if (cryingBlackstone != Blocks.air)
+            {
+                return new ShapedOreRecipe(
+                        CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.shadowIndex),
+                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', cryingBlackstone, 'C', "logWood");
+            }
+        }
+        return null;
+    });
+
+    public static final List<RecipeHolder> RECIPES = Lists.newArrayList(charcoalRecipe, coalRecipe, soulSoilRecipe, soulSandRecipe, foxfireRecipe, shadowRecipe);
+
     /**
-     * adds oredicts. adds the crafting recipes for campfires, which depend on various config settings.
+     * adds oredicts. <br>
+     * adds the crafting recipes for campfires, which depend on various config settings.
      */
     public static void postInit()
     {
         OreDictionary.registerOre(oreCoal, new ItemStack(Items.coal, 1, 0));
         OreDictionary.registerOre(oreCharcoal, new ItemStack(Items.coal, 1, 1));
-
-        ItemStack campfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsRegular(), EnumCampfireType.regIndex));
-
-        GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCharcoal, 'C', "logWood"));
-
-        if (!CampfireBackportConfig.charcoalOnly)
-        {
-            GameRegistry.addRecipe(new ShapedOreRecipe(campfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreCoal, 'C', "logWood"));
-        }
-
-        //
 
         OreDictionary.registerOre(oreSoulSand, Blocks.soul_sand);
         OreDictionary.getOres(oreSoulSoil, true); // create soulSoil ore as empty
@@ -49,43 +105,32 @@ public class CampfireBackportRecipes
         if (soulSoil != Blocks.air)
             OreDictionary.registerOre(oreSoulSoil, new ItemStack(soulSoil, 1, OreDictionary.WILDCARD_VALUE));
 
-        ItemStack soulcampfireResult = new ItemStack(
-                CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.soulIndex));
+        RECIPES.forEach(recipe -> recipe.reset());
+    }
 
-        GameRegistry.addRecipe(new ShapedOreRecipe(soulcampfireResult.copy(),
-                " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreSoulSoil, 'C', "logWood"));
+    /**
+     * Very similar to an IUndoableAction from CraftTweaker.
+     */
+    public static class RecipeHolder
+    {
+        protected final Supplier<IRecipe> supplier;
+        @Nullable
+        protected IRecipe recipe = null;
 
-        if (!CampfireBackportConfig.soulSoilOnly)
+        public RecipeHolder(Supplier<IRecipe> supplier)
         {
-            GameRegistry.addRecipe(new ShapedOreRecipe(soulcampfireResult.copy(),
-                    " A ", "ABA", "CCC", 'A', "stickWood", 'B', oreSoulSand, 'C', "logWood"));
+            this.supplier = supplier;
         }
 
-        //
-
-        if (CampfireBackportCompat.isNetherliciousLoaded || CampfireBackportConfig.enableExtraCampfires)
+        public void reset()
         {
-            ItemStack foxfirecampfireResult = new ItemStack(
-                    CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.foxfireIndex));
+            if (recipe != null)
+                CraftingManager.getInstance().getRecipeList().remove(recipe);
 
-            Item foxfirePowder = GameData.getItemRegistry().getObject("netherlicious:FoxfirePowder");
-            if (foxfirePowder != null)
-            {
-                GameRegistry.addRecipe(new ShapedOreRecipe(foxfirecampfireResult.copy(),
-                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', foxfirePowder, 'C', "logWood"));
-            }
+            recipe = supplier.get();
 
-            //
-
-            ItemStack shadowcampfireResult = new ItemStack(
-                    CampfireBackportBlocks.getBlockFromLitAndType(!CampfireBackportConfig.startUnlit.acceptsSoul(), EnumCampfireType.shadowIndex));
-
-            Block cryingBlackstone = GameData.getBlockRegistry().getObject("netherlicious:CryingBlackstone");
-            if (cryingBlackstone != Blocks.air)
-            {
-                GameRegistry.addRecipe(new ShapedOreRecipe(shadowcampfireResult.copy(),
-                        " A ", "ABA", "CCC", 'A', "stickWood", 'B', cryingBlackstone, 'C', "logWood"));
-            }
+            if (recipe != null)
+                CraftingManager.getInstance().getRecipeList().add(recipe);
         }
     }
 
