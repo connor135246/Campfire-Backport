@@ -14,10 +14,7 @@ public class CustomData extends CustomInput<NBTTagCompound>
         super(data, inputSize, data, inputSizeMatters, clamp);
 
         if (getDataType() != 4)
-        {
-            String key = getDataType() != 4 ? "anything" : "any_tinkers";
-            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI(key)));
-        }
+            neiTooltipFillers.add((list) -> list.add(EnumChatFormatting.GOLD + StringParsers.translateNEI("anything")));
 
         ItemStack listStack = new ItemStack(Items.written_book);
         inputList.add(listStack);
