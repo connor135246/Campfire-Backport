@@ -334,10 +334,7 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
                                 xCoord + regenValues[2], yCoord + regenValues[2], zCoord + regenValues[2]));
 
                 for (EntityPlayer player : playerlist)
-                {
-                    if (!player.isPotionActive(Potion.regeneration))
-                        player.addPotionEffect(new PotionEffect(Potion.regeneration.id, regenValues[1], regenValues[0], true));
-                }
+                    player.addPotionEffect(new PotionEffect(Potion.regeneration.id, regenValues[1], regenValues[0], true));
             }
 
             decrementRegenWaitTimer();
