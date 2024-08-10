@@ -361,6 +361,34 @@ public abstract class CustomInput<T> implements Comparable<CustomInput>
         return stack;
     }
 
+    /**
+     * If the stack is an IFluidContainerItem, fills the stack's fluid by the amount and returns it. <br>
+     * If the stack is in the FluidContainerRegistry, reduces the stack's size by 1, then if the stack's size is now zero, returns the filled container. If not, gives the player
+     * the filled container.
+     */
+    public static ItemStack doFluidFilling(ItemStack stack, FluidStack fluidStack, EntityPlayer player)
+    {
+        GenericRecipe.returnContainer = false; // no returning a container here!
+        if (stack != null && player != null && fluidStack.amount > 0)
+        {
+            if (stack.getItem() instanceof IFluidContainerItem)
+                ((IFluidContainerItem) stack.getItem()).fill(stack, fluidStack, true);
+            else
+            {
+                ItemStack filledContainer = FluidContainerRegistry.fillFluidContainer(fluidStack, stack);
+                if (filledContainer != null)
+                {
+                    stack.stackSize--;
+                    if (stack.stackSize <= 0)
+                        stack = filledContainer;
+                    else if (!player.inventory.addItemStackToInventory(filledContainer))
+                        player.dropPlayerItemWithRandomChoice(filledContainer, false);
+                }
+            }
+        }
+        return stack;
+    }
+
     // toString
     /**
      * for easy readin

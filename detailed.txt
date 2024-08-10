@@ -379,37 +379,42 @@ Some examples of this method:
 Some items store fluids as NBT. Some items don't, such as buckets of fluids. And some mods add multiple kinds of buckets!
 If only there was some way to deal with all possibilities at the same time, instead of having to make a recipe for each one...
 
-That's right! Campfire Backport adds a method that does that!
+That's right! Campfire Backport adds methods that do that!
 
-.transformFluid(String fluidName, int minAmount, @Optional Boolean reuse)
+Use .drainFluid(String fluidName, int amount, @Optional Boolean reuse) to drain a fluid from an item.
+Use .fillFluid(String fluidName, int amount, @Optional Boolean reuse) to fill a fluid into an item.
 -String fluidName
 The name of the fluid.
--int minAmount
+-int amount
 The amount (in mB) of fluid.
 Can't be negative.
 -@Optional Boolean reuse
 If true, makes the ingredient reusable.
 If not included, defaults to true. 
 
-Since fluid containers generally don't want the container itself to be consumed, only the fluid, this option is on by default. 
+Since fluid containers generally don't want the container itself to be used, only the fluid, this option is on by default. 
 You shouldn't need to worry about this option at all for campfire recipes or extinguishers/ignitors, but it's here just in case.
 
 Tip:
-This method is especially useful when combined with wildcard IIngredients.
-For example, "<*>.transformFluid("water", 1000)" will match anything containing at least 1000 mB of water.
+These methods are especially useful when combined with wildcard IIngredients.
+-For example, "<*>.drainFluid("water", 1000)" will match anything containing at least 1000 mB of water.
 This includes Water Buckets or Water Bottles or any fluid tank item with at least 1000 mB of water.
-It also automatically removes the water - Water Buckets will turn into empty Buckets, Water Bottles will turn into empty Bottles, and fluid tanks will have 1000 mB of water removed.
+It also automatically drains the water - Water Buckets will turn into empty Buckets, Water Bottles will turn into empty Bottles, and fluid tanks will have 1000 mB of water removed.
+-For example, "<*>.fillFluid("water", 1000)" will match anything that can hold up to 1000 mB water.
+This includes empty Buckets or Bottles or any fluid tank item that's empty or already contains water and isn't full.
+It also automatically fills the water - empty Buckets will turn into Water Buckets, Bottles will turn into Water Bottles, and fluid tanks will have up to 1000 mB of water added.
 
-
-Some examples of this method:
+Some examples of these methods:
 -Right-clicking with anything with at least 1000 mB of water will extinguish campfires and use up the water
-    mods.campfirebackport.addCampfireExtinguisher("both", <*>.transformFluid("water", 1000), "none");
+    mods.campfirebackport.addCampfireExtinguisher("both", <*>.drainFluid("water", 1000), "none");
 -Right-clicking with any Thermal Expansion tank with at least 150 mB of lava will ignite campfires and use up the lava
-    mods.campfirebackport.addCampfireIgnitor("both", <ThermalExpansion:Tank:*>.transformFluid("lava", 150), "none");
+    mods.campfirebackport.addCampfireIgnitor("both", <ThermalExpansion:Tank:*>.drainFluid("lava", 150), "none");
+-Right-clicking with any Thermal Expansion tank that can hold lava will extinguish campfires and create up to 150 mB of lava
+    mods.campfirebackport.addCampfireExtinguisher("both", <ThermalExpansion:Tank:*>.fillFluid("lava", 150), "none");
 -After 600 ticks, 1000 mB of water and 1000 mB of lava are consumed from two items to make obsidian
-    mods.campfirebackport.addCampfireRecipe("both", [<*>.transformFluid("lava", 1000), <*>.transformFluid("water", 1000)], <minecraft:obsidian>, 600);
--You can craft water blocks out of anything containing 1000 mB of water
-    recipes.addShapeless(<minecraft:water>, [<*>.transformFluid("water", 1000)]);
+    mods.campfirebackport.addCampfireRecipe("both", [<*>.drainFluid("lava", 1000), <*>.drainFluid("water", 1000)], <minecraft:obsidian>, 600);
+
+Note: For backwards compatibility, .drainFluid can also be called .transformFluid.
 
 ---
 

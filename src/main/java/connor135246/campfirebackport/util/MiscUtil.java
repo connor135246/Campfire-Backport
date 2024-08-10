@@ -136,6 +136,35 @@ public class MiscUtil
     }
 
     /**
+     * @return true if the stack could contain the fluid given by name and amount; in other words, it's empty or it already contains that fluid and isn't full
+     */
+    public static boolean couldContainFluid(ItemStack stack, String name, int amount)
+    {
+        if (stack != null && name != null)
+        {
+            Fluid fluid = FluidRegistry.getFluid(name);
+            if (fluid != null)
+                return couldContainFluid(stack, new FluidStack(fluid, amount));
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the stack could contain the fluidStack; in other words, it's empty or it already contains that fluid and isn't full
+     */
+    public static boolean couldContainFluid(ItemStack stack, FluidStack fluidStack)
+    {
+        if (stack != null && fluidStack != null)
+        {
+            if (stack.getItem() instanceof IFluidContainerItem)
+                return ((IFluidContainerItem) stack.getItem()).fill(stack, fluidStack, false) > 0;
+            else
+                return FluidContainerRegistry.fillFluidContainer(fluidStack, stack) != null;
+        }
+        return false;
+    }
+
+    /**
      * @return a copy of the fluid container after it's been filled with the fluidStack
      */
     public static ItemStack fillContainerWithFluid(ItemStack stack, FluidStack fluidStack)

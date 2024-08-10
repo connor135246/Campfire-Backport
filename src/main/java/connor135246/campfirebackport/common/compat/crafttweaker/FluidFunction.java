@@ -7,42 +7,51 @@ import minetweaker.api.item.IItemStack;
 import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.api.player.IPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 /**
- * Class for functions made using {@link IngredientFunctions#transformFluid}.
+ * Class for functions made using {@link IngredientFunctions#drainFluid} and {@link IngredientFunctions#fillFluid}.
  */
 public class FluidFunction extends AbstractItemFunction
 {
 
     protected final String fluidName;
-    protected final int minAmount;
+    protected final int amount;
+    protected final boolean drain;
     protected final FluidStack asFluidStack;
 
-    protected FluidFunction(String fluidName, int minAmount) throws Exception
+    protected FluidFunction(String fluidName, int amount, boolean drain) throws Exception
     {
         if (!FluidRegistry.isFluidRegistered(fluidName))
             throw new Exception(StringParsers.translateCT("fluid.unregistered", fluidName));
-        if (minAmount <= 0)
-            throw new Exception(StringParsers.translateCT("fluid.invalid_amount", minAmount));
+        if (amount <= 0)
+            throw new Exception(StringParsers.translateCT("fluid.invalid_amount", amount));
 
         this.fluidName = fluidName;
-        this.minAmount = minAmount;
+        this.amount = amount;
+        this.drain = drain;
 
-        this.asFluidStack = new FluidStack(FluidRegistry.getFluid(fluidName), minAmount);
+        this.asFluidStack = new FluidStack(FluidRegistry.getFluid(fluidName), amount);
     }
 
     @Override
     public boolean matches(IItemStack istack)
     {
-        return MiscUtil.containsFluid(MineTweakerMC.getItemStack(istack), asFluidStack);
+        if (drain)
+            return MiscUtil.containsFluid(MineTweakerMC.getItemStack(istack), asFluidStack);
+        else
+            return MiscUtil.couldContainFluid(MineTweakerMC.getItemStack(istack), asFluidStack);
     }
 
     @Override
     public IItemStack transform(IItemStack istack, IPlayer iplayer)
     {
-        return MineTweakerMC.getIItemStack(CustomInput.doFluidEmptying(MineTweakerMC.getItemStack(istack), minAmount, MineTweakerMC.getPlayer(iplayer)));
+        if (drain)
+            return MineTweakerMC.getIItemStack(CustomInput.doFluidEmptying(MineTweakerMC.getItemStack(istack), amount, MineTweakerMC.getPlayer(iplayer)));
+        else
+            return MineTweakerMC.getIItemStack(CustomInput.doFluidFilling(MineTweakerMC.getItemStack(istack), asFluidStack.copy(), MineTweakerMC.getPlayer(iplayer)));
     }
 
     @Override
@@ -60,19 +69,25 @@ public class FluidFunction extends AbstractItemFunction
     @Override
     public String toInfoString()
     {
-        return StringParsers.translateNEI("fluid_data", minAmount, asFluidStack.getLocalizedName());
+        if (drain)
+            return StringParsers.translateNEI("fluid_data", amount, asFluidStack.getLocalizedName());
+        else
+            return StringParsers.translateNEI("fill_fluid_data", amount, asFluidStack.getLocalizedName());
     }
 
     @Override
     public ItemStack modifyStackForDisplay(ItemStack stack)
     {
-        return MiscUtil.fillContainerWithFluid(stack, asFluidStack.copy());
+        if (drain)
+            return MiscUtil.fillContainerWithFluid(stack, asFluidStack.copy());
+        else
+            return ItemStack.copyItemStack(stack);
     }
 
     @Override
     public String toString()
     {
-        return "(Fluid Function) [Fluid:\"" + fluidName + "\",MinAmount:" + minAmount + "]";
+        return "(Fluid Function) [Fluid:\"" + fluidName + "\",Amount:" + amount + ",Drains:" + drain + "]";
     }
 
 }

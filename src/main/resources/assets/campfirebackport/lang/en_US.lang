@@ -35,6 +35,7 @@ campfirebackport.nei.class_input=Any %s.class
 campfirebackport.nei.burns_away=Burns away if left cooking too long
 campfirebackport.nei.enchantment_data=With %s or greater
 campfirebackport.nei.fluid_data=With at least %1$s mB of %2$s
+campfirebackport.nei.fill_fluid_data=With capacity for up to %1$s mB of %2$s
 campfirebackport.nei.nbt_data=With NBT:
 campfirebackport.nei.exact_nbt_data=With Exact NBT:
 campfirebackport.nei.dispensable=Works in a Dispenser

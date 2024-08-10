@@ -29,10 +29,30 @@ public class IngredientFunctions
      * AbstractItemFunction that applied a .reuse() to it earlier.
      */
     @ZenMethod
-    public static IIngredient transformFluid(IIngredient iingredient, String fluidName, int minAmount, @Optional Boolean reuse)
-            throws Exception
+    public static IIngredient drainFluid(IIngredient iingredient, String fluidName, int amount, @Optional Boolean reuse) throws Exception
     {
-        return addFunction(iingredient, new FluidFunction(fluidName, minAmount), reuse == null || reuse);
+        return addFunction(iingredient, new FluidFunction(fluidName, amount, true), reuse == null || reuse);
+    }
+
+    /**
+     * Alias for {@link #drainFluid}, for backwards compatibility.
+     */
+    @ZenMethod
+    public static IIngredient transformFluid(IIngredient iingredient, String fluidName, int amount, @Optional Boolean reuse) throws Exception
+    {
+        return drainFluid(iingredient, fluidName, amount, reuse);
+    }
+
+    /**
+     * ZenScript method that can be used on an IIngredient. <br>
+     * Puts a condition on the IIngredient that checks for an empty container or a container with the fluid that has space remaining. <br>
+     * Puts a transform on the IIngredient that adds the fluid. Then, if reuse is true (default), applies a .reuse() to the IIngredient, unless there's already an
+     * AbstractItemFunction that applied a .reuse() to it earlier.
+     */
+    @ZenMethod
+    public static IIngredient fillFluid(IIngredient iingredient, String fluidName, int amount, @Optional Boolean reuse) throws Exception
+    {
+        return addFunction(iingredient, new FluidFunction(fluidName, amount, false), reuse == null || reuse);
     }
 
     /**
