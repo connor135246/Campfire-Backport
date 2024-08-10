@@ -7,7 +7,6 @@ import minetweaker.api.item.IItemStack;
 import minetweaker.api.minecraft.MineTweakerMC;
 import minetweaker.api.player.IPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -49,7 +48,7 @@ public class FluidFunction extends AbstractItemFunction
     public IItemStack transform(IItemStack istack, IPlayer iplayer)
     {
         if (drain)
-            return MineTweakerMC.getIItemStack(CustomInput.doFluidEmptying(MineTweakerMC.getItemStack(istack), amount, MineTweakerMC.getPlayer(iplayer)));
+            return MineTweakerMC.getIItemStack(CustomInput.doFluidDraining(MineTweakerMC.getItemStack(istack), amount, MineTweakerMC.getPlayer(iplayer)));
         else
             return MineTweakerMC.getIItemStack(CustomInput.doFluidFilling(MineTweakerMC.getItemStack(istack), asFluidStack.copy(), MineTweakerMC.getPlayer(iplayer)));
     }

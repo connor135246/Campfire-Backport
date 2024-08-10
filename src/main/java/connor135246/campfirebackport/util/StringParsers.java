@@ -40,7 +40,7 @@ public class StringParsers
             size = "(@\\d+)?",
             NBT = "\\{[\\w\\s\"" + Pattern.quote("-+:.,[]{}") + "]+}",
             ench = "\\[ench:\\d+,\\d+]",
-            fluid = "\\[Fluid:\"\\w+\",MinAmount:\\d+]",
+            fluid = "\\[Fluid:\"\\w+\",((Min)|(Drain)|(Fill))Amount:\\d+]",
             tinkers = "\\[Tinkers:\\[(I:\\{(\\w+:-?\\d+,)*(\\w+:-?\\d+)})?(B:\\{(\\w+:-?\\d+,)*(\\w+:-?\\d+)})?(F:\\{(\\w+:-?\\d+(\\.\\d+)?,)*(\\w+:-?\\d+(\\.\\d+)?)})?(IA:\\{(\\w+:-?\\d+,)*(\\w+:-?\\d+)})?]]",
             anyData = "((" + NBT + ")|(" + ench + ")|(" + fluid + "))",
             anyDataTinkers = "((" + NBT + ")|(" + ench + ")|(" + fluid + ")|(" + tinkers + "))",
@@ -85,6 +85,7 @@ public class StringParsers
             KEY_FluidName = "FluidName",
             KEY_Amount = "Amount",
             KEY_amount = "amount",
+            KEY_Drains = "Drains",
             KEY_tank = "tank",
             KEY_InfiTool = "InfiTool",
             KEY_INT_PREFIX = "I:",
@@ -174,9 +175,15 @@ public class StringParsers
                 return new Object[] { null, null, null, null };
             }
 
+            String fluidAmountString = fluid.substring(fluid.lastIndexOf(",") + 1, fluid.lastIndexOf(":"));
+            boolean fluidDrain = true;
+            if (fluidAmountString.startsWith("Fill"))
+                fluidDrain = false;
+
             NBTTagCompound fluidCom = new NBTTagCompound();
             fluidCom.setString(KEY_FluidName, fluidName);
             fluidCom.setInteger(KEY_Amount, fluidAmount);
+            fluidCom.setBoolean(KEY_Drains, fluidDrain);
             data.setTag(KEY_Fluid, fluidCom);
 
             data.setByte(KEY_GCIDataType, (byte) 3);

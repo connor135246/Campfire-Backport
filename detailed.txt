@@ -522,8 +522,10 @@ Some example extinguishers/ignitors:
 	left+dispensable/ore:stickWood@5/stackable
 -Left-clicking with a bow enchanted with flame damages it by 10 points
 	left/minecraft:bow[ench:50,1]@10/damageable
--Right-clicking with a Thermal Expansion tank with at least 1000 mB of water (uses the water)
-	right/ThermalExpansion:Tank[Fluid:"water",MinAmount:1000]/none
+-Right-clicking with a Thermal Expansion tank with at least 1000 mB of water (drains the water afterwards)
+    right/ThermalExpansion:Tank[Fluid:"water",DrainAmount:1000]/none
+-Right-clicking with a Thermal Expansion tank with capacity for up to 1000 mB of lava (fills with lava afterwards)
+    right/ThermalExpansion:Tank[Fluid:"lava",FillAmount:1000]/none
 -Right-clicking with a wooden sword returns a wooden sword enchanted with fire aspect
 	right/minecraft:wooden_sword/stackable>minecraft:wooden_sword[ench:20,2]
 -Left-clicking with 3 of any stairs enchanted with fire aspect of at least level 3 returns a lit furnace named Oops
@@ -582,8 +584,9 @@ But this will refer to Golden Shovels whose only enchantment is Unbreaking at ex
 So some specific NBT things have been given a special format you can type it in to test in a more lenient way.
 For enchantments, that format is "[ench:id,minlevel]".
 For example, minecraft:golden_shovel[ench:34,1] refers to any Golden Shovel that has an Unbreaking enchantment of at least level 1, and may or may not have other NBT.
-Another special NBT format is the fluid format, for items that hold fluids: "[Fluid:"fluidname",MinAmount:minamount]".
-For example, ThermalExpansion:Tank[Fluid:"water",MinAmount:1000] will check for at least 1000 mB of water in a fluid tank item from Thermal Expansion.
+Another special NBT format is the fluid format, for items that hold fluids: "[Fluid:"fluidname",DrainAmount:amount]" or "[Fluid:"fluidname",FillAmount:amount]".
+For example, ThermalExpansion:Tank[Fluid:"water",DrainAmount:1000] will check for at least 1000 mB of water in a fluid tank item from Thermal Expansion, and will use up the water afterwards.
+Likewise, ThermalExpansion:Tank[Fluid:"lava",FillAmount:1000] will check for a fluid tank item from Thermal Expansion that can hold up to 1000 mB of lava, and will fill it up with lava afterwards.
 The last NBT format is even more special than the others. This one can only exist on its own, without an Item/Ore/tool/Class.
 It's the Tinker's Construct Modifiers format. It allows you to check whether a Tinker's tool has specific modifiers on it.
 This one's rather complicated, so it gets its own section. See # [Tinker's Construct Modifiers Format].

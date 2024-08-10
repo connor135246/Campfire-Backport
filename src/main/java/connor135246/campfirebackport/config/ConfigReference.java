@@ -36,7 +36,7 @@ public class ConfigReference
             defaultRecipeList = new String[] { "minecraft:porkchop/minecraft:cooked_porkchop", "minecraft:beef/minecraft:cooked_beef",
                     "minecraft:chicken/minecraft:cooked_chicken", "minecraft:potato/minecraft:baked_potato", "minecraft:fish:0/minecraft:cooked_fished:0",
                     "minecraft:fish:1/minecraft:cooked_fished:1" },
-            defaultExtinguishersList = new String[] { "right/[Fluid:\"water\",MinAmount:1000]/none", "right+dispensable/tool:shovel/damageable" },
+            defaultExtinguishersList = new String[] { "right/[Fluid:\"water\",DrainAmount:1000]/none", "right+dispensable/tool:shovel/damageable" },
             defaultIgnitorsList = new String[] { "right/minecraft:flint_and_steel/damageable", "right/minecraft:fire_charge/stackable",
                     "left+dispensable/class:net.minecraft.item.ItemSword[ench:20,1]/damageable", "left/[ench:20,1]/damageable",
                     "left/[Tinkers:[I:{Fiery:1}]]/damageable", "left/[Tinkers:[B:{Lava:1}]]/damageable" },
