@@ -401,10 +401,10 @@ public class CampfireBackportConfig
 
         // regularRegen & soulRegen
         regularRegen[0] = MathHelper.clamp_int(regularRegen[0], 0, 31);
-        regularRegen[2] = MathHelper.clamp_int(regularRegen[2], 0, 100);
+        regularRegen[2] = MathHelper.clamp_int(regularRegen[2], 0, 50);
 
         soulRegen[0] = MathHelper.clamp_int(soulRegen[0], 0, 31);
-        soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 100);
+        soulRegen[2] = MathHelper.clamp_int(soulRegen[2], 0, 50);
 
         // spawnpointableObj & spawnpointableAltTriggerObj & burnOutOnRespawnObj
         spawnpointable = spawnpointableObj;

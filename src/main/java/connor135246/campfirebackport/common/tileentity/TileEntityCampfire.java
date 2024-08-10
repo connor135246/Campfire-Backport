@@ -329,12 +329,12 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
             {
                 int[] regenValues = EnumCampfireType.isSoulLike(getTypeIndex()) ? CampfireBackportConfig.soulRegen : CampfireBackportConfig.regularRegen;
 
-                int radius = regenValues[2];
+                int dist = regenValues[2];
                 if (isSignalFire())
-                    radius *= 1.5;
+                    dist *= 1.5;
 
                 List<EntityPlayer> playerlist = getWorldObj().getEntitiesWithinAABB(EntityPlayer.class,
-                        AxisAlignedBB.getBoundingBox(xCoord - radius, yCoord - radius, zCoord - radius, xCoord + radius, yCoord + radius, zCoord + radius));
+                        AxisAlignedBB.getBoundingBox(xCoord - dist, yCoord - dist, zCoord - dist, xCoord + dist, yCoord + dist, zCoord + dist));
 
                 for (EntityPlayer player : playerlist)
                     player.addPotionEffect(new PotionEffect(Potion.regeneration.id, regenValues[1], regenValues[0], true));
