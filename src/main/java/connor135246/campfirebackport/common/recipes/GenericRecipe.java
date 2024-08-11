@@ -67,6 +67,9 @@ public abstract class GenericRecipe
                     stack = CustomInput.doFluidDraining(stack, fluidAmount, player);
                 else
                     stack = CustomInput.doFluidFilling(stack, new FluidStack(FluidRegistry.getFluid(fluidData.getString(StringParsers.KEY_FluidName)), fluidAmount), player);
+
+                // do a reuse, just like how {@link connor135246.campfirebackport.common.compat.crafttweaker.IngredientFunctions#addFunction} does it.
+                reuse(cinput, stack, player);
             }
 
             if (stack != null)
@@ -112,6 +115,16 @@ public abstract class GenericRecipe
      * The stack is used. Usually that means it should be reduced in stack size.
      */
     protected abstract ItemStack use(CustomInput cinput, ItemStack stack, EntityPlayer player);
+
+    /**
+     * Applies a reuse for when draining/filling fluids, to cancel out the stack being reduced in stack size later in {@link #use}. <br>
+     * If {@link #use} does something different, override this.
+     */
+    protected void reuse(CustomInput cinput, ItemStack stack, EntityPlayer player)
+    {
+        if (stack != null)
+            stack.stackSize++;
+    }
 
     /**
      * for {@link #toString()}

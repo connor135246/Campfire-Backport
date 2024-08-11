@@ -384,6 +384,12 @@ public class CampfireStateChanger extends GenericRecipe implements Comparable<Ca
         return stack;
     }
 
+    @Override
+    protected void reuse(CustomInput cinput, ItemStack stack, EntityPlayer player)
+    {
+        // just like in {@link connor135246.campfirebackport.common.compat.crafttweaker.CampfireBackportCraftTweaking#addCampfireStateChanger}, we don't want to reuse. 
+    }
+
     // toString
     /**
      * for easy readin
