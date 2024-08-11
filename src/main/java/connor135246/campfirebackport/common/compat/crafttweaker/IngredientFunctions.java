@@ -1,5 +1,7 @@
 package connor135246.campfirebackport.common.compat.crafttweaker;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import minetweaker.api.item.IIngredient;
 import minetweaker.api.item.IngredientTransform;
 import stanhebben.zenscript.annotations.Optional;
@@ -63,7 +65,9 @@ public class IngredientFunctions
     {
         if (function.hasConditions() || function.hasTransforms())
         {
-            if (reuse && AbstractItemFunction.anyAppliedReuse(AbstractItemFunction.getFunctions(iingredient)))
+            AbstractItemFunction[] oldFunctions = AbstractItemFunction.getFunctions(iingredient);
+
+            if (reuse && AbstractItemFunction.anyAppliedReuse(oldFunctions))
                 reuse = false;
 
             AbstractItemFunction.forgetFunctions(iingredient);
@@ -81,7 +85,7 @@ public class IngredientFunctions
                     iingredient = IngredientTransform.reuse(iingredient);
             }
 
-            AbstractItemFunction.rememberFunction(iingredient, function);
+            AbstractItemFunction.rememberFunctions(iingredient, ArrayUtils.add(oldFunctions, function));
         }
 
         return iingredient;
