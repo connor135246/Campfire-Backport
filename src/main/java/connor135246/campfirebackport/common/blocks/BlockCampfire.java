@@ -633,7 +633,8 @@ public class BlockCampfire extends BlockContainer implements ICampfire
     @Override
     public boolean isBed(IBlockAccess world, int x, int y, int z, EntityLivingBase player)
     {
-        return isLit() && CampfireBackportConfig.spawnpointable.matches(this);
+        // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
+        return isLit() && CampfireBackportConfig.spawnpointable.matches(this) && !EnumCampfireType.isNetherlicious(getTypeIndex());
     }
 
     /**
@@ -641,8 +642,7 @@ public class BlockCampfire extends BlockContainer implements ICampfire
      */
     public boolean setRespawnPoint(World world, int x, int y, int z, EntityPlayer player)
     {
-        // TODO it doesn't really match the theme of the netherlicious campfires to be spawnpointable, so i exclude them here. in the future this will be properly toggleable.
-        if (isBed(world, x, y, z, player) && !EnumCampfireType.isNetherlicious(getTypeIndex()))
+        if (isBed(world, x, y, z, player))
         {
             if (!world.isRemote)
             {
