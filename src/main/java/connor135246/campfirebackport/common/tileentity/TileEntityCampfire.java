@@ -104,6 +104,9 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
             if (invCount > 0)
                 markDirty();
 
+            if (firstTick)
+                atmosphericCombustion = CampfireBackportCompat.atmosphericCombustion(getWorldObj());
+
             if (isLit())
             {
                 if (invCount > 0)
@@ -114,9 +117,6 @@ public class TileEntityCampfire extends TileEntity implements ISidedInventory, I
                 burnOutFromRain();
 
                 burnOutOverTime();
-
-                if (firstTick)
-                    atmosphericCombustion = CampfireBackportCompat.atmosphericCombustion(getWorldObj());
 
                 if (!firstTick && !atmosphericCombustion && distributedInterval(20L)
                         && !CampfireBackportCompat.localizedCombustion(getWorldObj(), getBlockType(), xCoord, yCoord, zCoord))
