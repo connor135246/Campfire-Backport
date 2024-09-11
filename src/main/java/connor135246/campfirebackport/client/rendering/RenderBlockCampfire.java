@@ -34,10 +34,13 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
     @Override
     public void renderInventoryBlock(Block block, int meta, int modelId, RenderBlocks renderer)
     {
-        GL11.glEnable(GL11.GL_CULL_FACE);
+        boolean cullface = GL11.glGetBoolean(GL11.GL_CULL_FACE);
+        if (!cullface)
+            GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
         renderCampfire(null, block, 5, renderer, true, false, true);
-        GL11.glDisable(GL11.GL_CULL_FACE);
+        if (!cullface)
+            GL11.glDisable(GL11.GL_CULL_FACE);
     }
 
     @Override
@@ -87,6 +90,12 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
 
         final boolean isLit = CampfireBackportBlocks.isLitCampfire(block);
         final boolean northSouth = !(meta == 4 || meta == 5);
+        // sideLogY: 3 pixels, from the ground to the bottom face of the upper logs
+        // logY1: 4 pixels, from the ground to top face of the lower logs
+        // logY2: 7 pixels, from the ground to top face of the upper logs
+        // firepitO: 5 pixels, from a side perpendicular to the facing direction to the edge of the firepit
+        // logO1: 1 pixel, from a side to the edge of the closer parallel log
+        // logO2: 11 pixels, from a side to the edge of the further parallel log
         final double sideLogY = 0.1875, logY1 = 0.25, logY2 = 0.4375, firepitO = 0.3125, logO1 = 0.0625, logO2 = 0.6875;
         final float colorYNeg, colorYPos, colorZ, colorX;
         if (flatSideColor)
