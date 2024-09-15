@@ -411,7 +411,7 @@ Some examples of these methods:
     mods.campfirebackport.addCampfireIgnitor("both", <ThermalExpansion:Tank:*>.drainFluid("lava", 150), "none");
 -Right-clicking with any Thermal Expansion tank that can hold lava will extinguish campfires and create up to 150 mB of lava
     mods.campfirebackport.addCampfireExtinguisher("both", <ThermalExpansion:Tank:*>.fillFluid("lava", 150), "none");
--After 600 ticks, 1000 mB of water and 1000 mB of lava are consumed from two items to make obsidian
+-After 600 ticks, 1000 mB of water and 1000 mB of lava are drained from two items to make obsidian
     mods.campfirebackport.addCampfireRecipe("both", [<*>.drainFluid("lava", 1000), <*>.drainFluid("water", 1000)], <minecraft:obsidian>, 600);
 
 Note: For backwards compatibility, .drainFluid can also be called .transformFluid.
@@ -428,7 +428,6 @@ Tips:
 Recipes created by Auto Recipe Discovery are lowest, followed by Data inputs, followed by Class inputs, followed by tool class inputs, followed by Ore Dictionary inputs, followed by Item inputs that don't specify a meta, followed by Item inputs that do.
 Within each of these categories, inputs with NBT data have higher priority, and inputs that use more than one item have the most priority.
 When you try to use an item on a campfire, it will use whatever recipe matches first. (Also, Recipes are checked before Extinguishers/Ignitors.)
-This allows you to have, for example, an Ore Dictionary recipe that applies to every logWood, but allows you to override it for specific item in logWood if you'd like.
 Check the order of your recipes by viewing recipes in NEI, or setting the config option #Debug: Print Campfire Recipes to true.
 
 
