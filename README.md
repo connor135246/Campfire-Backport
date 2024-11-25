@@ -17,3 +17,4 @@ The "+nomixin" jar doesn't, and requires a separate mixin mod such as [UniMixins
 Use the build argument `-Pnomixin` to build the "+nomixin" jar.  
 
 Compile-time dependencies in the "lib2" folder include Advanced Rocketry, Botania, CodeChickenLib, CraftTweaker, Galacticraft Core, Gregtech 6, NEI, Thaumcraft, Waila, and Witchery.
+More details [here](https://github.com/connor135246/Campfire-Backport/blob/master/build.gradle#L63-L82).
