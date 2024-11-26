@@ -243,7 +243,7 @@ public class RenderBlockCampfire implements ISimpleBlockRenderingHandler
         // fire
         if (isLit)
         {
-            boolean lighting = GL11.glGetBoolean(GL11.GL_LIGHTING);
+            boolean lighting = doDraw && GL11.glGetBoolean(GL11.GL_LIGHTING);
 
             if (doDraw)
             {
